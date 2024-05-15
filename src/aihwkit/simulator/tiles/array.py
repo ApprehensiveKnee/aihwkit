@@ -94,7 +94,7 @@ class TileModuleArray(Module, TileModuleBase):
         return [base + (i < extra) for i in range(n_splits)]
 
     @no_grad()
-    def set_weights(self, weight: Tensor, bias: Optional[Tensor] = None, **kwargs: Any) -> None:
+    def set_weights(self, weight: Tensor, bias: Optional[Tensor] = None,**kwargs: Any) -> None:
         """Set the weight (and bias) values with given tensors to the analog crossbar(s).
 
         Args:

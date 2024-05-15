@@ -143,6 +143,7 @@ def convert_to_analog(
         inplace: Whether to perform in-place conversion (without deepcopy)
 
         verbose: Increase verbosity. Will print converted layers.
+    
 
     Returns:
         Module where all the digital layers are replaced with analog
@@ -175,7 +176,7 @@ def convert_to_analog(
         module = conversion_map[module.__class__].from_digital(
             module,
             specific_rpu_config_fun(module_name, module, deepcopy(rpu_config)),
-            tile_module_class,
+            tile_module_class
         )
 
     # Convert children.
@@ -229,7 +230,7 @@ def convert_to_analog_mapped(
     ensure_analog_root: bool = True,
     exclude_modules: Optional[List[str]] = None,
     inplace: bool = False,
-    verbose: bool = False,
+    verbose: bool = False
 ) -> Module:
     """Convert a given digital model to its analog counterpart with tile
     mapping support.
@@ -287,7 +288,6 @@ def convert_to_analog_mapped(
         ensure_analog_root,
         exclude_modules,
         inplace,
-        verbose,
     )
 
 

@@ -31,7 +31,7 @@ else:
 
 ALL_SKIP_FIELD = "is_perfect"
 FIELD_MAP = {"forward": "forward_io", "backward": "backward_io"}
-ALWAYS_INCLUDE = ["forward", "backward", "update"]
+ALWAYS_INCLUDE = ["forward", "backward", "update", "quantizer"]
 
 
 def get_bindings_class(params: Any, data_type: RPUDataType) -> Optional[Type]:
@@ -150,7 +150,7 @@ def tile_parameters_to_bindings(params: Any, data_type: RPUDataType) -> Any:
 
     for field in fields(params):
         # Get the mapped field name, if needed.
-
+        print(field.name)
         if field.name not in ALWAYS_INCLUDE and not field.metadata.get("bindings_include", False):
             continue
 

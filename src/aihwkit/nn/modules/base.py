@@ -176,7 +176,7 @@ class AnalogLayerBase:
         """
         return [d.device for d in self.analog_tiles()]
 
-    def set_weights(self, weight: Tensor, bias: Optional[Tensor] = None, **kwargs: Any) -> None:
+    def set_weights(self, weight: Tensor, bias: Optional[Tensor] = None,**kwargs: Any) -> None:
         """Set the weight (and bias) tensors to the analog crossbar.
 
         Args:

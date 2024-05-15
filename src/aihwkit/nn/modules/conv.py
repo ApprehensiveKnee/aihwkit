@@ -268,7 +268,7 @@ class AnalogConv1d(_AnalogConvNd):
 
     @classmethod
     def from_digital(
-        cls, module: Conv1d, rpu_config: "RPUConfigBase", tile_module_class: Optional[Type] = None
+        cls, module: Conv1d, rpu_config: "RPUConfigBase", tile_module_class: Optional[Type] = None,
     ) -> "AnalogConv1d":
         """Return an AnalogConv1d layer from a torch Conv1d layer.
 
@@ -492,7 +492,6 @@ class AnalogConv2d(_AnalogConvNd):
             rpu_config,
             tile_module_class,
         )
-
         analog_layer.set_weights(module.weight, module.bias)
         return analog_layer.to(module.weight.device)
 

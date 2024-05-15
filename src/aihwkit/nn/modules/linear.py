@@ -111,7 +111,8 @@ class AnalogLinear(AnalogLayerBase, Linear):
                 `TileModule`. If not given, will select based on
                 the `MappingParameter` setting either
                 :class:`~aihwkit.simulator.tiles.base.TileModule` or
-                :class:`~aihwkit.simulator.tiles.array.TileModuleArray`
+                :class:`~aihwkit.simulator.tiles.array.TileModuleArray`.
+
 
         Returns:
             an AnalogLinear layer based on the digital Linear ``module``.
@@ -124,6 +125,7 @@ class AnalogLinear(AnalogLayerBase, Linear):
             tile_module_class,
         )
 
+        
         analog_layer.set_weights(module.weight, module.bias)
         return analog_layer.to(module.weight.device)
 

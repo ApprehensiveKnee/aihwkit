@@ -24,6 +24,7 @@ from aihwkit.simulator.parameters import (
     MappingParameter,
     InputRangeParameter,
     PrePostProcessingParameter,
+    WeightQuantizerParameter,
 )
 from aihwkit.simulator.parameters.enums import (
     RPUDataType,

@@ -37,6 +37,7 @@ from aihwkit.simulator.parameters import (
     WeightClipParameter,
     WeightModifierParameter,
     WeightRemapParameter,
+    WeightQuantizerParameter,
 )
 from aihwkit.inference import (
     BaseDriftCompensation,
@@ -227,6 +228,14 @@ class InferenceRPUConfig(IOManagedRPUConfig):
     The modifier is used to do hardware-aware training, so that the
     model becomes more noise robust during inference (e.g. when the
     ``noise_model`` is employed).
+    """
+
+    quantizer: WeightQuantizerParameter = field(default_factory=WeightQuantizerParameter)
+
+    """Parameter for weight quantizer.
+
+    If the modifier type is set, t is called just once, to quantize the weights at the
+    beginning of the testing/evaluation phase.
     """
 
     # The following fields are not included in `__init__`, and should be

@@ -29,6 +29,9 @@ from aihwkit.simulator.parameters.base import RPUConfigBase
 from aihwkit.simulator.parameters.mapping import MappableRPU
 
 
+
+
+
 class _AnalogConvNdMapped(AnalogLayerBase, _ConvNd):
     """Base class for convolution layers with tile mapping."""
 
@@ -279,7 +282,7 @@ class _AnalogConvNdMapped(AnalogLayerBase, _ConvNd):
         return result
 
     @no_grad()
-    def set_weights(self, weight: Tensor, bias: Optional[Tensor] = None, **kwargs: Any) -> None:
+    def set_weights(self, weight: Tensor, bias: Optional[Tensor] = None,**kwargs: Any) -> None:
         """Set the weight (and bias) tensors to the analog crossbar.
 
         Args:
@@ -425,7 +428,7 @@ class AnalogConv1dMapped(_AnalogConvNdMapped):
 
     @classmethod
     def from_digital(
-        cls, module: Conv1d, rpu_config: RPUConfigBase, tile_module_class: Optional[Type] = None
+        cls, module: Conv1d, rpu_config: RPUConfigBase, tile_module_class: Optional[Type] = None,
     ) -> "AnalogConv1dMapped":
         """Return an AnalogConv1dMapped layer from a torch Conv1d layer.
 
@@ -460,7 +463,6 @@ class AnalogConv1dMapped(_AnalogConvNdMapped):
             rpu_config,
             tile_module_class,
         )
-
         analog_layer.set_weights(module.weight, module.bias)
         return analog_layer.to(module.weight.device)
 
@@ -628,7 +630,7 @@ class AnalogConv2dMapped(_AnalogConvNdMapped):
 
     @classmethod
     def from_digital(
-        cls, module: Conv2d, rpu_config: RPUConfigBase, tile_module_class: Optional[Type] = None
+        cls, module: Conv2d, rpu_config: RPUConfigBase, tile_module_class: Optional[Type] = None,
     ) -> "AnalogConv2dMapped":
         """Return an AnalogConv2dMapped layer from a torch Conv2d layer.
 
@@ -834,7 +836,7 @@ class AnalogConv3dMapped(_AnalogConvNdMapped):
 
     @classmethod
     def from_digital(
-        cls, module: Conv3d, rpu_config: RPUConfigBase, tile_module_class: Optional[Type] = None
+        cls, module: Conv3d, rpu_config: RPUConfigBase, tile_module_class: Optional[Type] = None,
     ) -> "AnalogConv3dMapped":
         """Return an AnalogConv3dMapped layer from a torch Conv3d layer.
 

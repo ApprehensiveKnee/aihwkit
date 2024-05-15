@@ -182,7 +182,7 @@ class SimulatorTile:
         raise NotImplementedError
 
     def set_weights(self, weight: Tensor) -> None:
-        """Stets the analog weights."""
+        """Sets the analog weights."""
         raise NotImplementedError
 
     def get_x_size(self) -> int:

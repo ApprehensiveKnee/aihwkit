@@ -42,4 +42,5 @@ from .inference import (
     WeightRemapParameter,
     SimpleDriftParameter,
     DriftParameter,
+    WeightQuantizerParameter,
 )
