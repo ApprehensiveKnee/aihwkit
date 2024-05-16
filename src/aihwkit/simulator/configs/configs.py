@@ -94,6 +94,7 @@ class IOManagedRPUConfig(MappableRPU, PrePostProcessingRPU):
         if not hasattr(self, "runtime"):
             # legacy
             self.runtime = RuntimeParameter()
+        print("ciao")
         return tile_parameters_to_bindings(self, self.runtime.data_type)
 
 

@@ -200,6 +200,28 @@ inline T getDiscretizedValueSR(T value, T res, RNGClass &rng) {
   return (res <= (T)0.0) ? value : ((T)RPU_ROUNDFUNF(value / res) * res);
 }
 
+// -- MODIFIED: utility function for non uniform quantization
+
+template <typename T, typename RNGClass>
+inline T getDiscretizedValueNonUniform(T value, const std::vector<T> &quant_values, RNGClass &rng) {
+
+  if (quant_values.size() == 0) {
+    RPU_FATAL("Quantization values are empty.");
+  }
+
+  T min_diff = std::numeric_limits<T>::max();
+  T quantized_value = quant_values[0];
+  for (size_t i = 0; i < quant_values.size(); i++) {
+    T diff = std::abs(value - quant_values[i]);
+    if (diff < min_diff) {
+      min_diff = diff;
+      quantized_value = quant_values[i];
+    }
+  }
+  return quantized_value;
+}
+// -- MODIFIED: utility function for non uniform quantization
+
 template <typename T> inline T **Array_2D_Get(size_t r, size_t c) {
   T **arr = new T *[r];
   arr[0] = new T[(size_t)r * c];
