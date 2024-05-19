@@ -14,6 +14,7 @@
 #include "rpu_base.h"
 #include "rpu_pulsed.h"
 #include "utility_functions.h"
+#include "weight_quantizer.h"
 #include "weight_clipper.h"
 #include "weight_modifier.h"
 #include "weight_remapper.h"
@@ -190,7 +191,7 @@ void declare_rpu_tiles(py::module &m, std::string type_name_add) {
 
       .def(
           "set_weights",
-          [](Class &self, torch::Tensor &weights) {
+          [](Class &self, torch::Tensor &weights, const RPU::WeightQuantizerParameter &wqpar) {
             // Validate the weights dimensions.
             if (weights.dim() != 2 || weights.size(0) != self.getDSize() ||
                 weights.size(1) != self.getXSize()) {
@@ -204,9 +205,11 @@ void declare_rpu_tiles(py::module &m, std::string type_name_add) {
 
             // Call RPU function.
             std::lock_guard<std::mutex> lock(self.mutex_);
-            return self.setWeights(reinterpret_cast<T_RPU *>(cpu_weights.template data_ptr<T>()));
+            return self.setWeights(reinterpret_cast<T_RPU *>(cpu_weights.template data_ptr<T>()), wqpar);
+            
+
           },
-          py::arg("weights"),
+          py::arg("weights"),py::arg("wqpar") = RPU::default_weight_quantizer_parameter,
           R"pbdoc(
            Set the tile weights exactly.
 

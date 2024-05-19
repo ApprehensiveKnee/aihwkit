@@ -79,15 +79,15 @@ class AnalogLinear(AnalogLayerBase, Linear):
             self._parameters.pop("bias", None)
         self.bias = bias
 
-        self.reset_parameters()
+        self.reset_parameters(rpu_config)
 
-    def reset_parameters(self) -> None:
+    def reset_parameters(self, rpu_config:Optional[RPUConfigBase] = None) -> None:
         """Reset the parameters (weight and bias)."""
         if hasattr(self, "analog_module"):
             bias = self.bias
             self.weight, self.bias = self.get_weights()  # type: ignore
             super().reset_parameters()
-            self.set_weights(self.weight, self.bias)  # type: ignore
+            self.set_weights(self.weight, self.bias, rpu_config.quantization)  # type: ignore
             self.weight, self.bias = None, bias
 
     def forward(self, x_input: Tensor) -> Tensor:
@@ -125,8 +125,7 @@ class AnalogLinear(AnalogLayerBase, Linear):
             tile_module_class,
         )
 
-        
-        analog_layer.set_weights(module.weight, module.bias)
+        analog_layer.set_weights(module.weight, module.bias, rpu_config.quantization)
         return analog_layer.to(module.weight.device)
 
     @classmethod

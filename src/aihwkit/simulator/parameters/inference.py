@@ -359,7 +359,7 @@ class WeightQuantizerParameter(_PrintableMixin):
     bound
     """
 
-    quantize_last_column: bool = False
+    quantize_last_column: bool = True
     """Whether to quantize the last column of the weight matrix (usually the bias).
     
     
@@ -367,11 +367,12 @@ class WeightQuantizerParameter(_PrintableMixin):
     along with the other weights.
     """
 
-    uniform_quant: bool = False
+    uniform_quant: bool = True
     """Whether to use uniform quantization.
 
     If set to True, the quantization levels will be uniformly spaced between
-    -bound and bound.
+    -bound and bound. If set to False, the quantization levels used will have to 
+    be specified in the quant_values parameter.
     """
 
     quant_values: List[float] = field(

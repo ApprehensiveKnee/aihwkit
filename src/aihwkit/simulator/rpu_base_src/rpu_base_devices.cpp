@@ -454,7 +454,8 @@ template <typename T> void declare_rpu_devices(py::module &m, std::string type_n
       // Properties from this class.
       .def_readwrite("diffusion", &RPU::SimpleMetaParameter<T>::diffusion)
       .def_readwrite("lifetime", &RPU::SimpleMetaParameter<T>::lifetime)
-      .def_readwrite("drift", &RPU::SimpleMetaParameter<T>::drift);
+      .def_readwrite("drift", &RPU::SimpleMetaParameter<T>::drift)
+      .def_readwrite("quantization", &RPU::SimpleMetaParameter<T>::quant);
 
   py::class_<RPU::PulsedMetaParameter<T>>(m, NAME("AnalogTileParameter"))
       .def(py::init<>())
@@ -470,7 +471,8 @@ template <typename T> void declare_rpu_devices(py::module &m, std::string type_n
           })
       .def_readwrite("forward_io", &RPU::PulsedMetaParameter<T>::f_io)
       .def_readwrite("backward_io", &RPU::PulsedMetaParameter<T>::b_io)
-      .def_readwrite("update", &RPU::PulsedMetaParameter<T>::up);
+      .def_readwrite("update", &RPU::PulsedMetaParameter<T>::up)
+      .def_readwrite("quantization", &RPU::PulsedMetaParameter<T>::quant);
 
   py::class_<RPU::PulsedUpdateMetaParameter<T>>(m, NAME("AnalogTileUpdateParameter"))
       .def(py::init<>())

@@ -194,6 +194,9 @@ template <typename T> void SimpleMetaParameter<T>::printToStream(std::stringstre
     ss << "\t diffusion:\t\t" << diffusion << std::endl;
     flicker.printToStream(ss);
   }
+  if (quant.quantize > 0.0) {
+    quant.printToStream(ss);
+  }
 }
 
 template <typename T> void FlickerParameter<T>::printToStream(std::stringstream &ss) const {
@@ -1294,21 +1297,29 @@ template <typename T> void RPUSimple<T>::applyDelayedWeights() {
 /*********************************************************************************/
 /* Set/Get weights related*/
 
-template <typename T> void RPUSimple<T>::setWeightsUniformRandom(T min_value, T max_value) {
+template <typename T> void RPUSimple<T>::setWeightsUniformRandom(T min_value, T max_value, const WeightQuantizerParameter &quant) {
+  // instantiate WeightQuantizer
+  WeightQuantizer<T> wq(this->x_size_, this->d_size_);
   T **w = this->getWeightsPtr();
   for (int j = 0; j < this->x_size_; ++j) {
     for (int i = 0; i < this->d_size_; ++i) {
       w[i][j] = rng_->sampleUniform(min_value, max_value);
     }
   }
+  wq.apply(w, quant);
 }
 
-template <typename T> void RPUSimple<T>::setWeights(const T *weightsptr) {
+template <typename T> void RPUSimple<T>::setWeights(const T *weightsptr, const WeightQuantizerParameter &quant) {
+  // instantiate WeightQuantizer
+  WeightQuantizer<T> wq(this->x_size_, this->d_size_);
   T *w = this->getWeightsPtr()[0];
   if (weightsptr != w) {
     int size = this->d_size_ * this->x_size_;
     memcpy(w, weightsptr, size * sizeof(T));
+    // apply quantization on set weights
+    wq.apply(w, quant);
   }
+  
 }
 
 template <typename T> void RPUSimple<T>::setWeightsWithAlpha(const T *weightsptr, T assumed_wmax) {

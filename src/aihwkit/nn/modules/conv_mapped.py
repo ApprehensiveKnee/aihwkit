@@ -27,6 +27,7 @@ from aihwkit.simulator.tiles.module import TileModule
 from aihwkit.exceptions import AnalogBiasConfigError, ModuleError, ConfigError
 from aihwkit.simulator.parameters.base import RPUConfigBase
 from aihwkit.simulator.parameters.mapping import MappableRPU
+from aihwkit.simulator.parameters.inference import WeightQuantizerParameter
 
 
 
@@ -125,7 +126,7 @@ class _AnalogConvNdMapped(AnalogLayerBase, _ConvNd):
         # Unregister weight/bias as a parameter but keep it as a
         # field (needed for syncing still)
         self.unregister_parameter("weight")
-        self.reset_parameters()
+        self.reset_parameters(rpu_config)
 
     def get_split_sizes(self, size: int, split_max_size: int, group_size: int = 1) -> List[int]:
         """Computed the split sizes across channels.
@@ -168,12 +169,12 @@ class _AnalogConvNdMapped(AnalogLayerBase, _ConvNd):
         nom = size + 2 * self.padding[i] - self.dilation[i] * (self.kernel_size[i] - 1) - 1
         return nom // self.stride[i] + 1
 
-    def reset_parameters(self) -> None:
+    def reset_parameters(self, rpu_config:Optional[RPUConfigBase] = None) -> None:
         """Reset the parameters (weight and bias)."""
         if hasattr(self, "array"):
             self.weight, _ = self.get_weights()
             super().reset_parameters()
-            self.set_weights(self.weight, self.bias)
+            self.set_weights(self.weight, self.bias, rpu_config.quantization)
             self.weight = None
 
     def _calculate_indexes(
@@ -282,7 +283,7 @@ class _AnalogConvNdMapped(AnalogLayerBase, _ConvNd):
         return result
 
     @no_grad()
-    def set_weights(self, weight: Tensor, bias: Optional[Tensor] = None,**kwargs: Any) -> None:
+    def set_weights(self, weight: Tensor, bias: Optional[Tensor] = None, quant: Optional[WeightQuantizerParameter] = None, **kwargs: Any) -> None:
         """Set the weight (and bias) tensors to the analog crossbar.
 
         Args:
@@ -305,7 +306,7 @@ class _AnalogConvNdMapped(AnalogLayerBase, _ConvNd):
                 tile_weight = in_weight[out_start:out_end, :]
                 out_start = out_end
 
-                analog_tile.set_weights(tile_weight, None, **kwargs)
+                analog_tile.set_weights(tile_weight, None, quant,**kwargs)
 
         if self.bias is not None and bias is not None:
             with no_grad():
@@ -463,7 +464,7 @@ class AnalogConv1dMapped(_AnalogConvNdMapped):
             rpu_config,
             tile_module_class,
         )
-        analog_layer.set_weights(module.weight, module.bias)
+        analog_layer.set_weights(module.weight, module.bias, rpu_config.quantization)
         return analog_layer.to(module.weight.device)
 
     @classmethod
@@ -666,7 +667,7 @@ class AnalogConv2dMapped(_AnalogConvNdMapped):
             tile_module_class,
         )
 
-        analog_layer.set_weights(module.weight, module.bias)
+        analog_layer.set_weights(module.weight, module.bias, rpu_config.quantization)
         return analog_layer.to(module.weight.device)
 
     @classmethod
@@ -873,7 +874,7 @@ class AnalogConv3dMapped(_AnalogConvNdMapped):
             tile_module_class,
         )
 
-        analog_layer.set_weights(module.weight, module.bias)
+        analog_layer.set_weights(module.weight, module.bias, rpu_config.quantization)
         return analog_layer.to(module.weight.device)
 
     @classmethod

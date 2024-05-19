@@ -78,8 +78,8 @@ public:
 
   void getWeightsReal(T *weightsptr) override;
   void setWeightsReal(const T *weightsptr, int n_loops = 25) override;
-  void setWeightsUniformRandom(T min_value, T max_value) override;
-  void setWeights(const T *weightsptr) override;
+  void setWeightsUniformRandom(T min_value, T max_value, const WeightQuantizerParameter &quant = default_weight_quantizer_parameter) override;
+  void setWeights(const T *weightsptr, const WeightQuantizerParameter &quant = default_weight_quantizer_parameter) override;
 
   void applyWeightUpdate(T *dw_and_current_weights_out) override;
 
@@ -144,6 +144,7 @@ template <typename T> struct PulsedMetaParameter {
 
   IOMetaParameter<T> f_io;
   IOMetaParameter<T> b_io;
+  WeightQuantizerParameter quant;
 
   PulsedUpdateMetaParameter<T> up;
 

@@ -38,6 +38,7 @@ void declare_utils(py::module &m_devices, py::module &m_tiles) {
   // -- MODIFIED: added quantization parameter
   py::class_<RPU::WeightQuantizerParameter>(m_tiles, "WeightQuantizerParameter")
       .def(py::init<>())
+      .def("copy_from", &RPU::WeightQuantizerParameter::copy_from)
       .def_readwrite("quantize", &RPU::WeightQuantizerParameter::quantize)
       .def_readwrite("bound", &RPU::WeightQuantizerParameter::bound)
       .def_readwrite("rel_to_actual_bound", &RPU::WeightQuantizerParameter::rel_to_actual_bound)

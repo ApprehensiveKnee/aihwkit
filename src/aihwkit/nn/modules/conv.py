@@ -105,7 +105,7 @@ class _AnalogConvNd(AnalogLayerBase, _ConvNd):
             self._parameters.pop("bias", None)
         self.bias = bias
 
-        self.reset_parameters()
+        self.reset_parameters(rpu_config)
 
     def get_tile_size(self, in_channels: int, groups: int, kernel_size: Tuple[int, ...]) -> int:
         """Calculate the tile size."""
@@ -117,13 +117,13 @@ class _AnalogConvNd(AnalogLayerBase, _ConvNd):
         nom = size + 2 * self.padding[i] - self.dilation[i] * (self.kernel_size[i] - 1) - 1
         return nom // self.stride[i] + 1
 
-    def reset_parameters(self) -> None:
+    def reset_parameters(self, rpu_config:Optional[RPUConfigBase] = None) -> None:
         """Reset the parameters (weight and bias)."""
         if hasattr(self, "analog_module"):
             bias = self.bias
             self.weight, self.bias = self.get_weights()  # type: ignore
             super().reset_parameters()
-            self.set_weights(self.weight, self.bias)
+            self.set_weights(self.weight, self.bias, rpu_config.quantization)
             self.weight, self.bias = None, bias
 
     @no_grad()
@@ -296,7 +296,7 @@ class AnalogConv1d(_AnalogConvNd):
             tile_module_class,
         )
 
-        analog_layer.set_weights(module.weight, module.bias)
+        analog_layer.set_weights(module.weight, module.bias, rpu_config.quantization)
         return analog_layer.to(module.weight.device)
 
     @classmethod
@@ -492,7 +492,7 @@ class AnalogConv2d(_AnalogConvNd):
             rpu_config,
             tile_module_class,
         )
-        analog_layer.set_weights(module.weight, module.bias)
+        analog_layer.set_weights(module.weight, module.bias, rpu_config.quantization)
         return analog_layer.to(module.weight.device)
 
     @classmethod
@@ -687,7 +687,7 @@ class AnalogConv3d(_AnalogConvNd):
             tile_module_class,
         )
 
-        analog_layer.set_weights(module.weight, module.bias)
+        analog_layer.set_weights(module.weight, module.bias, rpu_config.quantization)
         return analog_layer.to(module.weight.device)
 
     @classmethod

@@ -40,6 +40,7 @@ from aihwkit.nn import (
 
 RPUConfigGeneric = TypeVar("RPUConfigGeneric")
 
+
 _DEFAULT_CONVERSION_MAP = {
     Linear: AnalogLinear,
     Conv1d: AnalogConv1d,
@@ -156,7 +157,6 @@ def convert_to_analog(
     # pylint: disable=too-many-branches, too-many-locals
     if exclude_modules is None:
         exclude_modules = []
-
     if not inplace:
         module = deepcopy(module)
 
@@ -168,16 +168,18 @@ def convert_to_analog(
 
     if specific_rpu_config_fun is None:
         specific_rpu_config_fun = specific_rpu_config_id
-
     # Convert parent.
     if module.__class__ in conversion_map and module_name not in exclude_modules:
         if verbose:
             print(f"Converted '{module_name}' to '{conversion_map[module.__class__].__name__}'.")
+        
         module = conversion_map[module.__class__].from_digital(
             module,
             specific_rpu_config_fun(module_name, module, deepcopy(rpu_config)),
             tile_module_class
         )
+
+    
 
     # Convert children.
     convert_dic = {}
@@ -210,13 +212,29 @@ def convert_to_analog(
         convert_dic[name] = conversion_map[mod.__class__].from_digital(
             mod, specific_rpu_config_fun(full_name, mod, deepcopy(rpu_config)), tile_module_class
         )
+    
+
 
     for name, new_mod in convert_dic.items():
         module._modules[name] = new_mod  # pylint: disable=protected-access
 
+
     # in case of root, make sure it is wrapped as analog
     if ensure_analog_root and not module_name and not isinstance(module, AnalogLayerBase):
         module = AnalogWrapper(module)
+
+    
+    if rpu_config.quantization is not None:
+        # Loop over the layers and set the quantization
+        # Check that the module has the analog_modules method or is not an AnalogSequential
+        if hasattr(module, "analog_modules") and not (isinstance(module, AnalogSequential) or isinstance(module, AnalogWrapper)):
+            for analog_layer in module.analog_modules():
+                # For each layer, reset the original weights and set the quantization
+                weight, bias = analog_layer.get_weights()
+                analog_layer.set_weights(weight, bias, rpu_config.quantization)
+        elif isinstance(module, AnalogSequential) or isinstance(module, AnalogWrapper):
+            weight_dict = module.get_weights()
+            module.set_weights(weight_dict, rpu_config.quantization)
 
     return module
 

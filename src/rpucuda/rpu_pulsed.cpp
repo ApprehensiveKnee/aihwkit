@@ -55,9 +55,11 @@ template <typename T>
 RPUPulsed<T> *PulsedMetaParameter<T>::createRPUArray(
     int x_size, int d_size, AbstractRPUDeviceMetaParameter<T> *dp) {
   auto *rpu = new RPUPulsed<T>(x_size, d_size);
+  auto wq = this->quant;
   rpu->populateParameter(this, dp);
-  rpu->setWeightsUniformRandom(-0.1, 0.1);
+  rpu->setWeightsUniformRandom(-0.1, 0.1, wq);
   rpu->setLearningRate(0.1);
+  
   return rpu;
 };
 
@@ -77,6 +79,8 @@ void PulsedMetaParameter<T>::printToStream(std::stringstream &ss, bool suppress_
     ss << "Update:" << std::endl;
     up.printToStream(ss);
   }
+  ss << "Quantization:" << std::endl;
+  quant.printToStream(ss);
 }
 
 template struct PulsedMetaParameter<float>;
@@ -285,15 +289,16 @@ template <typename T> void RPUPulsed<T>::clipWeights(const WeightClipParameter &
   }
 }
 
-template <typename T> void RPUPulsed<T>::setWeightsUniformRandom(T min_value, T max_value) {
+template <typename T> void RPUPulsed<T>::setWeightsUniformRandom(T min_value, T max_value, const WeightQuantizerParameter &quant) {
   CHECK_RPU_DEVICE_INIT;
-  RPUSimple<T>::setWeightsUniformRandom(min_value, max_value);
+  RPUSimple<T>::setWeightsUniformRandom(min_value, max_value, quant);
   rpu_device_->onSetWeights(this->getWeightsPtr());
 }
 
-template <typename T> void RPUPulsed<T>::setWeights(const T *weightsptr) {
+template <typename T> void RPUPulsed<T>::setWeights(const T *weightsptr, const WeightQuantizerParameter &quant) {
   CHECK_RPU_DEVICE_INIT;
-  RPUSimple<T>::setWeights(weightsptr);
+  std::cout << std::endl;
+  RPUSimple<T>::setWeights(weightsptr, quant);
   rpu_device_->onSetWeights(this->getWeightsPtr());
 }
 

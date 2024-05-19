@@ -17,6 +17,7 @@
 #include "weight_drifter.h"
 #include "weight_modifier.h"
 #include "weight_remapper.h"
+#include "weight_quantizer.h"
 #include <cfenv>
 #include <iostream>
 #include <memory>
@@ -177,6 +178,7 @@ template <typename T> struct SimpleMetaParameter {
 
   FlickerParameter<T> flicker;
   DriftParameter<T> drift;
+  WeightQuantizerParameter quant;
 
   virtual void printToStream(std::stringstream &ss) const;
   void print() const {
@@ -187,8 +189,9 @@ template <typename T> struct SimpleMetaParameter {
 
   RPUSimple<T> *createRPUArray(int x_size, int d_size) {
     auto *rpu = new RPUSimple<T>(x_size, d_size);
+    auto wq = this->quant;
     rpu->populateParameter(this);
-    rpu->setWeightsUniformRandom(-0.1, 0.1);
+    rpu->setWeightsUniformRandom(-0.1, 0.1, wq);
     rpu->setLearningRate(0.1);
     return rpu;
   };
@@ -271,14 +274,14 @@ public:
   /* This is to set the random seed. This is currently, however, NOT
      causing all seeds to be set. Some seeds remain random!*/
   virtual void setRandomSeed(unsigned int seed);
-  virtual void setWeightsUniformRandom(T min_value, T max_value);
+  virtual void setWeightsUniformRandom(T min_value, T max_value, const WeightQuantizerParameter &quant = default_weight_quantizer_parameter);
 
   /* This scales the weights by applying an (digital) output scale
      which represents the abs(max) of the weights*/
   void setWeightsWithAlpha(const T *weightsptr, T assumed_wmax);
 
   /* setWeights* set the weights perfectly*/
-  virtual void setWeights(const T *weightsptr);
+  virtual void setWeights(const T *weightsptr, const WeightQuantizerParameter &quant = default_weight_quantizer_parameter );
   void
   setWeightsAndBias(const T *weightsptr, const T *biasptr, bool real_if = false, int n_loops = 1);
   void setWeightsAndBiasWithAlpha(

@@ -106,5 +106,5 @@ class AnalogLinearMapped(AnalogLinear):
             tile_module_class,
         )
 
-        analog_layer.set_weights(module.weight, module.bias)
+        analog_layer.set_weights(module.weight, module.bias, rpu_config.quantization)
         return analog_layer.to(module.weight.device)

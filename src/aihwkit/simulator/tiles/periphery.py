@@ -42,6 +42,8 @@ from torch.linalg import lstsq
 from aihwkit.exceptions import TileError, ConfigError
 from aihwkit.simulator.tiles.base import BaseTile, SimulatorTileWrapper, SimulatorTile
 
+from aihwkit.simulator.parameters.inference import WeightQuantizerParameter
+from aihwkit.simulator.rpu_base import tiles
 from aihwkit.simulator.parameters.mapping import MappingParameter
 from aihwkit.simulator.parameters.pre_post import PrePostProcessingRPU, InputRangeParameter
 
@@ -110,6 +112,7 @@ class TileWithPeriphery(BaseTile, SimulatorTileWrapper):
         self,
         weight: Tensor,
         bias: Optional[Tensor] = None,
+        quant: Optional[WeightQuantizerParameter] = None,
         apply_weight_scaling: bool = True,
         realistic: bool = False,
         weight_scaling_omega: Optional[float] = None,
@@ -163,10 +166,14 @@ class TileWithPeriphery(BaseTile, SimulatorTileWrapper):
 
         if apply_weight_scaling:
             combined_weights = self.apply_weight_scaling(combined_weights, weight_scaling_omega)
-        self.tile.set_weights(combined_weights)
+
+        new_quant = tiles.WeightQuantizerParameter()
+        new_quant.copy_from(quant)
+        self.tile.set_weights(combined_weights, new_quant)
 
         if realistic:
             self.program_weights()
+
 
     @no_grad()
     def get_weights(

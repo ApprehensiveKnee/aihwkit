@@ -74,6 +74,14 @@ class IOManagedRPUConfig(MappableRPU, PrePostProcessingRPU):
     bindings_class: ClassVar[Optional[Union[Type, str]]] = "AnalogTileParameter"
     bindings_module: ClassVar[Optional[str]] = "devices"
 
+    quantization: WeightQuantizerParameter = field(default_factory=WeightQuantizerParameter, metadata=dict(bindings_include=True))
+    
+    """Parameter for weight quantizer.
+
+    If the modifier type is set, t is called just once, to quantize the weights at the
+    beginning of the testing/evaluation phase.
+    """
+
     forward: IOParameters = field(
         default_factory=IOParameters, metadata=dict(bindings_include=True)
     )
@@ -94,7 +102,6 @@ class IOManagedRPUConfig(MappableRPU, PrePostProcessingRPU):
         if not hasattr(self, "runtime"):
             # legacy
             self.runtime = RuntimeParameter()
-        print("ciao")
         return tile_parameters_to_bindings(self, self.runtime.data_type)
 
 
@@ -231,13 +238,6 @@ class InferenceRPUConfig(IOManagedRPUConfig):
     ``noise_model`` is employed).
     """
 
-    quantizer: WeightQuantizerParameter = field(default_factory=WeightQuantizerParameter)
-
-    """Parameter for weight quantizer.
-
-    If the modifier type is set, t is called just once, to quantize the weights at the
-    beginning of the testing/evaluation phase.
-    """
 
     # The following fields are not included in `__init__`, and should be
     # treated as read-only.

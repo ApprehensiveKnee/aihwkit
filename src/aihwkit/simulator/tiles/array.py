@@ -19,6 +19,7 @@ from torch.autograd import no_grad
 
 from aihwkit.simulator.tiles.base import TileModuleBase
 from aihwkit.exceptions import TileModuleError
+from aihwkit.simulator.parameters import WeightQuantizerParameter
 
 if TYPE_CHECKING:
     from aihwkit.simulator.configs.configs import MappableRPU
@@ -94,7 +95,7 @@ class TileModuleArray(Module, TileModuleBase):
         return [base + (i < extra) for i in range(n_splits)]
 
     @no_grad()
-    def set_weights(self, weight: Tensor, bias: Optional[Tensor] = None,**kwargs: Any) -> None:
+    def set_weights(self, weight: Tensor, bias: Optional[Tensor] = None, quant: Optional[WeightQuantizerParameter] = None,**kwargs: Any) -> None:
         """Set the weight (and bias) values with given tensors to the analog crossbar(s).
 
         Args:
@@ -115,7 +116,7 @@ class TileModuleArray(Module, TileModuleBase):
 
                 tile_weight = weight[out_start:out_end, in_start:in_end]
 
-                analog_tile.set_weights(tile_weight, None, **kwargs)
+                analog_tile.set_weights(tile_weight, None, quant,**kwargs)
 
                 out_start = out_end
             in_start = in_end

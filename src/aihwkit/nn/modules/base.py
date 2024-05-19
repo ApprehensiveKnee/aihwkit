@@ -23,6 +23,7 @@ from aihwkit.simulator.tiles.module import TileModule
 from aihwkit.simulator.tiles.inference import InferenceTileWithPeriphery
 from aihwkit.simulator.tiles.base import AnalogTileStateNames
 from aihwkit.simulator.parameters.base import RPUConfigBase
+from aihwkit.simulator.parameters import WeightQuantizerParameter
 
 if TYPE_CHECKING:
     from aihwkit.inference.noise.base import BaseNoiseModel
@@ -176,7 +177,7 @@ class AnalogLayerBase:
         """
         return [d.device for d in self.analog_tiles()]
 
-    def set_weights(self, weight: Tensor, bias: Optional[Tensor] = None,**kwargs: Any) -> None:
+    def set_weights(self, weight: Tensor, bias: Optional[Tensor] = None, quant: Optional[WeightQuantizerParameter] = None ,**kwargs: Any) -> None:
         """Set the weight (and bias) tensors to the analog crossbar.
 
         Args:
@@ -189,7 +190,7 @@ class AnalogLayerBase:
             ModuleError: if not of type TileModule.
         """
         if hasattr(self, "analog_module"):
-            return self.analog_module.set_weights(weight, bias, **kwargs)
+            return self.analog_module.set_weights(weight, bias, quant, **kwargs)
         raise ModuleError(f"set_weights not implemented for {type(self).__name__} ")
 
     def get_weights(self, **kwargs: Any) -> Tuple[Tensor, Optional[Tensor]]:
