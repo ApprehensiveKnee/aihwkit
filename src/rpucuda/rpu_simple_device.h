@@ -169,6 +169,7 @@ public:
 
   virtual void decayWeights(T **weights, bool bias_no_decay) = 0;
   virtual void decayWeights(T **weights, T alpha, bool bias_no_decay) = 0;
+  virtual void quantizeWeights(T **weights,const WeightQuantizerParameter<T> &wqp, RNG<T> &rng ) = 0;
   virtual void driftWeights(T **weights, T time_since_last_call, RNG<T> &rng) = 0;
   virtual void diffuseWeights(T **weights, RNG<T> &rng) = 0;
   virtual void clipWeights(T **weights, T clip) = 0;
@@ -243,6 +244,7 @@ public:
   void driftWeights(T **weights, T time_since_last_call, RNG<T> &rng) override;
   void diffuseWeights(T **weights, RNG<T> &rng) override;
   void clipWeights(T **weights, T clip) override;
+  void quantizeWeights(T **weights, const WeightQuantizerParameter<T> &wqp ,RNG<T> &rng) override;
   bool onSetWeights(T **weights) override { return false; };
   void
   resetCols(T **weights, int start_col, int n_cols, T reset_prob, RealWorldRNG<T> &rng) override;

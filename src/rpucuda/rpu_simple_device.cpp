@@ -48,6 +48,7 @@ template <typename T> SimpleRPUDevice<T>::SimpleRPUDevice(const SimpleRPUDevice<
   if (other.wdrifter_) {
     wdrifter_ = RPU::make_unique<WeightDrifter<T>>(*other.wdrifter_);
   }
+
 }
 
 // copy assignment
@@ -127,6 +128,15 @@ void SimpleRPUDevice<T>::driftWeights(T **weights, T time_since_last_call, RNG<T
   }
 };
 
+template <typename T>
+void SimpleRPUDevice<T>::quantizeWeights(T **weights, const WeightQuantizerParameter<T> &wqp, RNG<T> &rng) {
+  // apply in-place quantization
+  if (wqp.quantize) {
+    WeightQuantizer<T> wq(this->x_size_, this->d_size_, wqp);
+    wq.apply(weights[0], rng);
+  }
+};
+
 template <typename T> void SimpleRPUDevice<T>::diffuseWeights(T **weights, RNG<T> &rng) {
 
   T diffusion = getPar().diffusion;
@@ -174,6 +184,8 @@ void SimpleRPUDevice<T>::resetCols(
   }
 }
 
+
+
 template <typename T>
 void SimpleRPUDevice<T>::populate(const SimpleRPUDeviceMetaParameter<T> &p, RealWorldRNG<T> *rng) {
 
@@ -185,6 +197,7 @@ void SimpleRPUDevice<T>::populate(const SimpleRPUDeviceMetaParameter<T> &p, Real
   } else {
     wdrifter_ = nullptr;
   }
+
 }
 
 template struct SimpleRPUDeviceMetaParameter<float>;

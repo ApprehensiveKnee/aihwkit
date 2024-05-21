@@ -62,7 +62,8 @@ class AnalogContainerBase(AnalogLayerBase):
         for name, analog_tile in self.named_analog_tiles():
             if name not in weights_dic:
                 raise ModuleError("Cannot find tile weight {} in given dictionary.".format(name))
-            analog_tile.set_weights(*weights_dic[name], quant ,**kwargs)
+            analog_tile.set_weights(*weights_dic[name],wqpar=quant,**kwargs)
+
 
 
 class AnalogSequential(AnalogContainerBase, Sequential):

@@ -81,7 +81,7 @@ class AnalogLinear(AnalogLayerBase, Linear):
 
         self.reset_parameters(rpu_config)
 
-    def reset_parameters(self, rpu_config:Optional[RPUConfigBase] = None) -> None:
+    def reset_parameters(self, rpu_config: Optional[RPUConfigBase] = None) -> None:
         """Reset the parameters (weight and bias)."""
         if hasattr(self, "analog_module"):
             bias = self.bias

@@ -112,10 +112,10 @@ class TileWithPeriphery(BaseTile, SimulatorTileWrapper):
         self,
         weight: Tensor,
         bias: Optional[Tensor] = None,
-        quant: Optional[WeightQuantizerParameter] = None,
         apply_weight_scaling: bool = True,
         realistic: bool = False,
         weight_scaling_omega: Optional[float] = None,
+        wqpar : Optional[WeightQuantizerParameter] = None
     ) -> None:
         """Set the tile weights (and biases).
 
@@ -167,9 +167,12 @@ class TileWithPeriphery(BaseTile, SimulatorTileWrapper):
         if apply_weight_scaling:
             combined_weights = self.apply_weight_scaling(combined_weights, weight_scaling_omega)
 
-        new_quant = tiles.WeightQuantizerParameter()
-        new_quant.copy_from(quant)
-        self.tile.set_weights(combined_weights, new_quant)
+
+        self.tile.set_weights(combined_weights)
+        if wqpar is not None:
+            new_wqpar = tiles.WeightQuantizerParameter()
+            new_wqpar.copy_from(wqpar)
+            self.tile.quantize_weights(new_wqpar)
 
         if realistic:
             self.program_weights()

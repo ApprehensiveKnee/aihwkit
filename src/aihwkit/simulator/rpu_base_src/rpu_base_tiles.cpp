@@ -57,6 +57,20 @@ void declare_rpu_tiles(py::module &m, std::string type_name_add) {
       .def_readwrite("pcm_t0", &RPU::WeightModifierParameter<T_RPU>::pcm_t0)
       .def_readwrite("g_max", &RPU::WeightModifierParameter<T_RPU>::g_max);
 
+    // -- MODIFIED: added quantization parameter
+  py::class_<RPU::WeightQuantizerParameter<T>>(m, NAME("WeightQuantizerParameter"))
+      .def(py::init<>())
+      .def("copy_from", &RPU::WeightQuantizerParameter<T>::copyFrom)
+      .def_readwrite("quantize", &RPU::WeightQuantizerParameter<T>::quantize)
+      .def_readwrite("bound", &RPU::WeightQuantizerParameter<T>::bound)
+      .def_readwrite("rel_to_actual_bound", &RPU::WeightQuantizerParameter<T>::rel_to_actual_bound)
+      .def_readwrite("quantize_last_column", &RPU::WeightQuantizerParameter<T>::quantize_last_column)
+      .def_readwrite("uniform_quant", &RPU::WeightQuantizerParameter<T>::uniform_quant)
+      .def_readwrite("quant_values", &RPU::WeightQuantizerParameter<T>::quant_values)
+      .def_readwrite("stochastic_round", &RPU::WeightQuantizerParameter<T>::stochastic_round);
+  // -- MODIFIED: added quantization parameter
+
+
   py::class_<Class>(
       m, NAME("FloatingPointTile"),
       R"pbdoc(
@@ -191,7 +205,7 @@ void declare_rpu_tiles(py::module &m, std::string type_name_add) {
 
       .def(
           "set_weights",
-          [](Class &self, torch::Tensor &weights, const RPU::WeightQuantizerParameter &wqpar) {
+          [](Class &self, torch::Tensor &weights) {
             // Validate the weights dimensions.
             if (weights.dim() != 2 || weights.size(0) != self.getDSize() ||
                 weights.size(1) != self.getXSize()) {
@@ -205,11 +219,11 @@ void declare_rpu_tiles(py::module &m, std::string type_name_add) {
 
             // Call RPU function.
             std::lock_guard<std::mutex> lock(self.mutex_);
-            return self.setWeights(reinterpret_cast<T_RPU *>(cpu_weights.template data_ptr<T>()), wqpar);
+            return self.setWeights(reinterpret_cast<T_RPU *>(cpu_weights.template data_ptr<T>()));
             
 
           },
-          py::arg("weights"),py::arg("wqpar") = RPU::default_weight_quantizer_parameter,
+          py::arg("weights"),
           R"pbdoc(
            Set the tile weights exactly.
 
@@ -392,6 +406,21 @@ void declare_rpu_tiles(py::module &m, std::string type_name_add) {
               W += diffusion_rate * Gaussian noise
 
            An analog tile will have a possible non-ideal version of this diffusion.
+           )pbdoc")
+      .def(
+          "quantize_weights",
+          [](Class &self, ::RPU::WeightQuantizerParameter<T> &wqpar) {
+            std::lock_guard<std::mutex> lock(self.mutex_);
+            self.quantizeWeights(wqpar);
+          },
+          R"pbdoc(
+           Quantize the weights.
+
+           Quantize the weights::
+
+              W = Q(W)
+
+           An analog tile will have a possible non-ideal version of this quantization.
            )pbdoc")
       .def(
           "reset_columns",

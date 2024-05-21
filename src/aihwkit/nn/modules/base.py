@@ -177,7 +177,7 @@ class AnalogLayerBase:
         """
         return [d.device for d in self.analog_tiles()]
 
-    def set_weights(self, weight: Tensor, bias: Optional[Tensor] = None, quant: Optional[WeightQuantizerParameter] = None ,**kwargs: Any) -> None:
+    def set_weights(self, weight: Tensor, bias: Optional[Tensor] = None, wqpar: Optional[WeightQuantizerParameter] = None ,**kwargs: Any) -> None:
         """Set the weight (and bias) tensors to the analog crossbar.
 
         Args:
@@ -190,7 +190,7 @@ class AnalogLayerBase:
             ModuleError: if not of type TileModule.
         """
         if hasattr(self, "analog_module"):
-            return self.analog_module.set_weights(weight, bias, quant, **kwargs)
+            return self.analog_module.set_weights(weight, bias, wqpar=wqpar,**kwargs)
         raise ModuleError(f"set_weights not implemented for {type(self).__name__} ")
 
     def get_weights(self, **kwargs: Any) -> Tuple[Tensor, Optional[Tensor]]:

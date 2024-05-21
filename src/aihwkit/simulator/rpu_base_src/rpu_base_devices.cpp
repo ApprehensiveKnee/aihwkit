@@ -540,6 +540,7 @@ template <typename T> void declare_rpu_devices(py::module &m, std::string type_n
       .def_readwrite("reset_tol", &RPU::DriftParameter<T>::reset_tol)
       .def_readwrite("w_noise_std", &RPU::DriftParameter<T>::w_read_std);
 
+
   // device params
   py::class_<AbstractParam, PyAbstractParam, RPU::SimpleMetaParameter<T>>(
       m, NAME("AbstractResistiveDeviceParameter"))

@@ -282,6 +282,7 @@ public:
      will be re-drawn with noise (even if they were not
      e.g. clipped) */
 
+  void quantizeWeights(T **weights, const WeightQuantizerParameter<T> &wqp,RNG<T> &rng) override;
   void decayWeights(T **weights, bool bias_no_decay) override;
   void decayWeights(T **weights, T alpha, bool bias_no_decay) override;
   void driftWeights(T **weights, T time_since_last_call, RNG<T> &rng) override;

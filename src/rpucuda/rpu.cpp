@@ -194,8 +194,10 @@ template <typename T> void SimpleMetaParameter<T>::printToStream(std::stringstre
     ss << "\t diffusion:\t\t" << diffusion << std::endl;
     flicker.printToStream(ss);
   }
-  if (quant.quantize > 0.0) {
+  if (quant.quantize > (T)0.0) {
+    ss << "\t quantization:\t\t" << std::endl;
     quant.printToStream(ss);
+
   }
 }
 
@@ -310,9 +312,11 @@ template <typename T> RPUSimple<T>::RPUSimple(const RPUSimple<T> &other) : RPUAb
     wdrifter_ = RPU::make_unique<WeightDrifter<T>>(*other.wdrifter_);
   }
 
+
   // no copy needed
   wclipper_ = nullptr;
   wremapper_ = nullptr;
+  wquantizer_ = nullptr;
 
   // cannot copy external weight pointer... user needs to call it again
   delta_weights_extern_[0] = nullptr;
@@ -396,6 +400,7 @@ template <typename T> RPUSimple<T> &RPUSimple<T>::operator=(RPUSimple<T> &&other
   other.matrix_indices_set_ = false;
 
   wdrifter_ = std::move(other.wdrifter_);
+  wquantizer_ = std::move(other.wquantizer_);
   wremapper_ = std::move(other.wremapper_);
 
   last_update_m_batch_ = other.last_update_m_batch_;
@@ -438,6 +443,9 @@ template <typename T> void RPUSimple<T>::dumpExtra(RPU::state_t &extra, const st
   }
   if (wremapper_) {
     wremapper_->dumpExtra(state, "wremapper");
+  }
+  if (wquantizer_) {
+    wquantizer_->dumpExtra(state, "wquantizer");
   }
 
   // ignore the temporary buffers
@@ -492,6 +500,12 @@ void RPUSimple<T>::loadExtra(const RPU::state_t &extra, const std::string prefix
       wremapper_ = RPU::make_unique<WeightRemapper<T>>(this->x_size_, this->d_size_);
     }
     wremapper_->loadExtra(state, "wremapper", strict);
+  }
+  if (state.count("wquantizer")) {
+    if (!wquantizer_) {
+      wquantizer_ = RPU::make_unique<WeightQuantizer<T>>(this->x_size_, this->d_size_);
+    }
+    wquantizer_->loadExtra(state, "wquantizer", strict);
   }
 
   RPU::load(state, "flicker_probs", flicker_probs_, strict);
@@ -1297,7 +1311,7 @@ template <typename T> void RPUSimple<T>::applyDelayedWeights() {
 /*********************************************************************************/
 /* Set/Get weights related*/
 
-template <typename T> void RPUSimple<T>::setWeightsUniformRandom(T min_value, T max_value, const WeightQuantizerParameter &quant) {
+template <typename T> void RPUSimple<T>::setWeightsUniformRandom(T min_value, T max_value) {
   // instantiate WeightQuantizer
   WeightQuantizer<T> wq(this->x_size_, this->d_size_);
   T **w = this->getWeightsPtr();
@@ -1306,18 +1320,15 @@ template <typename T> void RPUSimple<T>::setWeightsUniformRandom(T min_value, T 
       w[i][j] = rng_->sampleUniform(min_value, max_value);
     }
   }
-  wq.apply(w, quant);
 }
 
-template <typename T> void RPUSimple<T>::setWeights(const T *weightsptr, const WeightQuantizerParameter &quant) {
+template <typename T> void RPUSimple<T>::setWeights(const T *weightsptr) {
   // instantiate WeightQuantizer
   WeightQuantizer<T> wq(this->x_size_, this->d_size_);
   T *w = this->getWeightsPtr()[0];
   if (weightsptr != w) {
     int size = this->d_size_ * this->x_size_;
     memcpy(w, weightsptr, size * sizeof(T));
-    // apply quantization on set weights
-    wq.apply(w, quant);
   }
   
 }
@@ -1593,6 +1604,15 @@ template <typename T> void RPUSimple<T>::driftWeights(T time_since_last_call) {
         this->x_size_ * this->d_size_, getPar().drift); // simpleDrift
   }
   wdrifter_->apply(this->getWeightsPtr()[0], time_since_last_call, *rng_);
+}
+
+template <typename T> void RPUSimple<T>::quantizeWeights(const WeightQuantizerParameter<T> &wqp) {
+
+  if (wquantizer_ == nullptr) {
+    wquantizer_ = RPU::make_unique<WeightQuantizer<T>>(this->x_size_, this->d_size_, wqp);
+  }
+  wquantizer_->apply(getWeightsPtr()[0], *rng_);
+  
 }
 
 template <typename T> void RPUSimple<T>::clipWeights(T clip) {

@@ -19,7 +19,7 @@ from dataclasses import dataclass, field
 from typing import ClassVar, Type, List, Optional, Union
 
 from aihwkit.simulator.parameters.helpers import _PrintableMixin
-from aihwkit.simulator.rpu_base import tiles
+from aihwkit.simulator.rpu_base import devices,tiles
 from aihwkit.simulator.parameters.enums import WeightModifierType, WeightClipType, WeightRemapType
 
 
@@ -335,7 +335,8 @@ class DriftParameter(SimpleDriftParameter):
 class WeightQuantizerParameter(_PrintableMixin):
     """Parameter related to quantization of weights."""
 
-    bindings_class: ClassVar[Optional[Union[str, Type]]] = tiles.WeightQuantizerParameter
+    bindings_class: ClassVar[Optional[Union[str, Type]]] = "WeightQuantizerParameter"
+    bindings_module: ClassVar[str] = "tiles"
 
     quantize: float = 0
     """Whether to quantize the weights to the tile's precision.

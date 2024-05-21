@@ -178,7 +178,7 @@ template <typename T> struct SimpleMetaParameter {
 
   FlickerParameter<T> flicker;
   DriftParameter<T> drift;
-  WeightQuantizerParameter quant;
+  WeightQuantizerParameter<T> quant;
 
   virtual void printToStream(std::stringstream &ss) const;
   void print() const {
@@ -189,9 +189,8 @@ template <typename T> struct SimpleMetaParameter {
 
   RPUSimple<T> *createRPUArray(int x_size, int d_size) {
     auto *rpu = new RPUSimple<T>(x_size, d_size);
-    auto wq = this->quant;
     rpu->populateParameter(this);
-    rpu->setWeightsUniformRandom(-0.1, 0.1, wq);
+    rpu->setWeightsUniformRandom(-0.1, 0.1);
     rpu->setLearningRate(0.1);
     return rpu;
   };
@@ -238,6 +237,7 @@ public:
     swap(a.matrix_indices_set_, b.matrix_indices_set_);
 
     swap(a.wdrifter_, b.wdrifter_);
+    swap(a.wquantizer_, b.wquantizer_);
 
     swap(a.wremapper_, b.wremapper_);
     swap(a.wclipper_, b.wclipper_);
@@ -274,14 +274,14 @@ public:
   /* This is to set the random seed. This is currently, however, NOT
      causing all seeds to be set. Some seeds remain random!*/
   virtual void setRandomSeed(unsigned int seed);
-  virtual void setWeightsUniformRandom(T min_value, T max_value, const WeightQuantizerParameter &quant = default_weight_quantizer_parameter);
+  virtual void setWeightsUniformRandom(T min_value, T max_value);
 
   /* This scales the weights by applying an (digital) output scale
      which represents the abs(max) of the weights*/
   void setWeightsWithAlpha(const T *weightsptr, T assumed_wmax);
 
   /* setWeights* set the weights perfectly*/
-  virtual void setWeights(const T *weightsptr, const WeightQuantizerParameter &quant = default_weight_quantizer_parameter );
+  virtual void setWeights(const T *weightsptr);
   void
   setWeightsAndBias(const T *weightsptr, const T *biasptr, bool real_if = false, int n_loops = 1);
   void setWeightsAndBiasWithAlpha(
@@ -358,6 +358,9 @@ public:
 
   /* conductance drift */
   virtual void driftWeights(T time_since_last_call);
+
+  /* Applying quantization to the weights */
+  virtual void quantizeWeights( const WeightQuantizerParameter<T> &wqpar);
 
   /* 1/f pink noise process (flicker noise) */
   virtual void diffuseWeightsPink();
@@ -704,6 +707,7 @@ private:
   std::unique_ptr<WeightRemapper<T>> wremapper_ = nullptr;
   std::unique_ptr<WeightClipper<T>> wclipper_ = nullptr;
   std::unique_ptr<WeightModifier<T>> fb_weight_modifier_ = nullptr;
+  std::unique_ptr<WeightQuantizer<T>> wquantizer_ = nullptr;
 
   int *matrix_indices_ = nullptr;
   bool matrix_indices_set_ = false;

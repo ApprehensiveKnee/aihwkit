@@ -55,9 +55,8 @@ template <typename T>
 RPUPulsed<T> *PulsedMetaParameter<T>::createRPUArray(
     int x_size, int d_size, AbstractRPUDeviceMetaParameter<T> *dp) {
   auto *rpu = new RPUPulsed<T>(x_size, d_size);
-  auto wq = this->quant;
   rpu->populateParameter(this, dp);
-  rpu->setWeightsUniformRandom(-0.1, 0.1, wq);
+  rpu->setWeightsUniformRandom(-0.1, 0.1);
   rpu->setLearningRate(0.1);
   
   return rpu;
@@ -233,6 +232,11 @@ template <typename T> void RPUPulsed<T>::resetCols(int start_col, int n_cols, T 
   }
 }
 
+template <typename T> void RPUPulsed<T>::quantizeWeights(const WeightQuantizerParameter<T> &wqpar) {
+  CHECK_RPU_DEVICE_INIT;
+  rpu_device_->quantizeWeights(this->getWeightsPtr(), wqpar, *this->rng_);
+}
+
 template <typename T> void RPUPulsed<T>::driftWeights(T time_since_last_call) {
   CHECK_RPU_DEVICE_INIT;
   rpu_device_->driftWeights(this->getWeightsPtr(), time_since_last_call, *this->rng_);
@@ -289,17 +293,19 @@ template <typename T> void RPUPulsed<T>::clipWeights(const WeightClipParameter &
   }
 }
 
-template <typename T> void RPUPulsed<T>::setWeightsUniformRandom(T min_value, T max_value, const WeightQuantizerParameter &quant) {
+template <typename T> void RPUPulsed<T>::setWeightsUniformRandom(T min_value, T max_value) {
   CHECK_RPU_DEVICE_INIT;
-  RPUSimple<T>::setWeightsUniformRandom(min_value, max_value, quant);
+  RPUSimple<T>::setWeightsUniformRandom(min_value, max_value);
   rpu_device_->onSetWeights(this->getWeightsPtr());
 }
 
-template <typename T> void RPUPulsed<T>::setWeights(const T *weightsptr, const WeightQuantizerParameter &quant) {
+template <typename T> void RPUPulsed<T>::setWeights(const T *weightsptr) {
   CHECK_RPU_DEVICE_INIT;
   std::cout << std::endl;
-  RPUSimple<T>::setWeights(weightsptr, quant);
+  RPUSimple<T>::setWeights(weightsptr);
+  // This is what skews the weighs from the right quantized values
   rpu_device_->onSetWeights(this->getWeightsPtr());
+
 }
 
 template <typename T> void RPUPulsed<T>::applyWeightUpdate(T *dw_and_current_weight_out) {

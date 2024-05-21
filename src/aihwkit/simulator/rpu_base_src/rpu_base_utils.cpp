@@ -20,6 +20,7 @@
 #include "weight_remapper.h"
 #include "weight_quantizer.h"
 
+
 void declare_utils(py::module &m_devices, py::module &m_tiles) {
 
   py::class_<RPU::WeightClipParameter>(m_tiles, "WeightClipParameter")
@@ -34,19 +35,7 @@ void declare_utils(py::module &m_devices, py::module &m_tiles) {
       .def_readwrite("max_scale_range", &RPU::WeightRemapParameter::max_scale_range)
       .def_readwrite("max_scale_ref", &RPU::WeightRemapParameter::max_scale_ref)
       .def_readwrite("type", &RPU::WeightRemapParameter::type);
-    
-  // -- MODIFIED: added quantization parameter
-  py::class_<RPU::WeightQuantizerParameter>(m_tiles, "WeightQuantizerParameter")
-      .def(py::init<>())
-      .def("copy_from", &RPU::WeightQuantizerParameter::copy_from)
-      .def_readwrite("quantize", &RPU::WeightQuantizerParameter::quantize)
-      .def_readwrite("bound", &RPU::WeightQuantizerParameter::bound)
-      .def_readwrite("rel_to_actual_bound", &RPU::WeightQuantizerParameter::rel_to_actual_bound)
-      .def_readwrite("quantize_last_column", &RPU::WeightQuantizerParameter::quantize_last_column)
-      .def_readwrite("uniform_quant", &RPU::WeightQuantizerParameter::uniform_quant)
-      .def_readwrite("quant_values", &RPU::WeightQuantizerParameter::quant_values)
-      .def_readwrite("stochastic_round", &RPU::WeightQuantizerParameter::stochastic_round);
-  // -- MODIFIED: added quantization parameter
+
 
   py::enum_<RPU::WeightModifierType>(m_tiles, "WeightModifierType")
       .value("Copy", RPU::WeightModifierType::Copy)
@@ -110,3 +99,4 @@ void declare_utils(py::module &m_devices, py::module &m_tiles) {
       .value("PosNegSeparate", RPU::AnalogMVType::PosNegSeparate)
       .value("PosNegSeparateDigitalSum", RPU::AnalogMVType::PosNegSeparateDigitalSum);
 };
+

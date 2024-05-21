@@ -424,6 +424,14 @@ void PulsedRPUDevice<T>::decayWeights(T **weights, T alpha, bool bias_no_decay) 
 }
 
 template <typename T>
+void PulsedRPUDevice<T>::quantizeWeights(T **weights, const WeightQuantizerParameter<T> &wqp, RNG<T> &rng) {
+  T ** w = getPar().usesPersistentWeight() ? w_persistent_ : weights;
+  WeightQuantizer<T> wq(this->x_size_, this->d_size_, wqp);
+  wq.apply(w[0], rng);
+  applyUpdateWriteNoise(weights);
+}
+
+template <typename T>
 void PulsedRPUDevice<T>::driftWeights(T **weights, T time_since_last_call, RNG<T> &rng) {
   if (this->hasWDrifter()) {
     T **w = getPar().usesPersistentWeight() ? w_persistent_ : weights;

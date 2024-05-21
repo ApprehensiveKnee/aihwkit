@@ -234,6 +234,7 @@ def convert_to_analog(
                 analog_layer.set_weights(weight, bias, rpu_config.quantization)
         elif isinstance(module, AnalogSequential) or isinstance(module, AnalogWrapper):
             weight_dict = module.get_weights()
+            #print(module.set_weights)
             module.set_weights(weight_dict, rpu_config.quantization)
 
     return module
