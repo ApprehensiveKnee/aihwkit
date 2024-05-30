@@ -152,6 +152,10 @@ def tile_parameters_to_bindings(params: Any, data_type: RPUDataType) -> Any:
         # Get the mapped field name, if needed.
         if field.name not in ALWAYS_INCLUDE and not field.metadata.get("bindings_include", False):
             continue
+        
+        # If field.name does not exist in the params, skip it
+        if not hasattr(params, field.name):
+            continue
         value = params.__dict__[field.name]
         field_name = FIELD_MAP.get(field.name, field.name)
 

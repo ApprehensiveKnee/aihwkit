@@ -26,8 +26,7 @@ from aihwkit.nn.modules.base import AnalogLayerBase
 from aihwkit.simulator.tiles.module import TileModule
 from aihwkit.exceptions import AnalogBiasConfigError, ModuleError, ConfigError
 from aihwkit.simulator.parameters.base import RPUConfigBase
-from aihwkit.simulator.parameters.mapping import MappableRPU
-from aihwkit.simulator.parameters.inference import WeightQuantizerParameter
+from aihwkit.simulator.parameters.mapping import MappableRPU, WeightQuantizerParameter
 
 
 

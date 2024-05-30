@@ -24,6 +24,8 @@ struct WeightQuantizerParameter{
 
   T quantize = (T)0.0;
   T bound =(T) 1.0;
+  T relat_bound = (T)0.0;
+  unsigned short levels = 0;
   bool rel_to_actual_bound = true;
   bool quantize_last_column = true;
   bool uniform_quant = true;
@@ -38,7 +40,9 @@ struct WeightQuantizerParameter{
 
   void printToStream(std::stringstream &ss) const {
     ss << "\t quantize:\t" << quantize << std::endl;
+    ss << "\t levels: \t" << levels << std::endl;
     ss << "\t bound: \t" << bound << std::endl;
+    ss << "\t relat_bound: \t" << relat_bound << std::endl;
     ss << "\t rel_to_actual_bound: \t" << rel_to_actual_bound << std::endl;
     ss << "\t quantize_last_column: \t" << quantize_last_column << std::endl;
     ss << "\t stochastic_round: \t" << stochastic_round << std::endl;
@@ -57,7 +61,9 @@ struct WeightQuantizerParameter{
 
   void copyFrom(const py::object& obj) {
         quantize = obj.attr("quantize").cast<T>();
+        levels = obj.attr("levels").cast<unsigned short>();
         bound = obj.attr("bound").cast<T>();
+        relat_bound = obj.attr("relat_bound").cast<T>();
         rel_to_actual_bound = obj.attr("rel_to_actual_bound").cast<bool>();
         quantize_last_column = obj.attr("quantize_last_column").cast<bool>();
         uniform_quant = obj.attr("uniform_quant").cast<bool>();
@@ -83,7 +89,6 @@ public:
     inline const WeightQuantizerParameter<T> &getPar() const { return par_; }
     inline int getSize() const { return size_; };
 
-    void populate(const WeightQuantizerParameter<T> &wqpar);
     // Apply in-place quantization
     void apply(T *weights, RNG<T> &rng);
 
@@ -95,8 +100,10 @@ private:
     int d_size_ = 0;
     int size_ = 0;
     std::vector<T> saved_bias_;
-
     WeightQuantizerParameter<T> par_;
+
+
+    void populate(const WeightQuantizerParameter<T> &wqpar);
 };
 
 }; // namespace RPU

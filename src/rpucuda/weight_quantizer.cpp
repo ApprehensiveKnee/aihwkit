@@ -37,6 +37,7 @@ void WeightQuantizer<T>::apply(T *weights, RNG<T> &rng) {
     // RPU::math::copy<T>(size_, weights, 1, new_weights, 1);
     // }
 
+
     // If quantization for the bias is disabled, save the bias values
     // in a buffer
     if(par_.quantize_last_column == false){
@@ -47,7 +48,7 @@ void WeightQuantizer<T>::apply(T *weights, RNG<T> &rng) {
     }
 
     T bound = (T)par_.bound;
-    if (par_.rel_to_actual_bound){
+    if (par_.rel_to_actual_bound || (par_.relat_bound > 0.0)) {
         T amax = 0.0;
         PRAGMA_SIMD
         for (int i = 0; i < size_; i++) {
@@ -59,6 +60,9 @@ void WeightQuantizer<T>::apply(T *weights, RNG<T> &rng) {
         }
         amax = amax > (T)0.0 ? amax : (T)1.0;
         bound = amax;
+        if (par_.relat_bound > 0.0) {
+            bound *= (T)par_.relat_bound;
+        }
     }
 
     // Check for the uniform_quant flag
@@ -81,13 +85,25 @@ void WeightQuantizer<T>::apply(T *weights, RNG<T> &rng) {
     }
     else {
         const bool stochastic_round = par_.stochastic_round;
-        const float quantize = par_.quantize;
+        const T quantize = par_.quantize;
+        const T levels = (T) par_.levels;
         // Run the uniform quantization function from the utility_functions.h file
         // based on the bound value and the stochastic_round flag
-        PRAGMA_SIMD
-        for (int i = 0; i < size_; i++) {
-            T w = weights[i];
-            weights[i] = bound * getDiscretizedValueRound(w/bound, quantize, stochastic_round, rng);
+        if (levels == 0){
+            PRAGMA_SIMD
+            for (int i = 0; i < size_; i++) {
+                T w = weights[i];
+                weights[i]= bound*getDiscretizedValueRound(w/bound, quantize, stochastic_round, rng);
+            }
+        }
+        else
+        {
+            PRAGMA_SIMD
+            for (int i = 0; i < size_; i++) {
+                T w = weights[i];
+                weights[i] = bound * getDiscretizedValueCollapse(w/bound, quantize, stochastic_round, levels, rng);
+            
+            }
         }
     }
 

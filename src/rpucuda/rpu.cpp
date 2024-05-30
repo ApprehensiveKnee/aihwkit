@@ -1606,6 +1606,7 @@ template <typename T> void RPUSimple<T>::driftWeights(T time_since_last_call) {
   wdrifter_->apply(this->getWeightsPtr()[0], time_since_last_call, *rng_);
 }
 
+
 template <typename T> void RPUSimple<T>::quantizeWeights(const WeightQuantizerParameter<T> &wqp) {
 
   if (wquantizer_ == nullptr) {

@@ -14,7 +14,7 @@
 
 """Mapping parameters for resistive processing units."""
 
-from typing import Type, Optional
+from typing import Type, Optional, ClassVar, Union, List
 from dataclasses import dataclass, fields, field
 
 from aihwkit.exceptions import ConfigError
@@ -129,6 +129,82 @@ class MappingParameter(_PrintableMixin):
             if mapping.__dict__[key.name] != self.__dict__[key.name]:
                 return False
         return True
+    
+
+# -- MODIFIED: added quantize parameter
+@dataclass
+class WeightQuantizerParameter(_PrintableMixin):
+    """Parameter related to quantization of weights."""
+
+    bindings_class: ClassVar[Optional[Union[str, Type]]] = "WeightQuantizerParameter"
+    bindings_module: ClassVar[str] = "tiles"
+
+    quantize: float = 0
+    """Whether to quantize the weights to the tile's precision.
+
+    If set to a integer value, the original weights will be quantized to
+    this number of quantization levels.
+    """
+
+    levels: int = 0
+    """The number of quantization levels.
+
+    If set to 0, the quantization levels will be ignored and the quantization
+    will just be based on the quantize (resolution) parameter.
+    """
+
+    bound: float = 1.0
+    """ The bound of the quantization levels.
+
+    The quantization levels will be in the range [-bound, bound], uniformly
+    spaced.
+    """
+
+    relat_bound: float = 1.0
+    """The relative bound of the quantization levels.
+
+    If relat_bound is set to a value different from 0.0, the quantization
+    will be take place in the range [-bound * relat_bound, bound * relat_bound], uniformly spaced.
+    """
+
+    rel_to_actual_bound: bool = True
+    """Whether to calculate the quantization bound relative to the actual
+    weight maximum.
+
+    If set to False, the quantization bound will be relative to the assumed
+    bound
+    """
+
+    quantize_last_column: bool = True
+    """Whether to quantize the last column of the weight matrix (usually the bias).
+    
+    
+    If set to True, the last column of the weight matrix will be quantized
+    along with the other weights.
+    """
+
+    uniform_quant: bool = True
+    """Whether to use uniform quantization.
+
+    If set to True, the quantization levels will be uniformly spaced between
+    -bound and bound. If set to False, the quantization levels used will have to 
+    be specified in the quant_values parameter.
+    """
+
+    quant_values: List[float] = field(
+        default_factory=lambda: [-1.0, 1.0],
+        metadata={"hide_if": [-1.0, 1.0]},
+    )
+
+    stochastic_round: bool = False
+    """Whether to use stochastic rounding when quantizing the weights.
+
+    If set to True, the weights will be rounded to the nearest quantization
+    level with a probability proportional to the distance to the two closest
+    quantization levels.
+    """
+
+# -- MODIFIED: added quantize parameter
 
 
 @dataclass
@@ -144,6 +220,13 @@ class MappableRPU(RPUConfigBase, _PrintableMixin):
 
     mapping: MappingParameter = field(default_factory=MappingParameter)
     """Parameter related to mapping weights to tiles for supporting modules."""
+
+    quantization: WeightQuantizerParameter = field(default_factory=WeightQuantizerParameter, metadata=dict(bindings_include=True))
+    """Parameter for weight quantizer.
+
+    If the modifier type is set, t is called just once, to quantize the weights at the
+    beginning of the testing/evaluation phase.
+    """
 
     def get_default_tile_module_class(self, out_size: int = 0, in_size: int = 0) -> Type:
         """Returns the default TileModule class.

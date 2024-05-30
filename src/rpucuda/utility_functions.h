@@ -192,6 +192,8 @@ inline T getDiscretizedValueRound(T value, T res, bool sto_round, RNGClass &rng)
                           : (T)roundf(value / res) * res);
 }
 
+
+
 template <bool sto_round, typename T, typename RNGClass>
 inline T getDiscretizedValueSR(T value, T res, RNGClass &rng) {
   if (sto_round) {
@@ -201,6 +203,19 @@ inline T getDiscretizedValueSR(T value, T res, RNGClass &rng) {
 }
 
 // -- MODIFIED: utility function for non uniform quantization
+
+
+// A function to get a discretized value for an even number of levels:
+// With respect to getDiscretizedValueRound, this function considers
+// no quatization value centered at 0. The values are then rounded to
+// the nearest semi-integer value instead of the nearest integer value.
+template <typename T, typename RNGClass>
+inline T getDiscretizedValueEven(T value, T res, bool sto_round,RNGClass &rng){
+  return (res <= (T)0.0)
+             ? value
+             : (sto_round ? (T)roundf(value / (res/2) + (T).5 + (rng.sampleUniform() - (T)0.5)) * (res/2)
+                          : (T)roundf(value / (res/2) + (T).5) * (res/2));
+}
 
 template <typename T, typename RNGClass>
 inline T getDiscretizedValueNonUniform(T value, const std::vector<T> &quant_values, RNGClass &rng) {
@@ -215,10 +230,24 @@ inline T getDiscretizedValueNonUniform(T value, const std::vector<T> &quant_valu
     T diff = std::abs(value - quant_values[i]);
     if (diff < min_diff) {
       min_diff = diff;
-      quantized_value = quant_values[i];
+      quantized_value = (T)quant_values[i];
     }
   }
   return quantized_value;
+}
+
+template <typename T, typename RNGClass>
+inline T getDiscretizedValueCollapse( T value, T res, bool sto_round, unsigned short levels ,RNGClass &rng) {
+
+  T initial_q =  (res <= (T)0.0)
+             ? value
+             : (sto_round ? (T)roundf(value / res + (rng.sampleUniform() - (T)0.5))
+                          : (T)roundf(value / res));
+  initial_q = ((initial_q <= (T)(levels)/2.) && (initial_q >= -(T)(levels)/2.)) 
+              ? initial_q
+              : (initial_q > (T)(levels)/2. ? (T)(levels-1.)/2. 
+                                             : -(T)(levels-1.)/2.);
+  return initial_q*res; 
 }
 // -- MODIFIED: utility function for non uniform quantization
 

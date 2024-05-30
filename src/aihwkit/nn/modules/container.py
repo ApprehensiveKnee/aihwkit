@@ -22,7 +22,7 @@ from torch.nn import Sequential, Module
 
 from aihwkit.nn.modules.base import AnalogLayerBase
 from aihwkit.exceptions import ModuleError
-from aihwkit.simulator.parameters.inference import WeightQuantizerParameter
+from aihwkit.simulator.parameters.mapping import WeightQuantizerParameter
 
 
 class AnalogContainerBase(AnalogLayerBase):

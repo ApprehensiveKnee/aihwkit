@@ -16,6 +16,7 @@
 
 from typing import Optional, Tuple, Union, Any, List
 from numpy import array
+import inspect
 
 from torch import (
     Tensor,
@@ -42,9 +43,9 @@ from torch.linalg import lstsq
 from aihwkit.exceptions import TileError, ConfigError
 from aihwkit.simulator.tiles.base import BaseTile, SimulatorTileWrapper, SimulatorTile
 
-from aihwkit.simulator.parameters.inference import WeightQuantizerParameter
+
 from aihwkit.simulator.rpu_base import tiles
-from aihwkit.simulator.parameters.mapping import MappingParameter
+from aihwkit.simulator.parameters.mapping import MappingParameter, WeightQuantizerParameter
 from aihwkit.simulator.parameters.pre_post import PrePostProcessingRPU, InputRangeParameter
 
 
@@ -173,6 +174,8 @@ class TileWithPeriphery(BaseTile, SimulatorTileWrapper):
             new_wqpar = tiles.WeightQuantizerParameter()
             new_wqpar.copy_from(wqpar)
             self.tile.quantize_weights(new_wqpar)
+            # Print the stack trace
+            #print(inspect.stack())
 
         if realistic:
             self.program_weights()

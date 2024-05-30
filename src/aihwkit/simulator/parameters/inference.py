@@ -19,7 +19,7 @@ from dataclasses import dataclass, field
 from typing import ClassVar, Type, List, Optional, Union
 
 from aihwkit.simulator.parameters.helpers import _PrintableMixin
-from aihwkit.simulator.rpu_base import devices,tiles
+from aihwkit.simulator.rpu_base import tiles
 from aihwkit.simulator.parameters.enums import WeightModifierType, WeightClipType, WeightRemapType
 
 
@@ -330,63 +330,3 @@ class DriftParameter(SimpleDriftParameter):
 
 
 
-# -- MODIFIED: added quantize parameter
-@dataclass
-class WeightQuantizerParameter(_PrintableMixin):
-    """Parameter related to quantization of weights."""
-
-    bindings_class: ClassVar[Optional[Union[str, Type]]] = "WeightQuantizerParameter"
-    bindings_module: ClassVar[str] = "tiles"
-
-    quantize: float = 0
-    """Whether to quantize the weights to the tile's precision.
-
-    If set to a integer value, the original weights will be quantized to
-    this number of quantization levels.
-    """
-
-    bound: float = 1.0
-    """ The bound of the quantization levels.
-
-    The quantization levels will be in the range [-bound, bound], uniformly
-    spaced.
-    """
-
-    rel_to_actual_bound: bool = True
-    """Whether to calculate the quantization bound relative to the actual
-    weight maximum.
-
-    If set to False, the quantization bound will be relative to the assumed
-    bound
-    """
-
-    quantize_last_column: bool = True
-    """Whether to quantize the last column of the weight matrix (usually the bias).
-    
-    
-    If set to True, the last column of the weight matrix will be quantized
-    along with the other weights.
-    """
-
-    uniform_quant: bool = True
-    """Whether to use uniform quantization.
-
-    If set to True, the quantization levels will be uniformly spaced between
-    -bound and bound. If set to False, the quantization levels used will have to 
-    be specified in the quant_values parameter.
-    """
-
-    quant_values: List[float] = field(
-        default_factory=lambda: [-1.0, 1.0],
-        metadata={"hide_if": [-1.0, 1.0]},
-    )
-
-    stochastic_round: bool = False
-    """Whether to use stochastic rounding when quantizing the weights.
-
-    If set to True, the weights will be rounded to the nearest quantization
-    level with a probability proportional to the distance to the two closest
-    quantization levels.
-    """
-
-# -- MODIFIED: added quantize parameter

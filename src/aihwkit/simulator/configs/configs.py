@@ -37,7 +37,6 @@ from aihwkit.simulator.parameters import (
     WeightClipParameter,
     WeightModifierParameter,
     WeightRemapParameter,
-    WeightQuantizerParameter,
 )
 from aihwkit.inference import (
     BaseDriftCompensation,
@@ -74,13 +73,7 @@ class IOManagedRPUConfig(MappableRPU, PrePostProcessingRPU):
     bindings_class: ClassVar[Optional[Union[Type, str]]] = "AnalogTileParameter"
     bindings_module: ClassVar[Optional[str]] = "devices"
 
-    quantization: WeightQuantizerParameter = field(default_factory=WeightQuantizerParameter, metadata=dict(bindings_include=True))
     
-    """Parameter for weight quantizer.
-
-    If the modifier type is set, t is called just once, to quantize the weights at the
-    beginning of the testing/evaluation phase.
-    """
 
     forward: IOParameters = field(
         default_factory=IOParameters, metadata=dict(bindings_include=True)

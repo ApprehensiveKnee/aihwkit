@@ -62,7 +62,9 @@ void declare_rpu_tiles(py::module &m, std::string type_name_add) {
       .def(py::init<>())
       .def("copy_from", &RPU::WeightQuantizerParameter<T>::copyFrom)
       .def_readwrite("quantize", &RPU::WeightQuantizerParameter<T>::quantize)
+      .def_readwrite("levels", &RPU::WeightQuantizerParameter<T>::levels)
       .def_readwrite("bound", &RPU::WeightQuantizerParameter<T>::bound)
+      .def_readwrite("relat_bound", &RPU::WeightQuantizerParameter<T>::relat_bound)
       .def_readwrite("rel_to_actual_bound", &RPU::WeightQuantizerParameter<T>::rel_to_actual_bound)
       .def_readwrite("quantize_last_column", &RPU::WeightQuantizerParameter<T>::quantize_last_column)
       .def_readwrite("uniform_quant", &RPU::WeightQuantizerParameter<T>::uniform_quant)
@@ -411,6 +413,7 @@ void declare_rpu_tiles(py::module &m, std::string type_name_add) {
           "quantize_weights",
           [](Class &self, ::RPU::WeightQuantizerParameter<T> &wqpar) {
             std::lock_guard<std::mutex> lock(self.mutex_);
+        
             self.quantizeWeights(wqpar);
           },
           R"pbdoc(

@@ -43,6 +43,7 @@ from aihwkit.simulator.configs import (
 from aihwkit.simulator.rpu_base import cuda
 
 
+
 # Check device
 USE_CUDA = 0
 if cuda.is_compiled():
@@ -311,3 +312,6 @@ if __name__ == "__main__":
     )
 
     print(f"{datetime.now().time().replace(microsecond=0)} --- " f"Completed LeNet5 Example")
+
+    # Save the model to .th file
+    torch.save(model.state_dict(), os.path.join(RESULTS, "LeNet5.th"))

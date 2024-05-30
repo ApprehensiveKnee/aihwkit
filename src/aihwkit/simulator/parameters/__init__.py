@@ -32,7 +32,7 @@ from .training import UpdateParameters
 
 from .io import IOParameters, IOParametersIRDropT
 
-from .mapping import MappingParameter
+from .mapping import MappingParameter, WeightQuantizerParameter
 
 from .pre_post import InputRangeParameter, PrePostProcessingParameter
 
@@ -42,5 +42,4 @@ from .inference import (
     WeightRemapParameter,
     SimpleDriftParameter,
     DriftParameter,
-    WeightQuantizerParameter,
 )
