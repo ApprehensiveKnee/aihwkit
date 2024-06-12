@@ -12,14 +12,12 @@ import torchvision
 from torchvision import datasets, transforms
 from torch.nn.functional import mse_loss
 
-path = "/home/ecabiati/cellar"
-sys.path.append(path)
-#Print the current path
-print(sys.path)
-
+print("Path: ", sys.path)
 try:
     import aihwkit.simulator.configs
     print("Il modulo aihwkit.simulator.configs è stato trovato.")
+    #Show the entities of the module
+    print(dir(aihwkit.simulator.configs))
 except ImportError:
     print("Il modulo aihwkit.simulator.configs non è stato trovato.")
 
