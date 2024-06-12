@@ -17,6 +17,12 @@ sys.path.append(path)
 #Print the current path
 print(sys.path)
 
+try:
+    import aihwkit.simulator.configs
+    print("Il modulo aihwkit.simulator.configs è stato trovato.")
+except ImportError:
+    print("Il modulo aihwkit.simulator.configs non è stato trovato.")
+
 from aihwkit.simulator.configs import ConstantStepDevice, SingleRPUConfig, FloatingPointDevice, FloatingPointRPUConfig
 from aihwkit.optim import AnalogSGD
 from aihwkit.inference.noise.base import BaseNoiseModel
