@@ -24,13 +24,55 @@ WeightQuantizer<T>::WeightQuantizer(int x_size, int d_size, const WeightQuantize
 };
 
 template <typename T>
+void WeightQuantizer<T>::fit(const T *weights) {
+    // The function is used to determine the best value for the relat_bound parameter
+    // based on the weights values, to allow for at last quantization levels to be used
+
+    // First we determine the maximum value in the weights array
+    T amax = 0.0;
+    for (int i = 0; i < size_; i++) {
+        T a = (T)fabsf(weights[i]);
+        amax = a > amax ? a : amax;
+    }
+    amax = amax > (T)0.0 ? amax : (T)1.0;
+
+    // We want the last quantization levels to be used by, at least, 3% of the weights
+
+    int total_weights = size_;
+    float percentage = 0.03;
+    int count = (int)(total_weights * percentage);
+
+    // Order the weights in a descending order
+    std::vector<T> sorted_weights(weights, weights + size_);
+    std::sort(sorted_weights.begin(), sorted_weights.end(), std::greater<T>());
+    T max_bound = sorted_weights[0];
+    T min_bound = sorted_weights[0];
+
+    // Loop thought the sorted weights until we reach the count value
+    for (int i = 0; i < count; i++) {
+        T a = sorted_weights[i];
+        max_bound = a > max_bound ? a : max_bound;
+        min_bound = a < min_bound ? a : min_bound;
+    }
+
+    T bound = (max_bound < fabsf(min_bound)) ? max_bound : fabsf(min_bound);
+    T levels = (T)par_.levels;
+    T resolution = (T)par_.resolution;
+
+    // Determine the relat_bound value
+    T relat_bound = bound / ((levels - 1.0) * resolution);
+    par_.relat_bound = relat_bound< 0.9 ? relat_bound : 0.9;
+
+};
+
+template <typename T>
 void WeightQuantizer<T>::apply(T *weights, RNG<T> &rng) {
     
 
-    if (par_.quantize == 0.0 && par_.uniform_quant) {
+    if (par_.resolution == 0.0 && par_.uniform_quant) {
         return;
     }
-    if (par_.quantize > par_.bound){
+    if (par_.resolution > par_.bound){
         RPU_FATAL("Quantize value cannot be greater than bound");
     }
     // if (new_weights != weights) {
@@ -85,7 +127,7 @@ void WeightQuantizer<T>::apply(T *weights, RNG<T> &rng) {
     }
     else {
         const bool stochastic_round = par_.stochastic_round;
-        const T quantize = par_.quantize;
+        const T resolution = par_.resolution;
         const T levels = (T) par_.levels;
         // Run the uniform quantization function from the utility_functions.h file
         // based on the bound value and the stochastic_round flag
@@ -93,7 +135,7 @@ void WeightQuantizer<T>::apply(T *weights, RNG<T> &rng) {
             PRAGMA_SIMD
             for (int i = 0; i < size_; i++) {
                 T w = weights[i];
-                weights[i]= bound*getDiscretizedValueRound(w/bound, quantize, stochastic_round, rng);
+                weights[i]= bound*getDiscretizedValueRound(w/bound, resolution, stochastic_round, rng);
             }
         }
         else
@@ -101,8 +143,7 @@ void WeightQuantizer<T>::apply(T *weights, RNG<T> &rng) {
             PRAGMA_SIMD
             for (int i = 0; i < size_; i++) {
                 T w = weights[i];
-                weights[i] = bound * getDiscretizedValueCollapse(w/bound, quantize, stochastic_round, levels, rng);
-            
+                weights[i] = bound * getDiscretizedValueCollapse(w/bound, resolution, stochastic_round, levels, rng);
             }
         }
     }

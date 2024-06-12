@@ -139,7 +139,7 @@ class WeightQuantizerParameter(_PrintableMixin):
     bindings_class: ClassVar[Optional[Union[str, Type]]] = "WeightQuantizerParameter"
     bindings_module: ClassVar[str] = "tiles"
 
-    quantize: float = 0
+    resolution: float = 0
     """Whether to quantize the weights to the tile's precision.
 
     If set to a integer value, the original weights will be quantized to
@@ -151,28 +151,6 @@ class WeightQuantizerParameter(_PrintableMixin):
 
     If set to 0, the quantization levels will be ignored and the quantization
     will just be based on the quantize (resolution) parameter.
-    """
-
-    bound: float = 1.0
-    """ The bound of the quantization levels.
-
-    The quantization levels will be in the range [-bound, bound], uniformly
-    spaced.
-    """
-
-    relat_bound: float = 1.0
-    """The relative bound of the quantization levels.
-
-    If relat_bound is set to a value different from 0.0, the quantization
-    will be take place in the range [-bound * relat_bound, bound * relat_bound], uniformly spaced.
-    """
-
-    rel_to_actual_bound: bool = True
-    """Whether to calculate the quantization bound relative to the actual
-    weight maximum.
-
-    If set to False, the quantization bound will be relative to the assumed
-    bound
     """
 
     quantize_last_column: bool = True

@@ -194,7 +194,7 @@ template <typename T> void SimpleMetaParameter<T>::printToStream(std::stringstre
     ss << "\t diffusion:\t\t" << diffusion << std::endl;
     flicker.printToStream(ss);
   }
-  if (quant.quantize > (T)0.0) {
+  if (quant.resolution > (T)0.0) {
     ss << "\t quantization:\t\t" << std::endl;
     quant.printToStream(ss);
 

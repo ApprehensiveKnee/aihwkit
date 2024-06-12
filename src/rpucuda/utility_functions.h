@@ -247,7 +247,31 @@ inline T getDiscretizedValueCollapse( T value, T res, bool sto_round, unsigned s
               ? initial_q
               : (initial_q > (T)(levels)/2. ? (T)(levels-1.)/2. 
                                              : -(T)(levels-1.)/2.);
-  return initial_q*res; 
+
+  return initial_q*res;
+
+
+  // std::vector<T> quant_levels(levels);
+  // for (int i = -(levels-1)/2; i <= (levels-1)/2; i++){
+  //   quant_levels[i+(levels-1)/2] = (T)i;
+  // }
+
+  // T initial_q =  (res <= (T)0.0)
+  //            ? value
+  //            : (sto_round ? (T)roundf(value / res + (rng.sampleUniform() - (T)0.5))
+  //                         : (T)roundf(value / res));
+                      
+  // T min_diff = std::numeric_limits<T>::max();
+  // T quantized_value = quant_levels[0];
+  // for (size_t i = 0; i < levels; i++) {
+  //   T diff = std::abs(initial_q - quant_levels[i]);
+  //   if (diff < min_diff) {
+  //     min_diff = diff;
+  //     quantized_value = (T)quant_levels[i];
+  //   }
+  // }
+
+  // return quantized_value*res;
 }
 // -- MODIFIED: utility function for non uniform quantization
 

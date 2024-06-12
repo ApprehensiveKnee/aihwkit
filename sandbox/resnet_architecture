@@ -1,0 +1,21 @@
+digraph {
+	Conv1
+	BatchNorm1
+	ReLU
+	MaxPool
+	Layer1
+	Layer2
+	Layer3
+	Layer4
+	AvgPool
+	FC
+	Conv1 -> BatchNorm1
+	BatchNorm1 -> ReLU
+	ReLU -> MaxPool
+	MaxPool -> Layer1
+	Layer1 -> Layer2
+	Layer2 -> Layer3
+	Layer3 -> Layer4
+	Layer4 -> AvgPool
+	AvgPool -> FC
+}

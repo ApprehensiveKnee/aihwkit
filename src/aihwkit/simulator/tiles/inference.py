@@ -173,10 +173,22 @@ class InferenceTileWithPeriphery(TileWithPeriphery):
         if not from_reference or self.reference_combined_weights is None:
             self.reference_combined_weights = Tensor(self.tile.get_weights())
 
-        (
-            self.programmed_weights,
-            self.drift_noise_parameters,
-        ) = self.rpu_config.noise_model.apply_programming_noise(self.reference_combined_weights)
+        # --+-- BUG? --+--
+        if isinstance(self.rpu_config.noise_model, tuple):
+            self.rpu_config.noise_model = self.rpu_config.noise_model[0]
+
+            (
+                self.programmed_weights,
+                self.drift_noise_parameters,
+            ) = self.rpu_config.noise_model.apply_programming_noise(self.reference_combined_weights)
+
+            self.rpu_config.noise_model = (self.rpu_config.noise_model,)
+        else:
+            (
+                self.programmed_weights,
+                self.drift_noise_parameters,
+            ) = self.rpu_config.noise_model.apply_programming_noise(self.reference_combined_weights)
+        # --+-- BUG? --+--
 
         self.tile.set_weights(self.programmed_weights)
 
