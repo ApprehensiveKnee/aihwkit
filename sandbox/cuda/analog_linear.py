@@ -14,6 +14,8 @@ from torch.nn.functional import mse_loss
 
 path = "/home/ecabiati/cellar"
 sys.path.append(path)
+#Print the current path
+print(sys.path)
 
 from aihwkit.simulator.configs import ConstantStepDevice, SingleRPUConfig, FloatingPointDevice, FloatingPointRPUConfig
 from aihwkit.optim import AnalogSGD
