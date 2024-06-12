@@ -14,7 +14,7 @@ from torch.nn.functional import mse_loss
 
 print("Path: ", sys.path)
 try:
-    import aihwkit.simulator.configs
+    from aihwkit.simulator.configs import ConstantStepDevice
     print("Il modulo aihwkit.simulator.configs è stato trovato.")
 except ImportError:
     print("Il modulo aihwkit.simulator.configs non è stato trovato.")
