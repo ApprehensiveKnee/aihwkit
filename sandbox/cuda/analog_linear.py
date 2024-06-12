@@ -12,7 +12,7 @@ import torchvision
 from torchvision import datasets, transforms
 from torch.nn.functional import mse_loss
 
-path = "/home/ecabiati/cellar/aihwkit"
+path = "/home/ecabiati/cellar"
 sys.path.append(path)
 
 from aihwkit.simulator.configs import ConstantStepDevice, SingleRPUConfig, FloatingPointDevice, FloatingPointRPUConfig
