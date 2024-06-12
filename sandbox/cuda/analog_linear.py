@@ -146,6 +146,8 @@ def test():
 
 
 if __name__ == '__main__':
+    path = "/home/ecabiati/cellar/aihwkit/sandbox"
+    os.chdir(path)
     cuda_test.check_gpu_status()
     cuda_test.get_free_gpu()
     print(" -*- Starting test -*-\n\n")
