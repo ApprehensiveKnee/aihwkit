@@ -12,13 +12,13 @@ def check_gpu_status():
             print(f"  Total Memory: {gpu.total_memory / 1024**2} MB")
             print(f"  Free Memory: {torch.cuda.get_device_properties(i).total_memory / 1024**2} MB")
             print(f"  Utilization: {torch.cuda.utilization(i)}")
-            print(f"  Is Busy: {torch.cuda.current_stream(i).query()}")
+            print(f"  Is Idle: {torch.cuda.current_stream(i).query()}")
     else:
         print("No GPUs available.")
 
 def get_free_gpu():
     for i in range(torch.cuda.device_count()):
-        if not torch.cuda.current_stream(i).query():
+        if torch.cuda.current_stream(i).query():
             return i
     raise Exception("All GPUs are busy.")
 
