@@ -11,9 +11,6 @@ import torchvision
 from torchvision import datasets, transforms
 from torch.nn.functional import mse_loss
 
-# Import functions defined in a specific path
-import sys
-sys.path.append('../src/')
 
 
 from aihwkit.simulator.configs import ConstantStepDevice, SingleRPUConfig, FloatingPointDevice, FloatingPointRPUConfig
