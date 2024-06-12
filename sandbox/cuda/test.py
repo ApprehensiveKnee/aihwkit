@@ -11,6 +11,7 @@ def check_gpu_status():
             print(f"  CUDA Capability: {gpu.major}.{gpu.minor}")
             print(f"  Total Memory: {gpu.total_memory / 1024**2} MB")
             print(f"  Free Memory: {torch.cuda.get_device_properties(i).total_memory / 1024**2} MB")
+            print(f"  Utilization: {torch.cuda.utilization(i)}")
             print(f"  Is Busy: {torch.cuda.current_stream(i).query()}")
     else:
         print("No GPUs available.")
