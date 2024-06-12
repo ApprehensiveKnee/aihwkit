@@ -16,8 +16,6 @@ print("Path: ", sys.path)
 try:
     import aihwkit.simulator.configs
     print("Il modulo aihwkit.simulator.configs è stato trovato.")
-    #Show a list of classes and functions included in the module imported
-    from aihwkit.simulator.configs import SingleRPUConfig
 except ImportError:
     print("Il modulo aihwkit.simulator.configs non è stato trovato.")
 
