@@ -12,12 +12,14 @@ import torchvision
 from torchvision import datasets, transforms
 from torch.nn.functional import mse_loss
 
-print("Path: ", sys.path)
-try:
-    from aihwkit.simulator.configs import ConstantStepDevice
-    print("Il modulo aihwkit.simulator.configs è stato trovato.")
-except ImportError:
-    print("Il modulo aihwkit.simulator.configs non è stato trovato.")
+# Get the path of the current file
+file = os.path.abspath(__file__)
+# Remove file name
+file = os.path.dirname(file)
+path = os.path.join(file, "../../src")
+sys.path.append(path)
+print(sys.executable)
+print(sys.path)
 
 from aihwkit.simulator.configs import ConstantStepDevice, SingleRPUConfig, FloatingPointDevice, FloatingPointRPUConfig
 from aihwkit.optim import AnalogSGD
@@ -63,7 +65,6 @@ import numpy as np
 from dataclasses import dataclass, field
 from typing import Optional
 
-import src.plotting as pl
 import test as cuda_test
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
