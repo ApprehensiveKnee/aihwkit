@@ -1,5 +1,6 @@
 
 
+
 import os
 import sys
 import torch
@@ -127,12 +128,12 @@ def test():
         print("Predicted: ", pred)
         print("Expected: ", y)
         analog_tile = next(model.analog_tiles())
-        print("Info about the tile", analog_tile.get_weights())
+        print("\nInfo about the tile", analog_tile.get_weights())
     # Plot the initial weights
     #pl.plot_tensor_values(analog_tile.get_weights()[0], 21,RANGE,"Distribution of weights (after training)", "plots/hist2.png")
 
 
-    model_new = convert_to_analog(model, rpu_config, )
+    model_new = convert_to_analog(model, rpu_config)
 
     # Test the new model
     print("\n\nEvaluation of the quantized model:")
@@ -142,15 +143,28 @@ def test():
         print("Predicted: ", pred)
         print("Expected: ", y)
         analog_tile = next(model_new.analog_tiles())
-        print("Info about the tile", analog_tile.get_weights())
+        print("\nInfo about the tile", analog_tile.get_weights())
     # Plot the initial weights
     #pl.plot_tensor_values(analog_tile.get_weights()[0], 21,RANGE,"Distribution of quantized weights (after transfer)", "plots/hist3.png")
 
 
 if __name__ == '__main__':
+    #Check the first parameter passed to the script
+    #If it is 'cuda', then run the test
+    if len(sys.argv) > 1 and sys.argv[1] == 'cuda':
+        print("----*---- CUDA TEST ----*----\n\n")
+        cuda_test.check_gpu_status()
+        cuda_test.get_free_gpu()
+        device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+        print(" -*- Starting test -*-\n\n")
+        test()
+        print("\n\n -+- Done -+-")
+        sys.exit(0)
+    elif len(sys.argv) > 1 and sys.argv[1] == 'cpu':
+        devide = torch.device("cpu")
+        print("----*---- CPU TEST ----*----\n\n")
+        print(" -*- Starting test -*-\n\n")
+        test()
+        print("\n\n -+- Done -+-")
+        sys.exit(0)
     
-    cuda_test.check_gpu_status()
-    cuda_test.get_free_gpu()
-    print(" -*- Starting test -*-\n\n")
-    test()
-    print("\n\n -+- Done -+-")

@@ -49,7 +49,7 @@ struct WeightQuantizerParameter{
     if(uniform_quant){
       ss << "\t uniform_quant: \t" << uniform_quant << std::endl;
       ss << "\t quant_values: \t[";
-      for (int i = 0; i < quant_values.size(); i++) {
+      for (size_t i = 0; i < quant_values.size(); i++) {
         ss << quant_values[i];
         if (i < quant_values.size() - 1) {
           ss << ",";
