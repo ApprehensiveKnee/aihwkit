@@ -80,11 +80,6 @@ def test():
     # Define a single-layer network, using a constant step device type.
     rpu_config = SingleRPUConfig(device=ConstantStepDevice())
 
-    rpu_config.clip = WeightClipParameter(
-        type=WeightClipType.FIXED_VALUE,
-        fixed_value=0.5,
-    )
-
     rpu_config.quantization = WeightQuantizerParameter(
         resolution = 0.5,
     )

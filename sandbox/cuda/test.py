@@ -19,6 +19,7 @@ def check_gpu_status():
 def get_free_gpu():
     for i in range(torch.cuda.device_count()):
         if torch.cuda.current_stream(i).query():
+            print(f"GPU {i} is free. Proceeding with the test.")
             return i
     raise Exception("All GPUs are busy.")
 
