@@ -19,8 +19,8 @@ file = os.path.abspath(__file__)
 file = os.path.dirname(file)
 path = os.path.join(file, "../../src")
 sys.path.append(path)
-print(sys.executable)
-print(sys.path)
+# print(sys.executable)
+# print(sys.path)
 
 from aihwkit.simulator.configs import ConstantStepDevice, SingleRPUConfig, FloatingPointDevice, FloatingPointRPUConfig
 from aihwkit.optim import AnalogSGD
@@ -68,9 +68,6 @@ from typing import Optional
 
 import test as cuda_test
 
-device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-
-
 ''' Taken form example '01_simple_layer.py' '''
 def test():
     RANGE = (-1.2, 1.2)
@@ -102,7 +99,6 @@ def test():
     opt = AnalogSGD(model.parameters(), lr=0.1)
     opt.regroup_param_groups(model)
 
-    
 
     # Train the model.
     for epoch in range(100):
@@ -161,7 +157,7 @@ if __name__ == '__main__':
         print("\n\n -+- Done -+-")
         sys.exit(0)
     elif len(sys.argv) > 1 and sys.argv[1] == 'cpu':
-        devide = torch.device("cpu")
+        device = torch.device("cpu")
         print("----*---- CPU TEST ----*----\n\n")
         print(" -*- Starting test -*-\n\n")
         test()
