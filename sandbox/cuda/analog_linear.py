@@ -90,7 +90,7 @@ def test():
    
 
     # Move the model and tensors to cuda if it is available.
-    if torch.cuda.is_available():
+    if torch.cuda.is_available() and device.type == 'cuda':
         x = x.cuda()
         y = y.cuda()
         model = model.cuda()
@@ -151,7 +151,7 @@ if __name__ == '__main__':
         print("----*---- CUDA TEST ----*----\n\n")
         cuda_test.check_gpu_status()
         cuda_test.get_free_gpu()
-        device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+        device = torch.device("cuda")
         print(" -*- Starting test -*-\n\n")
         test()
         print("\n\n -+- Done -+-")
