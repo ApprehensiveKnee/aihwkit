@@ -289,7 +289,7 @@ template <typename T> void RPUCudaPulsed<T>::clipWeights(const WeightClipParamet
   }
 }
 
-template <typename T> void RPUCudaPulsed<T>::quantizeWeights(const WeightQuantizerParameter &wqpar) {
+template <typename T> void RPUCudaPulsed<T>::quantizeWeights(const WeightQuantizerParameter<T> &wqpar) {
   if (wqpar.quantizer_type == WeightQuantizerType::Uniform) {
     RPUCudaSimple<T>::quantizeWeights(wqpar);
   }
