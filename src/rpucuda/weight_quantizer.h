@@ -41,6 +41,8 @@ struct WeightQuantizerParameter{
       return "Uniform";
     case WeightQuantizerType::FixedValued:
       return "FixedValued";
+    default:
+      return "Unknown";
     }
   }
 

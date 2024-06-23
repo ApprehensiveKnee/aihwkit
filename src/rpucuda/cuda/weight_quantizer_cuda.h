@@ -31,6 +31,6 @@ private:
     int size_ = 0;
 
     std::unique_ptr<Maximizer<T>> amaximizer_ = nullptr;
-}
+};
 
 } // namespace RPU
