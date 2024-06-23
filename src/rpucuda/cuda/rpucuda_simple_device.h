@@ -16,7 +16,7 @@
 #include "cuda_util.h"
 #include "rpu_simple_device.h"
 #include "weight_drifter_cuda.h"
-#include "weeight_quantizer_cuda.h"
+#include "weight_quantizer_cuda.h"
 
 namespace RPU {
 
