@@ -311,6 +311,19 @@ template <typename T> void SimpleRPUDeviceCuda<T>::clipWeights(T *weights, T cli
     RPU::math::aclip<T>(context_, weights, size_, clip);
   }
 }
+
+template <typename T> void SimpleRPUDeviceCuda<T>::quantizeWeights(T *weights, T resolution, int levels) {
+  if (resolution > (T)0.0) {
+    auto amaximizer_ = RPU::make_unique<Maximizer<T>>(context_, size_);
+    amaximizer_->compute(weights, 1, true);
+    T bound_value;
+    amaximizer_->copyMaxValuesToHost(&bound_value);
+    RPU::math::elemscale<T>(context_, weights, size_, (T)1.0 / bound_value);
+    RPU::math::uquantize<T>(context_, weights, size_, resolution, levels);
+    RPU::math::elemscale<T>(context_, weights, size_, bound_value);
+  }
+}
+
 template <typename T> void SimpleRPUDeviceCuda<T>::initResetRnd() {
 
   if (this->rnd_context_ == nullptr) {

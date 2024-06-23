@@ -190,6 +190,16 @@ class PulseType(Enum):
     """
 
 
+class WeightQuantizerType(Enum):
+    """Weight quantizer type."""
+
+    UNIFORM = "Uniform"
+    """Uniform quantization."""
+
+    FIXEDVALUED = "FixedValued"
+    """Quantization to fixed specified values."""
+
+
 class WeightModifierType(Enum):
     """Weight modifier type."""
 

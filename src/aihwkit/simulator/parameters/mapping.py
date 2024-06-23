@@ -22,6 +22,8 @@ from aihwkit.exceptions import ConfigError
 from .base import RPUConfigBase
 from .helpers import _PrintableMixin
 
+from .enums import WeightQuantizerType
+
 
 @dataclass
 class MappingParameter(_PrintableMixin):
@@ -161,12 +163,14 @@ class WeightQuantizerParameter(_PrintableMixin):
     along with the other weights.
     """
 
-    uniform_quant: bool = True
-    """Whether to use uniform quantization.
+    quantizer_type: WeightQuantizerType = field(
+        default_factory=lambda: WeightQuantizerType.UNIFORM, metadata={"always_show": True}
+    )
+    """Specifies the type of quantizer to use.
 
-    If set to True, the quantization levels will be uniformly spaced between
-    -bound and bound. If set to False, the quantization levels used will have to 
-    be specified in the quant_values parameter.
+    The quantizer type can be one of the following:
+    - Uniform: quantizes the weights uniformly between the quantization levels.
+    - FixedValued: quantizes the weights to some fixed values.
     """
 
     quant_values: List[float] = field(

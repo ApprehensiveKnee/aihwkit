@@ -1312,8 +1312,6 @@ template <typename T> void RPUSimple<T>::applyDelayedWeights() {
 /* Set/Get weights related*/
 
 template <typename T> void RPUSimple<T>::setWeightsUniformRandom(T min_value, T max_value) {
-  // instantiate WeightQuantizer
-  WeightQuantizer<T> wq(this->x_size_, this->d_size_);
   T **w = this->getWeightsPtr();
   for (int j = 0; j < this->x_size_; ++j) {
     for (int i = 0; i < this->d_size_; ++i) {
@@ -1323,8 +1321,6 @@ template <typename T> void RPUSimple<T>::setWeightsUniformRandom(T min_value, T 
 }
 
 template <typename T> void RPUSimple<T>::setWeights(const T *weightsptr) {
-  // instantiate WeightQuantizer
-  WeightQuantizer<T> wq(this->x_size_, this->d_size_);
   T *w = this->getWeightsPtr()[0];
   if (weightsptr != w) {
     int size = this->d_size_ * this->x_size_;
@@ -1610,9 +1606,9 @@ template <typename T> void RPUSimple<T>::driftWeights(T time_since_last_call) {
 template <typename T> void RPUSimple<T>::quantizeWeights(const WeightQuantizerParameter<T> &wqp) {
 
   if (wquantizer_ == nullptr) {
-    wquantizer_ = RPU::make_unique<WeightQuantizer<T>>(this->x_size_, this->d_size_, wqp);
+    wquantizer_ = RPU::make_unique<WeightQuantizer<T>>(this->x_size_, this->d_size_);
   }
-  wquantizer_->apply(getWeightsPtr()[0], *rng_);
+  wquantizer_->apply(getWeightsPtr()[0], wqp, *rng_);
   
 }
 

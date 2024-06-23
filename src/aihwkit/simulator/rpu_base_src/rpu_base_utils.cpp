@@ -36,6 +36,9 @@ void declare_utils(py::module &m_devices, py::module &m_tiles) {
       .def_readwrite("max_scale_ref", &RPU::WeightRemapParameter::max_scale_ref)
       .def_readwrite("type", &RPU::WeightRemapParameter::type);
 
+  py::enum_<RPU::WeightQuantizerType>(m_tiles, "WeightQuantizerType")
+      .value("Uniform", RPU::WeightQuantizerType::Uniform)
+      .value("FixedValue", RPU::WeightQuantizerType::FixedValued);
 
   py::enum_<RPU::WeightModifierType>(m_tiles, "WeightModifierType")
       .value("Copy", RPU::WeightModifierType::Copy)

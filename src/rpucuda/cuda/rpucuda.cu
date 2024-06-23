@@ -138,6 +138,7 @@ RPUCudaSimple<T>::RPUCudaSimple(const RPUCudaSimple<T> &other) : RPUSimple<T>(ot
   // no copy
   wremapper_cuda_ = nullptr;
   wclipper_cuda_ = nullptr;
+  wquantizer_cuda_ = nullptr;
 
   dev_x_vector_->assign(*other.dev_x_vector_);
   dev_d_vector_->assign(*other.dev_d_vector_);
@@ -231,6 +232,9 @@ void RPUCudaSimple<T>::dumpExtra(RPU::state_t &extra, const std::string prefix) 
   if (wclipper_cuda_) {
     wclipper_cuda_->dumpExtra(state, "wclipper_cuda");
   }
+  if (wquantizer_cuda_) {
+    wquantizer_cuda_->dumpExtra(state, "wquantizer_cuda");
+  }
   RPU::insertWithPrefix(extra, state, prefix);
 
   // extern not handled
@@ -284,6 +288,14 @@ void RPUCudaSimple<T>::loadExtra(const RPU::state_t &extra, const std::string pr
           RPU::make_unique<WeightClipperCuda<T>>(this->context_, this->x_size_, this->d_size_);
     }
     wclipper_cuda_->loadExtra(state, "wclipper_cuda", strict);
+  }
+
+  if (state.count("wquantizer_cuda")) {
+    if (!wquantizer_cuda_) {
+      wquantizer_cuda_ =
+          RPU::make_unique<WeightQuantizerCuda<T>>(this->context_, this->x_size_, this->d_size_);
+    }
+    wquantizer_cuda_->loadExtra(state, "wquantizer_cuda", strict);
   }
 }
 
@@ -721,6 +733,17 @@ template <typename T> void RPUCudaSimple<T>::clipWeights(const WeightClipParamet
   wclipper_cuda_->apply(dev_weights_->getData(), wclpar);
 }
 
+/*********************************************************************************/
+
+template <typename T> void RPUCudaSimple<T>::quantizeWeights(const WeightQuantizerType &wqpar) {
+
+  if (!wquantizer_cuda_) {
+    wquantizer_cuda_ =
+        RPU::make_unique<WeightQuantizerCuda<T>>(this->context_, this->x_size_, this->d_size_);
+  }
+
+  wquantizer_cuda_->apply(dev_weights_->getData(), wqpar);
+}
 /*********************************************************************************/
 template <typename T> void RPUCudaSimple<T>::diffuseWeights() {
 

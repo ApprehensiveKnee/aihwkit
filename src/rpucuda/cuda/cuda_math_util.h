@@ -234,6 +234,9 @@ void permute132(
 // w = max(min(w,|a|),-|a|)
 template <typename T> void aclip(const CudaContextPtr context, T *W, const int size, const T a);
 
+// w = w_quant(w, res, levels) 
+template <typename T> void uquantize(const CudaContextPtr context, T *W, const int size, const T res, const int levels = 0);
+
 // w = max(w,a) element-wise
 template <typename T>
 void elemmax(

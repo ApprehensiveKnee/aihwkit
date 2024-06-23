@@ -289,6 +289,15 @@ template <typename T> void RPUCudaPulsed<T>::clipWeights(const WeightClipParamet
   }
 }
 
+template <typename T> void RPUCudaPulsed<T>::quantizeWeights(const WeightQuantizerParameter &wqpar) {
+  if (wqpar.quantizer_type == WeightQuantizerType::Uniform) {
+    RPUCudaSimple<T>::quantizeWeights(wqpar);
+  }
+  else {
+    RPU_FATAL("Fixed value quantization is NOT implemented yet");
+  }
+}
+
 template <typename T>
 void RPUCudaPulsed<T>::remapWeights(const WeightRemapParameter &wrmpar, T *scales, T *biases) {
   // Same as Simple version, however, we can now suppport the exceeded channel BM

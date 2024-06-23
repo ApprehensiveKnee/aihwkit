@@ -156,6 +156,8 @@ public:
   void clipWeights(T clip) override;
   void clipWeights(const WeightClipParameter &wclpar) override;
 
+  void quantizeWeights(const WeightQuantizerParameter &wclpar) override;
+
   void remapWeights(const WeightRemapParameter &wrmpar, T *scales, T *biases = nullptr) override;
   bool swaWeights(
       const WeightRemapParameter &wrmpar,

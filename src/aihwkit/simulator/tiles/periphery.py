@@ -16,6 +16,7 @@
 
 from typing import Optional, Tuple, Union, Any, List
 from numpy import array
+from aihwkit.simulator.parameters.helpers import parameters_to_bindings
 import inspect
 
 from torch import (
@@ -171,8 +172,12 @@ class TileWithPeriphery(BaseTile, SimulatorTileWrapper):
 
         self.tile.set_weights(combined_weights)
         if wqpar is not None:
-            new_wqpar = tiles.WeightQuantizerParameter()
-            new_wqpar.copy_from(wqpar)
+            # new_wqpar = tiles.WeightQuantizerParameter()
+            # new_wqpar.copy_from(wqpar)
+            data_type = self.get_data_type()
+            new_wqpar = parameters_to_bindings(
+                    self.rpu_config.quantization, data_type
+                )
             self.tile.quantize_weights(new_wqpar)
             # Print the stack trace
             #print(inspect.stack())

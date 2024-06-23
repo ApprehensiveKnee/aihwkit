@@ -22,6 +22,7 @@
 #include "weight_drifter_cuda.h"
 #include "weight_modifier_cuda.h"
 #include "weight_remapper_cuda.h"
+#include "weight_quantizer_cuda.h"
 #include <memory>
 #include <random>
 
@@ -197,6 +198,8 @@ public:
   void clipWeights(T clip) override;
   void clipWeights(const WeightClipParameter &wclpar) override;
 
+  void quantizeWeights(const WeightQuantizerType &wqpar) override;
+
   T **getWeights() override; // host weights. implicit copy from CUDA
 
   void getWeights(T *weightsptr) const override;
@@ -238,6 +241,8 @@ protected:
 
   std::unique_ptr<WeightRemapperCuda<T>> wremapper_cuda_ = nullptr;
   std::unique_ptr<WeightClipperCuda<T>> wclipper_cuda_ = nullptr;
+
+  std::unique_ptr<WeightQuantizerCuda<T>> wquantizer_cuda_ = nullptr;
 
 private:
   bool shared_weights_if_ = false;

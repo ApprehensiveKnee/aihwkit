@@ -132,8 +132,8 @@ template <typename T>
 void SimpleRPUDevice<T>::quantizeWeights(T **weights, const WeightQuantizerParameter<T> &wqp, RNG<T> &rng) {
   // apply in-place quantization
   if (wqp.resolution) {
-    WeightQuantizer<T> wq(this->x_size_, this->d_size_, wqp);
-    wq.apply(weights[0], rng);
+    WeightQuantizer<T> wq(this->x_size_, this->d_size_);
+    wq.apply(weights[0], wqp, rng);
   }
 };
 

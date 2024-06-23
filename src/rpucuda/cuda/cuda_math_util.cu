@@ -1329,6 +1329,26 @@ template void aclip<double>(const CudaContextPtr, double *, const int, const dou
 template void aclip<half_t>(const CudaContextPtr, half_t *, const int, const half_t);
 #endif
 
+// w = w_quant(w, res)
+template <typename T> __global__ void kernelQuantize(T *values, int size, T res, int levels) {
+  RPU_CUDA_1D_KERNEL_LOOP(idx, size) { values[idx] = res * round(values[idx] / res); if (levels > 0) { values[idx] = MIN(MAX(values[idx], -res * (T)(levels - 1)), res * (T)(levels - 1)); } }
+}
+
+template <typename T>
+void uquantize(const CudaContextPtr context, T *W, const int size, const T res, int levels = 0) {
+
+  int nthreads = context->getNThreads();
+  int nblocks = context->getNBlocks(size, nthreads);
+  kernelQuantize<<<nblocks, nthreads, 0, context->getStream()>>>(W, size, res, levels);
+}
+template void uquantize<float>(const CudaContextPtr, float *, const int, const float, int);
+#ifdef RPU_USE_DOUBLE
+template void uquantize<double>(const CudaContextPtr, double *, const int, const double, int);
+#endif
+#ifdef RPU_DEFINE_CUDA_HALF_ARRAY
+template void uquantize<half_t>(const CudaContextPtr, half_t *, const int, const half_t, int);
+#endif
+
 // w = max(w,a)
 template <typename T> __global__ void kernelElemmax(T *values, int size, T a, const T *in_values) {
   RPU_CUDA_1D_KERNEL_LOOP(idx, size) { values[idx] = MAX(in_values[idx], a); }

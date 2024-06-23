@@ -300,6 +300,24 @@ template <typename T> void PulsedRPUDeviceCuda<T>::clipWeights(T *weights, T cli
   applyUpdateWriteNoise(weights);
 }
 
+template <typename T> void PulsedRPUDeviceCuda<T>::quantizeWeights(T *weights, T resolution, int levels){
+  
+    T *w = getPar().usesPersistentWeight() ? dev_persistent_weights_->getData() : weights;
+  
+    if (resolution > 0){
+        auto amaximizer_ = RPU::make_unique<Maximizer<T>>(this->context_, this->size_);
+        amaximizer_->compute(w, 1, true);
+        T bound_value_;
+        amaximizer_->copyMaxValuesToHost(&bound_value_);
+        RPU::math::elemscale(this->context_, w, this->size_, (T)1.0 / bound_value_);
+        RPU::math::uquantize(this->context_, w, this->size_, (T)resolution, levels);
+        RPU::math::elemscale(this->context_, w, this->size_, bound_value_);
+  
+    }
+    applyUpdateWriteNoise(weights);
+  
+}
+
 template <typename T> std::vector<T> PulsedRPUDeviceCuda<T>::getHiddenWeights() const {
   std::vector<T> data;
   if (!getPar().usesPersistentWeight()) {

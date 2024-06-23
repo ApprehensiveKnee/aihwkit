@@ -57,17 +57,16 @@ void declare_rpu_tiles(py::module &m, std::string type_name_add) {
       .def_readwrite("pcm_t0", &RPU::WeightModifierParameter<T_RPU>::pcm_t0)
       .def_readwrite("g_max", &RPU::WeightModifierParameter<T_RPU>::g_max);
 
-    // -- MODIFIED: added quantization parameter
+  // -- MODIFIED: added quantization parameter
   py::class_<RPU::WeightQuantizerParameter<T>>(m, NAME("WeightQuantizerParameter"))
       .def(py::init<>())
-      .def("copy_from", &RPU::WeightQuantizerParameter<T>::copyFrom)
       .def_readwrite("resolution", &RPU::WeightQuantizerParameter<T>::resolution)
       .def_readwrite("levels", &RPU::WeightQuantizerParameter<T>::levels)
       //.def_readwrite("bound", &RPU::WeightQuantizerParameter<T>::bound)
       //.def_readwrite("relat_bound", &RPU::WeightQuantizerParameter<T>::relat_bound)
       //.def_readwrite("rel_to_actual_bound", &RPU::WeightQuantizerParameter<T>::rel_to_actual_bound)
       .def_readwrite("quantize_last_column", &RPU::WeightQuantizerParameter<T>::quantize_last_column)
-      .def_readwrite("uniform_quant", &RPU::WeightQuantizerParameter<T>::uniform_quant)
+      .def_readwrite("quantizer_type", &RPU::WeightQuantizerParameter<T>::quantizer_type)
       .def_readwrite("quant_values", &RPU::WeightQuantizerParameter<T>::quant_values)
       .def_readwrite("stochastic_round", &RPU::WeightQuantizerParameter<T>::stochastic_round);
   // -- MODIFIED: added quantization parameter
@@ -413,7 +412,6 @@ void declare_rpu_tiles(py::module &m, std::string type_name_add) {
           "quantize_weights",
           [](Class &self, ::RPU::WeightQuantizerParameter<T> &wqpar) {
             std::lock_guard<std::mutex> lock(self.mutex_);
-        
             self.quantizeWeights(wqpar);
           },
           R"pbdoc(

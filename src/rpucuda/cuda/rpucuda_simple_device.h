@@ -29,6 +29,7 @@ public:
   virtual void driftWeights(T *dev_weights, T time_since_epoch) = 0;
   virtual void diffuseWeights(T *dev_weights) = 0;
   virtual void clipWeights(T *dev_weights, T clip) = 0;
+  virtual void quantizeWeights(T *dev_weights, T resolution, int levels) = 0;
   virtual void resetCols(T *dev_weights, int start_col, int n_cols, T reset_prob) = 0;
 
   virtual std::vector<T> getHiddenWeights() const = 0;
@@ -105,6 +106,7 @@ public:
   void driftWeights(T *dev_weights, T time_since_epoch) override;
   void diffuseWeights(T *dev_weights) override;
   void clipWeights(T *dev_weights, T clip) override;
+  void quantizeWeights(T *dev_weights, T resolution, int levels) override;
   void resetCols(T *dev_weights, int start_col, int n_cols, T reset_prob) override;
   void applyWeightUpdate(T *dev_weights, T *dw_and_current_weight_out) override;
   void
