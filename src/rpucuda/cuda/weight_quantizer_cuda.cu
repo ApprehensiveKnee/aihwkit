@@ -30,7 +30,7 @@ WeightQuantizerCuda<T>::WeightQuantizerCuda(CudaContextPtr context, int x_size, 
 
 
 template <typename T>
-void WeightQuantizerCuda<T>::apply(T *weights, const WeightQuantizerParameter &wqpar) {
+void WeightQuantizerCuda<T>::apply(T *weights, const WeightQuantizerParameter<T> &wqpar) {
   
     int nthreads = context_->getNThreads();
     int nblocks = context_->getNBlocks(size_, nthreads);
