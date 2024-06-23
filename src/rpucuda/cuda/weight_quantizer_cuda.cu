@@ -58,8 +58,19 @@ void WeightQuantizerCuda<T>::apply(T *weights, const WeightQuantizerParameter<T>
                 RPU::math::elemscale(context_, weights, size_, bound_value_);
 
             }
+            break;
         }
+        default:
+            RPU_FATAL("Weight quantizer type not implemented.");
     }
 }
+
+template class WeightQuantizerCuda<float>;
+#ifdef RPU_USE_DOUBLE
+template class WeightQuantizerCuda<double>;
+#endif
+#ifdef RPU_USE_HALF
+template class WeightQuantizerCuda<half>;
+#endif
 
 } // namespace RPU
