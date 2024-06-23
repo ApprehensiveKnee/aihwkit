@@ -198,7 +198,7 @@ public:
   void clipWeights(T clip) override;
   void clipWeights(const WeightClipParameter &wclpar) override;
 
-  void quantizeWeights(const WeightQuantizerParameter &wqpar) override;
+  void quantizeWeights(const WeightQuantizerParameter<T> &wqpar) override;
 
   T **getWeights() override; // host weights. implicit copy from CUDA
 

@@ -1335,7 +1335,7 @@ template <typename T> __global__ void kernelQuantize(T *values, int size, T res,
 }
 
 template <typename T>
-void uquantize(const CudaContextPtr context, T *W, const int size, const T res, int levels = 0) {
+void uquantize(const CudaContextPtr context, T *W, const int size, const T res, int levels) {
 
   int nthreads = context->getNThreads();
   int nblocks = context->getNBlocks(size, nthreads);

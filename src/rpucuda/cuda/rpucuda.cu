@@ -735,7 +735,7 @@ template <typename T> void RPUCudaSimple<T>::clipWeights(const WeightClipParamet
 
 /*********************************************************************************/
 
-template <typename T> void RPUCudaSimple<T>::quantizeWeights(const WeightQuantizerParameter &wqpar) {
+template <typename T> void RPUCudaSimple<T>::quantizeWeights(const WeightQuantizerParameter<T> &wqpar) {
 
   if (!wquantizer_cuda_) {
     wquantizer_cuda_ =
