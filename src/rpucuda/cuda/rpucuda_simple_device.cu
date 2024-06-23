@@ -312,15 +312,10 @@ template <typename T> void SimpleRPUDeviceCuda<T>::clipWeights(T *weights, T cli
   }
 }
 
-template <typename T> void SimpleRPUDeviceCuda<T>::quantizeWeights(T *weights, T resolution, int levels) {
-  if (resolution > (T)0.0) {
-    auto amaximizer_ = RPU::make_unique<Maximizer<T>>(context_, size_);
-    amaximizer_->compute(weights, 1, true);
-    T bound_value;
-    amaximizer_->copyMaxValuesToHost(&bound_value);
-    RPU::math::elemscale<T>(context_, weights, size_, (T)1.0 / bound_value);
-    RPU::math::uquantize<T>(context_, weights, size_, resolution, levels);
-    RPU::math::elemscale<T>(context_, weights, size_, bound_value);
+template <typename T> void SimpleRPUDeviceCuda<T>::quantizeWeights(T *weights, const WeightQuantizerParameter<T> &wqp, RNG<T> &rng) {
+  if (wqp.resolution) {
+    auto wq = RPU::make_unique<WeightQuantizerCuda<T>>(this->context_, this->x_size_, this->d_size_);
+    wq->apply(dev_weights_->getData(), wqpar);
   }
 }
 

@@ -428,6 +428,7 @@ void PulsedRPUDevice<T>::quantizeWeights(T **weights, const WeightQuantizerParam
   T ** w = getPar().usesPersistentWeight() ? w_persistent_ : weights;
   WeightQuantizer<T> wq(this->x_size_, this->d_size_);
   wq.apply(w[0], wqp,rng);
+  applyUpdateWriteNoise(weights);
 }
 
 template <typename T>
