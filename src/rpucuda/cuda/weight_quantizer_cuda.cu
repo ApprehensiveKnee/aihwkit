@@ -52,7 +52,7 @@ void WeightQuantizerCuda<T>::apply(T *weights, const WeightQuantizerParameter<T>
                 RPU::math::elemscale(context_, weights, size_, (T)1.0 / bound_value_);
 
                 // Quantize the weights
-                RPU::math::uquantize(context_, weights_, size_, (T)wqpar.resolution, wqpar.levels)
+                RPU::math::uquantize(context_, weights, size_, (T)wqpar.resolution, wqpar.levels);
 
                 // Rescale back the weights
                 RPU::math::elemscale(context_, weights, size_, bound_value_);
