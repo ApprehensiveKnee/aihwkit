@@ -315,7 +315,7 @@ template <typename T> void SimpleRPUDeviceCuda<T>::clipWeights(T *weights, T cli
 template <typename T> void SimpleRPUDeviceCuda<T>::quantizeWeights(T *weights, const WeightQuantizerParameter<T> &wqp, RNG<T> &rng) {
   if (wqp.resolution) {
     auto wq = RPU::make_unique<WeightQuantizerCuda<T>>(this->context_, this->x_size_, this->d_size_);
-    wq->apply(dev_weights_->getData(), wqpar);
+    wq->apply(weights, wqp);
   }
 }
 
