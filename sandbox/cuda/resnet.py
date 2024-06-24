@@ -441,7 +441,7 @@ if __name__ == '__main__':
 
 
     t_inferences = [0.0]  # Times to perform infernece.
-    n_reps = 1  # Number of inference repetitions.
+    n_reps = 10  # Number of inference repetitions.
     # Calibrate input ranges
     print("Performing input range calibration")
     models =[ model, get_quantized_model(model,9, rpu_config), get_quantized_model(model,17, rpu_config)]
