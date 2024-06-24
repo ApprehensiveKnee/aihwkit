@@ -60,8 +60,8 @@ struct WeightQuantizerParameter{
     //ss << "\t rel_to_actual_bound: \t" << rel_to_actual_bound << std::endl;
     ss << "\t quantize_last_column: \t" << quantize_last_column << std::endl;
     ss << "\t stochastic_round: \t" << stochastic_round << std::endl;
+    ss << "\t quantizer_type: \t" << getTypeName() << std::endl;
     if(quantizer_type == WeightQuantizerType::FixedValued){
-      ss << "\t quantizer_type: \t" << getTypeName() << std::endl;
       ss << "\t quant_values: \t[";
       for (size_t i = 0; i < quant_values.size(); i++) {
         ss << quant_values[i];

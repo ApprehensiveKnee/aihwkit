@@ -62,8 +62,6 @@ void WeightQuantizer<T>::fit(const T *weights, WeightQuantizerParameter<T> &wqpa
 
 template <typename T>
 void WeightQuantizer<T>::apply(T *weights, const WeightQuantizerParameter<T> &wqpar,RNG<T> &rng) {
-    
-    
 
     if (wqpar.resolution == 0.0 && wqpar.quantizer_type == WeightQuantizerType::Uniform) {
         return;
@@ -141,7 +139,6 @@ void WeightQuantizer<T>::apply(T *weights, const WeightQuantizerParameter<T> &wq
                 T w = weights[i];
                 weights[i] = bound * getDiscretizedValueCollapse(w/bound, resolution, stochastic_round, levels, rng);
             }
-            std::cout << "In here" << std::endl;
         }
     }
     else{

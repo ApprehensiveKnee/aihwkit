@@ -741,7 +741,6 @@ template <typename T> void RPUCudaSimple<T>::quantizeWeights(const WeightQuantiz
     wquantizer_cuda_ =
         RPU::make_unique<WeightQuantizerCuda<T>>(this->context_, this->x_size_, this->d_size_);
   }
-
   wquantizer_cuda_->apply(dev_weights_->getData(), wqpar);
 }
 /*********************************************************************************/

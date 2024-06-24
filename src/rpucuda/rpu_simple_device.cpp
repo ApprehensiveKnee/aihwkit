@@ -130,11 +130,8 @@ void SimpleRPUDevice<T>::driftWeights(T **weights, T time_since_last_call, RNG<T
 
 template <typename T>
 void SimpleRPUDevice<T>::quantizeWeights(T **weights, const WeightQuantizerParameter<T> &wqp, RNG<T> &rng) {
-  // apply in-place quantization
-  if (wqp.resolution) {
-    WeightQuantizer<T> wq(this->x_size_, this->d_size_);
-    wq.apply(weights[0], wqp, rng);
-  }
+  WeightQuantizer<T> wq(this->x_size_, this->d_size_);
+  wq.apply(weights[0], wqp, rng);
 };
 
 template <typename T> void SimpleRPUDevice<T>::diffuseWeights(T **weights, RNG<T> &rng) {

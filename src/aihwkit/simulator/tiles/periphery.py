@@ -165,7 +165,6 @@ class TileWithPeriphery(BaseTile, SimulatorTileWrapper):
             bias = None
 
         combined_weights = self._combine_weights(weight, bias)
-
         if apply_weight_scaling:
             combined_weights = self.apply_weight_scaling(combined_weights, weight_scaling_omega)
 
@@ -176,7 +175,7 @@ class TileWithPeriphery(BaseTile, SimulatorTileWrapper):
             # new_wqpar.copy_from(wqpar)
             data_type = self.get_data_type()
             new_wqpar = parameters_to_bindings(
-                    self.rpu_config.quantization, data_type
+                    wqpar, data_type
                 )
             self.tile.quantize_weights(new_wqpar)
             # Print the stack trace

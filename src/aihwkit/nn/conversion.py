@@ -178,7 +178,6 @@ def convert_to_analog(
             specific_rpu_config_fun(module_name, module, deepcopy(rpu_config)),
             tile_module_class
         )
-
     
 
     # Convert children.

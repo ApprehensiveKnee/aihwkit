@@ -190,7 +190,7 @@ class AnalogLayerBase:
             ModuleError: if not of type TileModule.
         """
         if hasattr(self, "analog_module"):
-            return self.analog_module.set_weights(weight, bias, wqpar=wqpar,**kwargs)
+            return self.analog_module.set_weights(weight, bias, wqpar=wqpar, **kwargs)
         raise ModuleError(f"set_weights not implemented for {type(self).__name__} ")
 
     def get_weights(self, **kwargs: Any) -> Tuple[Tensor, Optional[Tensor]]:
