@@ -216,7 +216,7 @@ class Resnet9(torch.nn.Module):
 def resnet9s():
     return Resnet9(channels=[28, 28, 28, 56])
 
-def get_test_loader(batch_size=128):
+def get_test_loader(batch_size=32):
     transform_test = torchvision.transforms.Compose(
         [
             torchvision.transforms.ToTensor(),
