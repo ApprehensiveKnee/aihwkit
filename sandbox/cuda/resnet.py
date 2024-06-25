@@ -462,12 +462,13 @@ if __name__ == '__main__':
                     model_i = model
                 else:
                     model_i = get_quantized_model(model, SELECTED_LEVEL, rpu_config)
-                
                 model_i.eval()
+                dataloader=Sampler(get_test_loader(), device)
+
                 calibrate_input_ranges(
                 model=model_i,
                 calibration_type=InputRangeCalibrationType.CACHE_QUANTILE,
-                dataloader=Sampler(get_test_loader(), device),
+                dataloader=dataloader,
                 )
                 
                 inference_accuracy_values[t_id, j, i] = evaluate_model(
@@ -477,9 +478,11 @@ if __name__ == '__main__':
                 # print the values of the first tile
                 tile_weights = next(model_i.analog_tiles()).get_weights()
                 print(f"Tile weights for model {model_names[i]}: {tile_weights[0][0:5, 0:5]}")
+                
                 del model_i
+                del dataloader
                 torch.cuda.empty_cache()
-                #gc.collect()
+                gc.collect()
                 #torch.cuda.reset_peak_memory_stats()
 
         print(
@@ -551,16 +554,19 @@ if __name__ == '__main__':
                 model_fitted.eval()
                 model_fitted.program_analog_weights()
 
+                dataloader = Sampler(get_test_loader(), device)
+
                 calibrate_input_ranges(
                 model=model_fitted,
                 calibration_type=InputRangeCalibrationType.CACHE_QUANTILE,
-                dataloader=Sampler(get_test_loader(), device),
+                dataloader=dataloader,
                 )
                 # Then evaluate the model
                 fitted_models_accuracy[t_id, j, i] = evaluate_model(model_fitted, get_test_loader(), device)
                 del model_fitted
+                del dataloader
                 torch.cuda.empty_cache()
-                #gc.collect()
+                gc.collect()
                 #torch.cuda.reset_peak_memory_stats()
             print(
                 f"Test set accuracy (%) at t={t}s for {fitted_models_names[i]}: mean: {fitted_models_accuracy[t_id, :, i].mean()}, std: {fitted_models_accuracy[t_id, :, i].std()}"
