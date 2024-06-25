@@ -457,16 +457,17 @@ if __name__ == '__main__':
         for j in range(n_reps):
          # For each repetition, get a new version of the quantized model and calibrare it
             models =[ model, get_quantized_model(model,9, rpu_config), get_quantized_model(model,17, rpu_config)]
-            for i, model in enumerate(models):
+            for i, model_i in enumerate(models):
                 calibrate_input_ranges(
-                model=model,
+                model=model_i,
                 calibration_type=InputRangeCalibrationType.CACHE_QUANTILE,
                 dataloader=Sampler(test_loader, device),
                 )
                 
                 inference_accuracy_values[t_id, j, i] = evaluate_model(
-                    model, test_loader, device
+                    model_i, test_loader, device
                 )
+                print(f"Acuuracy on rep:{j}, model:{i} -->" , inference_accuracy_values[t_id, j, i])
             del models
             torch.cuda.empty_cache()
             gc.collect()
@@ -475,7 +476,7 @@ if __name__ == '__main__':
 
         for k in range(len(model_names)):
             print(
-                f"Test set accuracy (%) at t={t}s for {model_names[k]}: mean: {inference_accuracy_values[t_id, :, k].mean()}"
+                f"Test set accuracy (%) at t={t}s for {model_names[k]}: mean: {inference_accuracy_values[t_id, :, k].mean()}, std: {inference_accuracy_values[t_id, :, k].std()}"
             )
 
             
@@ -554,7 +555,7 @@ if __name__ == '__main__':
                 gc.collect()
                 torch.cuda.reset_peak_memory_stats()
             print(
-                f"Test set accuracy (%) at t={t}s for {fitted_models_names[i]}: mean: {fitted_models_accuracy[t_id, :, i].mean()}"
+                f"Test set accuracy (%) at t={t}s for {fitted_models_names[i]}: mean: {fitted_models_accuracy[t_id, :, i].mean()}, std: {fitted_models_accuracy[t_id, :, i].std()}"
             )
 
     # Plot the accuracy of the models in a stem plot
