@@ -1,5 +1,6 @@
 import os
 import torch
+import gc
 from torch import nn, Tensor, device, no_grad, manual_seed
 from torch import nn
 from torchvision.datasets.utils import download_url
@@ -267,7 +268,7 @@ class Sampler:
     def __next__(self):
         x, _ = next(self.loader)
         self.idx += 1
-        if self.idx > 50:
+        if self.idx > 100:
             raise StopIteration
 
         return ([x.to(self.device)], {})
@@ -467,6 +468,10 @@ if __name__ == '__main__':
                     model, test_loader, device
                 )
             del models
+            torch.cuda.empty_cache()
+            gc.collect()
+            torch.cuda.reset_peak_memory_stats()
+
 
         for k in range(len(model_names)):
             print(
@@ -545,6 +550,9 @@ if __name__ == '__main__':
                 # Then evaluate the model
                 fitted_models_accuracy[t_id, j, i] = evaluate_model(model_fitted, test_loader, device)
                 del model_fitted
+                torch.cuda.empty_cache()
+                gc.collect()
+                torch.cuda.reset_peak_memory_stats()
             print(
                 f"Test set accuracy (%) at t={t}s for {fitted_models_names[i]}: mean: {fitted_models_accuracy[t_id, :, i].mean()}"
             )
