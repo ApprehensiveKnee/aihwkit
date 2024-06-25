@@ -537,19 +537,32 @@ if __name__ == '__main__':
         for t_id, t in enumerate(t_inferences):
             for j in range(n_reps):
                 fitted_models_accuracy[t_id, j, i] = evaluate_model(model_fitted, test_loader, device)
+            print(
+                f"Test set accuracy (%) at t={t}s for {fitted_models_names[i]}: mean: {fitted_models_accuracy[t_id, :, i].mean()}"
+            )
 
-    fitted_models_accuracy = fitted_models_accuracy.mean(dim=1)
-    fitted_models_accuracy = fitted_models_accuracy[0]
-    # At this stage, fitted_models_accuracy contains the mean accuracy of the fitted models for the time t=0
+    # Plot the accuracy of the models in a stem plot
     fig, ax = plt.subplots(figsize=(23,7))
     models = ["Unquantized",f"Quantized - {SELECTED_LEVEL} levels"] + fitted_models_names
     if SELECTED_LEVEL == 9:
         accuracies = [inference_accuracy_values[t_id, :, 0].mean(),inference_accuracy_values[t_id, :, 1].mean()]
+        std_accuracy = [inference_accuracy_values[t_id, :, 0].std(),inference_accuracy_values[t_id, :, 1].std()]
     else:
         accuracies = [inference_accuracy_values[t_id, :, 0].mean(),inference_accuracy_values[t_id, :, 2].mean()]
-    accuracies = accuracies + fitted_models_accuracy.tolist()
+        std_accuracy = [inference_accuracy_values[t_id, :, 0].std(),inference_accuracy_values[t_id, :, 2].std()]
+    accuracies = accuracies + fitted_models_accuracy.mean(dim=1)[0].tolist()
+    std_accuracy = std_accuracy + fitted_models_accuracy.std(dim=1)[0].tolist()
     ax.stem(models[:2], accuracies[:2], linefmt ='darkorange', markerfmt ='D', basefmt=' ')
     ax.stem(models[2:], accuracies[2:], linefmt ='darkorchid', markerfmt ='D', basefmt=' ')
+    # Define the points for the two boundary lines
+    x = np.arange(len(models))
+    y1 = np.array([accuracies[i] - 3*std_accuracy[i] for i in range(len(models))])
+    y2 = np.array([accuracies[i] + 3*std_accuracy[i] for i in range(len(models))])
+    # Interpolating or directly using the points to fill the region
+    ax.fill_between(x, y1, y2, where=(y2 > y1), color='bisque', alpha=0.5, label='Confidence Interval')
+    ax.plot(x, y1, '--', color='firebrick')
+    ax.plot(x, y2, 'g--', color = 'olivedrab')
+
     ax.set_title("Accuracy of the models")
     ax.set_ylabel("Accuracy (%)")
     ax.set_xlim([-0.5, len(models)- 0.5])
@@ -557,6 +570,8 @@ if __name__ == '__main__':
     ax.yaxis.grid(True)
     ax.yaxis.grid(which='minor', linestyle=':', linewidth='0.5', color='gray')
     ax.set_ylim([55, 90])
+    ax.legend()
     # Save the plot to file
-    plt.savefig(p_PATH+f"/resnet/plots/accuracy_lenet_FittedNoise_{SELECTED_LEVEL}.png")
+    plt.savefig(p_PATH+f"/resnet/plots/accuracy_resnet_FittedNoise_{SELECTED_LEVEL}.png")
+
 
