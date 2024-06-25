@@ -382,7 +382,13 @@ if __name__ == '__main__':
     p_PATH = os.path.abspath(__file__)
     p_PATH = os.path.dirname(os.path.dirname(p_PATH))
 
-    SELECTED_LEVEL = 9
+    # read the first argument, passed with the -l flag
+    if len(sys.argv) > 1 and sys.argv[1] == '-l':
+        SELECTED_LEVEL = int(sys.argv[2])
+    else:
+        raise Exception("Please specify the level of quantization with the -l flag")
+
+    SELECTED_LEVEL = 
 
     MAP = {
         9 : "matlab/3bit.mat",
