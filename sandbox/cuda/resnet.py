@@ -453,11 +453,17 @@ if __name__ == '__main__':
 
     model_names = ["Unquantized", "Quantized - 9 levels", "Quantized - 17 levels"]
     inference_accuracy_values = torch.zeros((len(t_inferences), n_reps, len(model_names)))
-    for t_id, t in enumerate(t_inferences):
-        for j in range(n_reps):
-         # For each repetition, get a new version of the quantized model and calibrare it
-            models =[ model, get_quantized_model(model,9, rpu_config), get_quantized_model(model,17, rpu_config)]
-            for i, model_i in enumerate(models):
+    for i,model_name in enumerate(model_names):
+        for t_id, t in enumerate(t_inferences):
+            for j in range(n_reps):
+            # For each repetition, get a new version of the quantized model and calibrare it
+
+                if model_name == "Unquantized":
+                    model_i = model
+                else:
+                    model_i = get_quantized_model(model, SELECTED_LEVEL, rpu_config)
+                
+                model_i.eval()
                 calibrate_input_ranges(
                 model=model_i,
                 calibration_type=InputRangeCalibrationType.CACHE_QUANTILE,
@@ -471,10 +477,10 @@ if __name__ == '__main__':
                 # print the values of the first tile
                 tile_weights = next(model_i.analog_tiles()).get_weights()
                 print(f"Tile weights for model {model_names[i]}: {tile_weights[0][0:5, 0:5]}")
-            del models
-            torch.cuda.empty_cache()
-            gc.collect()
-            torch.cuda.reset_peak_memory_stats()
+                del model_i
+                torch.cuda.empty_cache()
+                gc.collect()
+                torch.cuda.reset_peak_memory_stats()
 
 
         for k in range(len(model_names)):
