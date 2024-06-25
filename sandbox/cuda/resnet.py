@@ -561,7 +561,7 @@ if __name__ == '__main__':
     # Interpolating or directly using the points to fill the region
     ax.fill_between(x, y1, y2, where=(y2 > y1), color='bisque', alpha=0.5, label='Confidence Interval')
     ax.plot(x, y1, '--', color='firebrick')
-    ax.plot(x, y2, 'g--', color = 'olivedrab')
+    ax.plot(x, y2, '--', color = 'olivedrab')
 
     ax.set_title("Accuracy of the models")
     ax.set_ylabel("Accuracy (%)")
