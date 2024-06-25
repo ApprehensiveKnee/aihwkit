@@ -388,8 +388,6 @@ if __name__ == '__main__':
     else:
         raise Exception("Please specify the level of quantization with the -l flag")
 
-    SELECTED_LEVEL = 
-
     MAP = {
         9 : "matlab/3bit.mat",
         17 : "matlab/4bit.mat",
