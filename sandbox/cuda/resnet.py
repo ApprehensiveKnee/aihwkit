@@ -445,32 +445,35 @@ if __name__ == '__main__':
 
 
     t_inferences = [0.0]  # Times to perform infernece.
-    n_reps = 20  # Number of inference repetitions.
-    # Calibrate input ranges
-    print("Performing input range calibration")
-    models =[ model, get_quantized_model(model,9, rpu_config), get_quantized_model(model,17, rpu_config)]
-    for model in models:
-        calibrate_input_ranges(
-        model=model,
-        calibration_type=InputRangeCalibrationType.CACHE_QUANTILE,
-        dataloader=Sampler(test_loader, device),
-        )
+    n_reps = 10  # Number of inference repetitions.
 
     # Evaluate the three models
     print("Evaluating the models")
 
     model_names = ["Unquantized", "Quantized - 9 levels", "Quantized - 17 levels"]
-    inference_accuracy_values = torch.zeros((len(t_inferences), n_reps, len(models)))
+    inference_accuracy_values = torch.zeros((len(t_inferences), n_reps, len(model_names)))
     for t_id, t in enumerate(t_inferences):
-        for i, model in enumerate(models):
-            for j in range(n_reps):
+        for j in range(n_reps):
+         # For each repetition, get a new version of the quantized model and calibrare it
+            models =[ model, get_quantized_model(model,9, rpu_config), get_quantized_model(model,17, rpu_config)]
+            for i, model in enumerate(models):
+                calibrate_input_ranges(
+                model=model,
+                calibration_type=InputRangeCalibrationType.CACHE_QUANTILE,
+                dataloader=Sampler(test_loader, device),
+                )
+                
                 inference_accuracy_values[t_id, j, i] = evaluate_model(
                     model, test_loader, device
                 )
+            del models
 
+        for k in range(len(model_names)):
             print(
-                f"Test set accuracy (%) at t={t}s for {model_names[i]}: mean: {inference_accuracy_values[t_id, :, i].mean()}"
+                f"Test set accuracy (%) at t={t}s for {model_names[k]}: mean: {inference_accuracy_values[t_id, :, k].mean()}"
             )
+
+            
 
     accuracy_plot(model_names, inference_accuracy_values, path=p_PATH + "/resnet/plots/accuracy_resnet.png")
 
@@ -511,36 +514,37 @@ if __name__ == '__main__':
     pl.generate_moving_hist(model_fitted,title=f"Distribution of Quantized Weight + Fitted Noise ({CHOSEN_NOISE})\n Values over the tiles - RESNET{SELECTED_LEVEL}", file_name=p_PATH + f"/resnet/plots/hist_resnet_QUANTIZED_{SELECTED_LEVEL}_FITTED.gif", range = (-.5,.5), top=None, split_by_rows=False, HIST_BINS=171)
 
     # Estimate the accuracy of the model with the fitted noise with respect to the other 9 levels model
+    original_model = resnet9s().to(device)
+    original_model.load_state_dict(state_dict["model_state_dict"], strict=True)
     fitted_models_names = []
     fitted_models_accuracy = torch.zeros((len(t_inferences), n_reps, len(types)))
     for i in range(len(types)):
         CHOSEN_NOISE = types[i]
         RPU_CONFIG  = CustomDefinedPreset()
+        RPU_CONFIG.quantization = WeightQuantizerParameter(
+            resolution=0.2 if SELECTED_LEVEL == 9 else 0.12,
+            levels = SELECTED_LEVEL,
+            )
         RPU_CONFIG.noise_model=ExperimentalNoiseModel(file_path = path,
                                                         type = CHOSEN_NOISE,
                                                         g_converter=SinglePairConductanceConverter(g_max=40.)),
 
-        original_model = resnet9s().to(device)
-        original_model.load_state_dict(state_dict["model_state_dict"], strict=True)
-
-        RPU_CONFIG.quantization = WeightQuantizerParameter(
-            resolution=0.2 if SELECTED_LEVEL == 9 else 0.12,
-            levels = SELECTED_LEVEL,
-        )
-        model_fitted = convert_to_analog(original_model, RPU_CONFIG)
-        model_fitted.eval()
-        model_fitted.program_analog_weights()
-
-        calibrate_input_ranges(
-        model=model_fitted,
-        calibration_type=InputRangeCalibrationType.CACHE_QUANTILE,
-        dataloader=Sampler(test_loader, device),
-        )
-
         fitted_models_names.append(f"Quantized - {SELECTED_LEVEL} levels \n+ Fitted Noise \n ({CHOSEN_NOISE})")
         for t_id, t in enumerate(t_inferences):
             for j in range(n_reps):
+                # For each repetition, get a new version of the quantized model and calibrare it
+                model_fitted = convert_to_analog(original_model, RPU_CONFIG)
+                model_fitted.eval()
+                model_fitted.program_analog_weights()
+
+                calibrate_input_ranges(
+                model=model_fitted,
+                calibration_type=InputRangeCalibrationType.CACHE_QUANTILE,
+                dataloader=Sampler(test_loader, device),
+                )
+                # Then evaluate the model
                 fitted_models_accuracy[t_id, j, i] = evaluate_model(model_fitted, test_loader, device)
+                del model_fitted
             print(
                 f"Test set accuracy (%) at t={t}s for {fitted_models_names[i]}: mean: {fitted_models_accuracy[t_id, :, i].mean()}"
             )
