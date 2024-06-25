@@ -468,6 +468,9 @@ if __name__ == '__main__':
                     model_i, test_loader, device
                 )
                 print(f"Acuuracy on rep:{j}, model:{i} -->" , inference_accuracy_values[t_id, j, i])
+                # print the values of the first tile
+                tile_weights = next(model_i.analog_tiles()).get_weights()
+                print(f"Tile weights for model {model_names[i]}: {tile_weights[0][0:5, 0:5]}")
             del models
             torch.cuda.empty_cache()
             gc.collect()
