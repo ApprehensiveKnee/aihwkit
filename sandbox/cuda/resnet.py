@@ -267,7 +267,7 @@ class Sampler:
     def __next__(self):
         x, _ = next(self.loader)
         self.idx += 1
-        if self.idx > 100:
+        if self.idx > 50:
             raise StopIteration
 
         return ([x.to(self.device)], {})
