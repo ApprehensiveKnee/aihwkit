@@ -467,11 +467,11 @@ if __name__ == '__main__':
                 calibrate_input_ranges(
                 model=model_i,
                 calibration_type=InputRangeCalibrationType.CACHE_QUANTILE,
-                dataloader=Sampler(test_loader, device),
+                dataloader=Sampler(get_test_loader(), device),
                 )
                 
                 inference_accuracy_values[t_id, j, i] = evaluate_model(
-                    model_i, test_loader, device
+                    model_i, get_test_loader(), device
                 )
                 print(f"Acuuracy on rep:{j}, model:{i} -->" , inference_accuracy_values[t_id, j, i])
                 # print the values of the first tile
@@ -482,11 +482,10 @@ if __name__ == '__main__':
                 #gc.collect()
                 #torch.cuda.reset_peak_memory_stats()
 
-
-        for k in range(len(model_names)):
-            print(
-                f"Test set accuracy (%) at t={t}s for {model_names[k]}: mean: {inference_accuracy_values[t_id, :, k].mean()}, std: {inference_accuracy_values[t_id, :, k].std()}"
+        print(
+                f"Test set accuracy (%) at t={t}s for {model_names[i]}: mean: {inference_accuracy_values[t_id, :, i].mean()}, std: {inference_accuracy_values[t_id, :, i].std()}"
             )
+            
 
             
 
@@ -555,10 +554,10 @@ if __name__ == '__main__':
                 calibrate_input_ranges(
                 model=model_fitted,
                 calibration_type=InputRangeCalibrationType.CACHE_QUANTILE,
-                dataloader=Sampler(test_loader, device),
+                dataloader=Sampler(get_test_loader(), device),
                 )
                 # Then evaluate the model
-                fitted_models_accuracy[t_id, j, i] = evaluate_model(model_fitted, test_loader, device)
+                fitted_models_accuracy[t_id, j, i] = evaluate_model(model_fitted, get_test_loader(), device)
                 del model_fitted
                 torch.cuda.empty_cache()
                 #gc.collect()
