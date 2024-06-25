@@ -479,8 +479,8 @@ if __name__ == '__main__':
                 print(f"Tile weights for model {model_names[i]}: {tile_weights[0][0:5, 0:5]}")
                 del model_i
                 torch.cuda.empty_cache()
-                gc.collect()
-                torch.cuda.reset_peak_memory_stats()
+                #gc.collect()
+                #torch.cuda.reset_peak_memory_stats()
 
 
         for k in range(len(model_names)):
@@ -561,8 +561,8 @@ if __name__ == '__main__':
                 fitted_models_accuracy[t_id, j, i] = evaluate_model(model_fitted, test_loader, device)
                 del model_fitted
                 torch.cuda.empty_cache()
-                gc.collect()
-                torch.cuda.reset_peak_memory_stats()
+                #gc.collect()
+                #torch.cuda.reset_peak_memory_stats()
             print(
                 f"Test set accuracy (%) at t={t}s for {fitted_models_names[i]}: mean: {fitted_models_accuracy[t_id, :, i].mean()}, std: {fitted_models_accuracy[t_id, :, i].std()}"
             )
