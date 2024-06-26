@@ -356,20 +356,33 @@ def get_quantized_model(model,level, rpu_config):
 # ------------------------------------------- PLOTTING FUNCTIONS ------------------------------------------------------
 # ********************************************************************************************************************
 
-def accuracy_plot(model_names, inference_accuracy_values, path):
+def accuracy_plot(model_names, inference_accuracy_values, observed_max, observed_min, r_number ,path):
     # Plot the accuracy of the models in a stem plot
     fig, ax = plt.subplots()
+    y1= np.array(3)
+    y2= np.array(3)
     for i, model_name in enumerate(model_names):
-        accuracies = inference_accuracy_values[0, :, i]
-        mean = accuracies.mean()
+        mean = inference_accuracy_values[0, :, i].mean()
+        std = inference_accuracy_values[0, :, i].std()
+        y1[i] = mean + 3 * std
+        y2[i] = mean - 3 * std
         ax.stem([model_name], [mean], linefmt="darkorange", markerfmt="D", basefmt=" ")
-    ax.set_title("Accuracy of the models")
+    ax.set_title(f"Accuracy of the models - n = {r_number} repeated measurements")
     ax.set_ylabel("Accuracy (%)")
     ax.set_xlim([-0.5, len(model_names) - 0.5])
     ax.minorticks_on()
     ax.yaxis.grid(True)
     ax.yaxis.grid(which="minor", linestyle=":", linewidth="0.5", color="gray")
-    ax.set_ylim([60, 82])
+    max = np.array(observed_max)
+    min = np.array(observed_min)
+    x = np.arange(len(model_names))
+    ax.fill_between(x, y1, y2, where=(y2 > y1), color='bisque', alpha=0.5, label='Confidence Interval')
+    ax.plot(x, y1, '--', color='firebrick')
+    ax.plot(x, y2, '--', color = 'firebrick')
+    ax.fill_between(x, min, max, where=(max > min), color='lightsalmon', alpha=0.5, label='Observed Accuracy Interval')
+    ax.plot(x, max, ls='dashdot', color = 'olivedrab', label = 'Max observed accuracy', marker = '1', markersize=10)
+    ax.plot(x, min, ls= 'dashdot', color = 'olivedrab', label = 'Min observed accuracy', marker = '2', markersize=10)
+    ax.set_ylim([65, 90])
 
     # Save the plot to file
     plt.savefig(path)
@@ -446,7 +459,7 @@ if __name__ == '__main__':
 
     # Get a summary of the analog model and plot the histogram of the weights
     pl.generate_moving_hist(model_quantized,title= f"Distribution of Quantized Weight Values over the tiles - RESNET{SELECTED_LEVEL}", file_name=p_PATH+f"/resnet/plots/hist_resnet_QUANTIZED_{SELECTED_LEVEL}.gif", range = (-.5,.5), top=None, split_by_rows=False, HIST_BINS = 171)
-    analog_summary(model_quantized, (1, sample.shape[2], sample.shape[0], sample.shape[1]), rpu_config=CustomDefinedPreset())
+    #analog_summary(model_quantized, (1, sample.shape[2], sample.shape[0], sample.shape[1]), rpu_config=CustomDefinedPreset())
 
 
     t_inferences = [0.0]  # Times to perform infernece.
@@ -501,7 +514,7 @@ if __name__ == '__main__':
 
             
 
-    accuracy_plot(model_names, inference_accuracy_values, path=p_PATH + "/resnet/plots/accuracy_resnet.png")
+    accuracy_plot(model_names, inference_accuracy_values, observed_max, observed_min, n_reps ,path=p_PATH + "/resnet/plots/accuracy_resnet.png")
 
 
     # ----------------------------------Add experimental data----------------------------------
@@ -593,7 +606,7 @@ if __name__ == '__main__':
         accuracies = [inference_accuracy_values[t_id, :, 0].mean(),inference_accuracy_values[t_id, :, 1].mean()]
         std_accuracy = [inference_accuracy_values[t_id, :, 0].std(),inference_accuracy_values[t_id, :, 1].std()]
         observed_max = observed_max[:2]
-        observer_min = observed_min[:2]
+        observed_min = observed_min[:2]
     else:
         accuracies = [inference_accuracy_values[t_id, :, 0].mean(),inference_accuracy_values[t_id, :, 2].mean()]
         std_accuracy = [inference_accuracy_values[t_id, :, 0].std(),inference_accuracy_values[t_id, :, 2].std()]
@@ -602,15 +615,15 @@ if __name__ == '__main__':
     accuracies = accuracies + fitted_models_accuracy.mean(dim=1)[0].tolist()
     std_accuracy = std_accuracy + fitted_models_accuracy.std(dim=1)[0].tolist()
     observed_max = observed_max + fitted_observed_max
-    observed_min = observer_min + fitted_observed_min
+    observed_min = observed_min + fitted_observed_min
     ax.stem(models[:2], accuracies[:2], linefmt ='darkorange', markerfmt ='D', basefmt=' ')
     ax.stem(models[2:], accuracies[2:], linefmt ='darkorchid', markerfmt ='D', basefmt=' ')
     # Define the points for the boundary lines
     x = np.arange(len(models))
     y1 = np.array([accuracies[i] - 3*std_accuracy[i] for i in range(len(models))])
     y2 = np.array([accuracies[i] + 3*std_accuracy[i] for i in range(len(models))])
-    max = np.array([observed_max[i] for i in range(len(models))])
-    min = np.array([observed_min[i] for i in range(len(models))])
+    max = np.array(observed_max)
+    min = np.array(observed_min)
     # Interpolating or directly using the points to fill the region
     ax.fill_between(x, y1, y2, where=(y2 > y1), color='bisque', alpha=0.5, label='Confidence Interval')
     ax.plot(x, y1, '--', color='firebrick')
