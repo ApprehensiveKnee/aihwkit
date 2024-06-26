@@ -1,6 +1,7 @@
 import os
 import torch
 import gc
+from copy import deepcopy
 from torch import nn, Tensor, device, no_grad, manual_seed
 from torch import nn
 from torchvision.datasets.utils import download_url
@@ -459,7 +460,7 @@ if __name__ == '__main__':
             # For each repetition, get a new version of the quantized model and calibrare it
 
                 if model_name == "Unquantized":
-                    model_i = model
+                    model_i = deepcopy(model)
                 else:
                     model_i = get_quantized_model(model, SELECTED_LEVEL, rpu_config)
                 model_i.eval()
