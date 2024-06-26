@@ -529,6 +529,7 @@ if __name__ == '__main__':
     model_fitted.eval()
     tile_weights = next(model_fitted.analog_tiles()).get_weights()
     pl.plot_tensor_values(tile_weights[0], 141, (-.6,.6), f"Distribution of quantized weights - Conv1 - RESNET{SELECTED_LEVEL}", p_PATH + f"/resnet/plots/hist_resnet_QUANTIZED_{SELECTED_LEVEL}_Conv1.png")
+    weight_max = max(abs(tile_weights[0].flatten().numpy()))
     model_fitted.program_analog_weights()
 
 
@@ -536,7 +537,7 @@ if __name__ == '__main__':
     tile_weights = next(model_fitted.analog_tiles()).get_weights()
     gaussain_noise = {"means": ww_mdn[CHOSEN_NOISE].values, "stds": ww_std[CHOSEN_NOISE].values, "gmax": 40.0}
     pl.plot_tensor_values(tile_weights[0], 141, (-.6,.6), f"Distribution of quantized weights + Fitted Noise ({CHOSEN_NOISE}) - Conv1 - RESNET{SELECTED_LEVEL}", p_PATH + f"/resnet/plots/hist_resnet_QUANTIZED_{SELECTED_LEVEL}+FITTED_Conv1.png")
-    pl.plot_tensor_values(tile_weights[0], 141, (-.6,.6), f"Distribution of quantized weights + Fitted Noise ({CHOSEN_NOISE}) - Conv1+Gaussian \n- RESNET{SELECTED_LEVEL}", p_PATH + f"/resnet/plots/hist_resnet_QUANTIZED_{SELECTED_LEVEL}+FITTED_Conv1+Gaussian.png", gaussian=gaussain_noise)
+    pl.plot_tensor_values(tile_weights[0], 141, (-.6,.6), f"Distribution of quantized weights + Fitted Noise ({CHOSEN_NOISE}) - Conv1+Gaussian \n- RESNET{SELECTED_LEVEL}", p_PATH + f"/resnet/plots/hist_resnet_QUANTIZED_{SELECTED_LEVEL}+FITTED_Conv1+Gaussian.png", gaussian=gaussain_noise, weight_max=weight_max)
     pl.generate_moving_hist(model_fitted,title=f"Distribution of Quantized Weight + Fitted Noise ({CHOSEN_NOISE})\n Values over the tiles - RESNET{SELECTED_LEVEL}", file_name=p_PATH + f"/resnet/plots/hist_resnet_QUANTIZED_{SELECTED_LEVEL}_FITTED.gif", range = (-.5,.5), top=None, split_by_rows=False, HIST_BINS=171)
 
     # Estimate the accuracy of the model with the fitted noise with respect to the other 9 levels model
@@ -614,8 +615,9 @@ if __name__ == '__main__':
     ax.fill_between(x, y1, y2, where=(y2 > y1), color='bisque', alpha=0.5, label='Confidence Interval')
     ax.plot(x, y1, '--', color='firebrick')
     ax.plot(x, y2, '--', color = 'firebrick')
-    ax.plot(x, max, ls='dashdot', color = 'olivedrab', label = 'Max observed accuracy', marker = '1')
-    ax.plot(x, min, ls= 'dashdot', color = 'olivedrab', label = 'Min observed accuracy', marker = '2')
+    ax.fill_between(x, min, max, where=(max > min), color='lightsalmon', alpha=0.5, label='Observed Accuracy Interval')
+    ax.plot(x, max, ls='dashdot', color = 'olivedrab', label = 'Max observed accuracy', marker = '1', markersize=10)
+    ax.plot(x, min, ls= 'dashdot', color = 'olivedrab', label = 'Min observed accuracy', marker = '2', markersize=10)
 
 
     ax.set_title(f"Accuracy of the models over {n_reps} repetitions")

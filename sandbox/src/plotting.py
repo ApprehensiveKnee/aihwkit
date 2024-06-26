@@ -54,7 +54,7 @@ def feed_to_plot(data, split_by_rows: bool = True):
 
 #  -------*-------- HISTOGRAPH FUNCTIONS --------*--------
 
-def plot_tensor_values(tensor: torch.Tensor,bins:int, range: tuple, title: str, name_file: str = None, gaussian: dict = None):
+def plot_tensor_values(tensor: torch.Tensor,bins:int, range: tuple, title: str, name_file: str = None, gaussian: dict = None, weight_max = None):
     # Create a new figure
     fig, ax = plt.subplots()
     # Create a histogram of the tensor values
@@ -63,14 +63,16 @@ def plot_tensor_values(tensor: torch.Tensor,bins:int, range: tuple, title: str, 
     ax.set_xlim(left=range[0], right=range[1])
     ax.set_ylabel('Frequency')
     ax.set_title(title)
+    
 
     # if gaussian is provided, the dictionary should contain a list of means and stds.
     # The function will plot the gaussian distribution on top of the histogram
     # NOTE:The gaussian means and stds should be referred to the conductance values to wich the weights are mapped
     if gaussian:
         colors = plt.get_cmap('viridis')(np.linspace(range[0], range[1], len(gaussian['means'])))
-        weight_max = max(abs(tensor.flatten().numpy())) 
+        weight_max = max(abs(tensor.flatten().numpy())) if not weight_max else weight_max
         scale = gaussian['gmax'] / weight_max
+        
         for i,(mean, std) in enumerate(zip(gaussian['means'], gaussian['stds'])):
             mean = mean / scale
             std = std / scale
@@ -82,7 +84,7 @@ def plot_tensor_values(tensor: torch.Tensor,bins:int, range: tuple, title: str, 
                 gaussian_bins = container[0][bin_low-1]
             else:   
                 gaussian_bins = container[0][bin_low-1 : bin_high-1] * np.exp(-0.5 * (( np.linspace(bin_range[0], bin_range[1], len(container[0][bin_low-1 : bin_high-1])) - mean) / std) ** 2)
-            mean_height = np.mean(gaussian_bins)
+            mean_height = np.mean(gaussian_bins) if bin_low != bin_high else gaussian_bins
             x = np.linspace(mean - 3*std, mean + 3*std, 100)
             y = (mean_height) * np.exp(-0.5 * ((x - mean) / std) ** 2)
             ax.plot(x, y, color=colors[i], linewidth=0.5, alpha=0.7, linestyle='--'), 
