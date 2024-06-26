@@ -532,8 +532,6 @@ if __name__ == '__main__':
     pl.generate_moving_hist(model_fitted,title=f"Distribution of Quantized Weight + Fitted Noise ({CHOSEN_NOISE})\n Values over the tiles - RESNET{SELECTED_LEVEL}", file_name=p_PATH + f"/resnet/plots/hist_resnet_QUANTIZED_{SELECTED_LEVEL}_FITTED.gif", range = (-.5,.5), top=None, split_by_rows=False, HIST_BINS=171)
 
     # Estimate the accuracy of the model with the fitted noise with respect to the other 9 levels model
-    original_model = resnet9s().to(device)
-    original_model.load_state_dict(state_dict["model_state_dict"], strict=True)
     fitted_models_names = []
     fitted_models_accuracy = torch.zeros((len(t_inferences), n_reps, len(types)))
     for i in range(len(types)):
@@ -595,7 +593,7 @@ if __name__ == '__main__':
     ax.plot(x, y1, '--', color='firebrick')
     ax.plot(x, y2, '--', color = 'olivedrab')
 
-    ax.set_title("Accuracy of the models")
+    ax.set_title(f"Accuracy of the models over {n_reps} repetitions")
     ax.set_ylabel("Accuracy (%)")
     ax.set_xlim([-0.5, len(models)- 0.5])
     ax.minorticks_on()
