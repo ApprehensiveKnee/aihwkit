@@ -359,8 +359,8 @@ def get_quantized_model(model,level, rpu_config):
 def accuracy_plot(model_names, inference_accuracy_values, observed_max, observed_min, r_number ,path):
     # Plot the accuracy of the models in a stem plot
     fig, ax = plt.subplots()
-    y1= np.array(3)
-    y2= np.array(3)
+    y1= np.array([0]*3)
+    y2= np.array([0]*3)
     for i, model_name in enumerate(model_names):
         mean = inference_accuracy_values[0, :, i].mean()
         std = inference_accuracy_values[0, :, i].std()
@@ -497,7 +497,7 @@ if __name__ == '__main__':
                     observed_max[i] = inference_accuracy_values[t_id, j, i]
                 if observed_min[i] > inference_accuracy_values[t_id, j, i]:
                     observed_min[i] = inference_accuracy_values[t_id, j, i]
-                print(f"Acuuracy on rep:{j}, model:{i} -->" , inference_accuracy_values[t_id, j, i])
+                print(f"Accuracy on rep:{j}, model:{i} -->" , inference_accuracy_values[t_id, j, i])
                 # tile_weights = next(model_i.analog_tiles()).get_weights()
                 # print(f"Tile weights for model {model_names[i]}: {tile_weights[0][0:5, 0:5]}")
                 
