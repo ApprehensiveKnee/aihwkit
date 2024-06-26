@@ -383,6 +383,7 @@ def accuracy_plot(model_names, inference_accuracy_values, observed_max, observed
     ax.plot(x, max, ls='dashdot', color = 'olivedrab', label = 'Max observed accuracy', marker = '1', markersize=10)
     ax.plot(x, min, ls= 'dashdot', color = 'olivedrab', label = 'Min observed accuracy', marker = '2', markersize=10)
     ax.set_ylim([75, 82])
+    ax.legend()
 
     # Save the plot to file
     plt.savefig(path)
