@@ -386,7 +386,10 @@ if __name__ == '__main__':
 
     # read the first argument, passed with the -l flag
     if len(sys.argv) > 1 and sys.argv[1] == '-l':
-        SELECTED_LEVEL = int(sys.argv[2])
+        if sys.argv[2] in ['9', '17']:
+            SELECTED_LEVEL = int(sys.argv[2])
+        else:
+            raise Exception("Please specify a valid level of quantization (9 or 17)")
     else:
         raise Exception("Please specify the level of quantization with the -l flag")
 
@@ -454,6 +457,8 @@ if __name__ == '__main__':
 
     model_names = ["Unquantized", "Quantized - 9 levels", "Quantized - 17 levels"]
     inference_accuracy_values = torch.zeros((len(t_inferences), n_reps, len(model_names)))
+    observed_max = [0] * len(model_names)
+    observed_min = [100] * len(model_names)
     for i,model_name in enumerate(model_names):
         for t_id, t in enumerate(t_inferences):
             for j in range(n_reps):
@@ -475,10 +480,13 @@ if __name__ == '__main__':
                 inference_accuracy_values[t_id, j, i] = evaluate_model(
                     model_i, get_test_loader(), device
                 )
+                if observed_max[i] < inference_accuracy_values[t_id, j, i]:
+                    observed_max[i] = inference_accuracy_values[t_id, j, i]
+                if observed_min[i] > inference_accuracy_values[t_id, j, i]:
+                    observed_min[i] = inference_accuracy_values[t_id, j, i]
                 print(f"Acuuracy on rep:{j}, model:{i} -->" , inference_accuracy_values[t_id, j, i])
-                # print the values of the first tile
-                tile_weights = next(model_i.analog_tiles()).get_weights()
-                print(f"Tile weights for model {model_names[i]}: {tile_weights[0][0:5, 0:5]}")
+                # tile_weights = next(model_i.analog_tiles()).get_weights()
+                # print(f"Tile weights for model {model_names[i]}: {tile_weights[0][0:5, 0:5]}")
                 
                 del model_i
                 del dataloader
@@ -534,6 +542,8 @@ if __name__ == '__main__':
     # Estimate the accuracy of the model with the fitted noise with respect to the other 9 levels model
     fitted_models_names = []
     fitted_models_accuracy = torch.zeros((len(t_inferences), n_reps, len(types)))
+    fitted_observed_max = [0] * len(types)
+    fitted_observed_min = [100] * len(types)
     for i in range(len(types)):
         CHOSEN_NOISE = types[i]
         RPU_CONFIG  = CustomDefinedPreset()
@@ -562,6 +572,10 @@ if __name__ == '__main__':
                 )
                 # Then evaluate the model
                 fitted_models_accuracy[t_id, j, i] = evaluate_model(model_fitted, get_test_loader(), device)
+                if fitted_observed_max[i] < fitted_models_accuracy[t_id, j, i]:
+                    fitted_observed_max[i] = fitted_models_accuracy[t_id, j, i]
+                if fitted_observed_min[i] > fitted_models_accuracy[t_id, j, i]:
+                    fitted_observed_min[i] = fitted_models_accuracy[t_id, j, i]
                 del model_fitted
                 del dataloader
                 torch.cuda.empty_cache()
@@ -577,21 +591,32 @@ if __name__ == '__main__':
     if SELECTED_LEVEL == 9:
         accuracies = [inference_accuracy_values[t_id, :, 0].mean(),inference_accuracy_values[t_id, :, 1].mean()]
         std_accuracy = [inference_accuracy_values[t_id, :, 0].std(),inference_accuracy_values[t_id, :, 1].std()]
+        observed_max = observed_max[:2]
+        observer_min = observed_min[:2]
     else:
         accuracies = [inference_accuracy_values[t_id, :, 0].mean(),inference_accuracy_values[t_id, :, 2].mean()]
         std_accuracy = [inference_accuracy_values[t_id, :, 0].std(),inference_accuracy_values[t_id, :, 2].std()]
+        observed_max = [observed_max[0], observed_max[2]]
+        observed_min = [observed_min[0], observed_min[2]]
     accuracies = accuracies + fitted_models_accuracy.mean(dim=1)[0].tolist()
     std_accuracy = std_accuracy + fitted_models_accuracy.std(dim=1)[0].tolist()
+    observed_max = observed_max + fitted_observed_max
+    observed_min = observer_min + fitted_observed_min
     ax.stem(models[:2], accuracies[:2], linefmt ='darkorange', markerfmt ='D', basefmt=' ')
     ax.stem(models[2:], accuracies[2:], linefmt ='darkorchid', markerfmt ='D', basefmt=' ')
-    # Define the points for the two boundary lines
+    # Define the points for the boundary lines
     x = np.arange(len(models))
     y1 = np.array([accuracies[i] - 3*std_accuracy[i] for i in range(len(models))])
     y2 = np.array([accuracies[i] + 3*std_accuracy[i] for i in range(len(models))])
+    max = np.array([observed_max[i] for i in range(len(models))])
+    min = np.array([observed_min[i] for i in range(len(models))])
     # Interpolating or directly using the points to fill the region
     ax.fill_between(x, y1, y2, where=(y2 > y1), color='bisque', alpha=0.5, label='Confidence Interval')
     ax.plot(x, y1, '--', color='firebrick')
-    ax.plot(x, y2, '--', color = 'olivedrab')
+    ax.plot(x, y2, '--', color = 'firebrick')
+    ax.plot(x, max, ls='dashdot', color = 'olivedrab', label = 'Max observed accuracy', marker = '1')
+    ax.plot(x, min, ls= 'dashdot', color = 'olivedrab', label = 'Min observed accuracy', marker = '2')
+
 
     ax.set_title(f"Accuracy of the models over {n_reps} repetitions")
     ax.set_ylabel("Accuracy (%)")
