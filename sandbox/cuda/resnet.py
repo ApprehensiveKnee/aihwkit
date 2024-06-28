@@ -515,11 +515,11 @@ if __name__ == '__main__':
                 model_i.eval()
                 dataloader=Sampler(get_test_loader(), device)
 
-                calibrate_input_ranges(
-                model=model_i,
-                calibration_type=InputRangeCalibrationType.CACHE_QUANTILE,
-                dataloader=dataloader,
-                )
+                # calibrate_input_ranges(
+                # model=model_i,
+                # calibration_type=InputRangeCalibrationType.CACHE_QUANTILE,
+                # dataloader=dataloader,
+                # )
                 
                 inference_accuracy_values[t_id, j, i] = evaluate_model(
                     model_i, get_test_loader(), device
@@ -608,11 +608,12 @@ if __name__ == '__main__':
 
                 dataloader = Sampler(get_test_loader(), device)
 
-                calibrate_input_ranges(
-                model=model_fitted,
-                calibration_type=InputRangeCalibrationType.CACHE_QUANTILE,
-                dataloader=dataloader,
-                )
+                # calibrate_input_ranges(
+                # model=model_fitted,
+                # calibration_type=InputRangeCalibrationType.CACHE_QUANTILE,
+                # dataloader=dataloader,
+                # )
+                
                 # Then evaluate the model
                 fitted_models_accuracy[t_id, j, i] = evaluate_model(model_fitted, get_test_loader(), device)
                 if fitted_observed_max[i] < fitted_models_accuracy[t_id, j, i]:
