@@ -225,6 +225,8 @@ def accuracy_plot(model_names, inference_accuracy_values, observed_max, observed
 
 if __name__ == '__main__':
 
+    # -**-**-**-**-**-**-**-**-**-**-**-**-**-**-**- SETUP -**-**-**-**-**-**-**-**-**-**-**-**-**-**-**-
+
     p_PATH = os.path.abspath(__file__)
     p_PATH = os.path.dirname(os.path.dirname(p_PATH))
 
@@ -296,12 +298,9 @@ if __name__ == '__main__':
     pl.generate_moving_hist(model_17,title="Distribution of Quantized Weight\n Values over the tiles - LENET17", file_name=p_PATH +"lenet/plots/hist_lenet_QUANTIZED_17.gif", range = (-.7,.7), top = None, split_by_rows=False)
 
 
-
+    # -**-**-**-**-**-**-**-**-**-**-**-**-**-**-**- FIRST EVALUATION: 3 MODELS -**-**-**-**-**-**-**-**-**-**-**-**-**-**-**-
     t_inferences = [0.0]  # Times to perform infernece.
     n_reps = 10  # Number of inference repetitions.
-
-    # Evaluate the three models
-    print("Evaluating the models")
 
     model_names = ["Unquantized", "Quantized - 9 levels", "Quantized - 17 levels"]
     inference_accuracy_values = torch.zeros((len(t_inferences), n_reps, len(model_names)))
@@ -330,7 +329,6 @@ if __name__ == '__main__':
                 # print(f"Tile weights for model {model_names[i]}: {tile_weights[0][0:5, 0:5]}")
                 
                 del model_i
-                del dataloader
                 torch.cuda.empty_cache()
                 gc.collect()
                 #torch.cuda.reset_peak_memory_stats()
@@ -340,5 +338,139 @@ if __name__ == '__main__':
             )
             
 
-    accuracy_plot(model_names, inference_accuracy_values, observed_max, observed_min, n_reps ,path=p_PATH + "/resnet/plots/accuracy_resnet.png")
+    accuracy_plot(model_names, inference_accuracy_values, observed_max, observed_min, n_reps ,path= p_PATH + "/resnet/plots/accuracy_resnet.png")
+
+    # -**-**-**-**-**-**-**-**-**-**-**-**-**-**-**- SECOND EVALUATION: FITTED DATA -**-**-**-**-**-**-**-**-**-**-**-**-**-**-**-
+    print("Available experimental noises are: ", types)
+    CHOSEN_NOISE = types[0]
+    print(f"Chosen noise: {CHOSEN_NOISE}" )
+    path = f"./data/{MAP[SELECTED_LEVEL]}"
+    print(f"Selected level: {SELECTED_LEVEL}")
+
+    RPU_CONFIG  = InferenceRPUConfig(forward=IOParameters(is_perfect=True),
+                                        noise_model=ExperimentalNoiseModel(file_path = path,
+                                                                        type = CHOSEN_NOISE,
+                                                                        g_converter=SinglePairConductanceConverter(g_max=40.)),
+                                        clip= WeightClipParameter(type=WeightClipType.NONE,),
+                                        remap= WeightRemapParameter(type=WeightRemapType.NONE,),
+                                        modifier= WeightModifierParameter(type=WeightModifierType.NONE,), 
+                                        drift_compensation=None,
+                                        )
+
+    original_model = inference_lenet5(RPU_CONFIG).to(device)
+    original_model.load_state_dict(state_dict, strict=True, load_rpu_config=False)
+
+    '''QUANTIZED 9 levels'''
+    RPU_CONFIG.quantization = WeightQuantizerParameter(
+        resolution=0.18 if SELECTED_LEVEL == 9 else 0.12,
+        levels = SELECTED_LEVEL,
+    )
+    model_fitted = convert_to_analog(original_model, RPU_CONFIG)
+    model_fitted.eval()
+    tile_weights = next(model_fitted.analog_tiles()).get_weights()
+    pl.plot_tensor_values(tile_weights[0], 141, (-.6,.6), f"Distribution of quantized weights - Conv1 - RESNET{SELECTED_LEVEL}", p_PATH + f"/lenet/plots/hist_rlenet_QUANTIZED_{SELECTED_LEVEL}_Conv1.png")
+    weight_max = max(abs(tile_weights[0].flatten().numpy()))
+    model_fitted.program_analog_weights()
+
+
+    # Plot the histogram of the weights of the last model
+    tile_weights = next(model_fitted.analog_tiles()).get_weights()
+    gaussain_noise = {"means": ww_mdn[CHOSEN_NOISE].values, "stds": ww_std[CHOSEN_NOISE].values, "gmax": 40.0}
+    pl.plot_tensor_values(tile_weights[0], 101, (-.9,.9), f"Distribution of quantized weights + Fitted Noise ({CHOSEN_NOISE}) - Conv1 - LENET{SELECTED_LEVEL}", p_PATH + f"lenet/plots/hist_lenet_QUANTIZED_{SELECTED_LEVEL}+FITTED_Conv1.png")
+    pl.plot_tensor_values(tile_weights[0], 101, (-.9,.9), f"Distribution of quantized weights + Fitted Noise ({CHOSEN_NOISE}) - Conv1+Gaussian - LENET{SELECTED_LEVEL}", p_PATH + f"lenet/plots/hist_lenet_QUANTIZED_{SELECTED_LEVEL}+FITTED_Conv1+Gaussian.png", gaussian=gaussain_noise, weight_max=weight_max)
+    pl.generate_moving_hist(model_fitted,title=f"Distribution of Quantized Weight + Fitted Noise ({CHOSEN_NOISE})\n Values over the tiles - LENET{SELECTED_LEVEL}", file_name= p_PATH + f"lenet/plots/hist_lenet_QUANTIZED_{SELECTED_LEVEL}_FITTED.gif", range = (-.7,.7), top=None, split_by_rows=False)
+
+
+    # Estimate the accuracy of the model with the fitted noise with respect to the other 9 levels model
+    fitted_models_names = []
+    fitted_models_accuracy = torch.zeros((len(t_inferences), n_reps, len(types)))
+    fitted_observed_max = [0] * len(types)
+    fitted_observed_min = [100] * len(types)
+    for i in range(len(types)):
+        CHOSEN_NOISE = types[i]
+        RPU_CONFIG  = InferenceRPUConfig(forward=IOParameters(is_perfect=True),
+                                        noise_model=ExperimentalNoiseModel(file_path = path,
+                                                                        type = CHOSEN_NOISE,
+                                                                        g_converter=SinglePairConductanceConverter(g_max=40.)),
+                                        clip= WeightClipParameter(type=WeightClipType.NONE,),
+                                        remap= WeightRemapParameter(type=WeightRemapType.NONE,),
+                                        modifier= WeightModifierParameter(type=WeightModifierType.NONE,), 
+                                        drift_compensation=None,
+                                        )
+        RPU_CONFIG.quantization = WeightQuantizerParameter(
+            resolution=0.18 if SELECTED_LEVEL == 9 else 0.12,
+            levels = SELECTED_LEVEL,
+            )
+        RPU_CONFIG.noise_model=ExperimentalNoiseModel(file_path = path,
+                                                        type = CHOSEN_NOISE,
+                                                        g_converter=SinglePairConductanceConverter(g_max=40.)),
+
+        fitted_models_names.append(f"Quantized - {SELECTED_LEVEL} levels \n+ Fitted Noise \n ({CHOSEN_NOISE})")
+        for t_id, t in enumerate(t_inferences):
+            for j in range(n_reps):
+                # For each repetition, get a new version of the quantized model and calibrare it
+                model_fitted = convert_to_analog(original_model, RPU_CONFIG)
+                model_fitted.eval()
+                model_fitted.program_analog_weights()
+
+                # Then evaluate the model
+                fitted_models_accuracy[t_id, j, i] = evaluate_model(model_fitted, get_test_loader(), device)
+                if fitted_observed_max[i] < fitted_models_accuracy[t_id, j, i]:
+                    fitted_observed_max[i] = fitted_models_accuracy[t_id, j, i]
+                if fitted_observed_min[i] > fitted_models_accuracy[t_id, j, i]:
+                    fitted_observed_min[i] = fitted_models_accuracy[t_id, j, i]
+                
+                # Delete the model to free CUDA memory
+                del model_fitted
+                torch.cuda.empty_cache()
+                gc.collect()
+                #torch.cuda.reset_peak_memory_stats()
+            print(
+                f"Test set accuracy (%) at t={t}s for {fitted_models_names[i]}: mean: {fitted_models_accuracy[t_id, :, i].mean()}, std: {fitted_models_accuracy[t_id, :, i].std()}"
+            )
+
+    # Plot the accuracy of the models in a stem plot
+    fig, ax = plt.subplots(figsize=(23,7))
+    models = ["Unquantized",f"Quantized - {SELECTED_LEVEL} levels"] + fitted_models_names
+    if SELECTED_LEVEL == 9:
+        accuracies = [inference_accuracy_values[t_id, :, 0].mean(),inference_accuracy_values[t_id, :, 1].mean()]
+        std_accuracy = [inference_accuracy_values[t_id, :, 0].std(),inference_accuracy_values[t_id, :, 1].std()]
+        observed_max = observed_max[:2]
+        observed_min = observed_min[:2]
+    else:
+        accuracies = [inference_accuracy_values[t_id, :, 0].mean(),inference_accuracy_values[t_id, :, 2].mean()]
+        std_accuracy = [inference_accuracy_values[t_id, :, 0].std(),inference_accuracy_values[t_id, :, 2].std()]
+        observed_max = [observed_max[0], observed_max[2]]
+        observed_min = [observed_min[0], observed_min[2]]
+    accuracies = accuracies + fitted_models_accuracy.mean(dim=1)[0].tolist()
+    std_accuracy = std_accuracy + fitted_models_accuracy.std(dim=1)[0].tolist()
+    observed_max = observed_max + fitted_observed_max
+    observed_min = observed_min + fitted_observed_min
+    ax.stem(models[:2], accuracies[:2], linefmt ='darkorange', markerfmt ='D', basefmt=' ')
+    ax.stem(models[2:], accuracies[2:], linefmt ='darkorchid', markerfmt ='D', basefmt=' ')
+    # Define the points for the boundary lines
+    x = np.arange(len(models))
+    y1 = np.array([accuracies[i] - 3*std_accuracy[i] for i in range(len(models))])
+    y2 = np.array([accuracies[i] + 3*std_accuracy[i] for i in range(len(models))])
+    max = np.array(observed_max)
+    min = np.array(observed_min)
+    # Interpolating or directly using the points to fill the region
+    ax.fill_between(x, y1, y2, where=(y2 > y1), color='bisque', alpha=0.5, label='Confidence Interval')
+    ax.plot(x, y1, '--', color='firebrick')
+    ax.plot(x, y2, '--', color = 'firebrick')
+    ax.fill_between(x, min, max, where=(max > min), color='lightsalmon', alpha=0.5, label='Observed Accuracy Interval')
+    ax.plot(x, max, ls='dashdot', color = 'olivedrab', label = 'Max observed accuracy', marker = '1', markersize=10)
+    ax.plot(x, min, ls= 'dashdot', color = 'olivedrab', label = 'Min observed accuracy', marker = '2', markersize=10)
+
+
+    ax.set_title(f"Accuracy of the models over {n_reps} repetitions")
+    ax.set_ylabel("Accuracy (%)")
+    ax.set_xlim([-0.5, len(models)- 0.5])
+    ax.minorticks_on()
+    ax.yaxis.grid(True)
+    ax.yaxis.grid(which='minor', linestyle=':', linewidth='0.5', color='gray')
+    ax.set_ylim([50, 90])
+    ax.legend()
+    # Save the plot to file
+    plt.savefig(p_PATH+f"/lenet/plots/accuracy_lenet_FittedNoise_{SELECTED_LEVEL}.png")
 

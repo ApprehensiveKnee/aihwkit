@@ -443,6 +443,9 @@ def accuracy_plot(model_names, inference_accuracy_values, observed_max, observed
 
 if __name__ == '__main__':
 
+
+    # -**-**-**-**-**-**-**-**-**-**-**-**-**-**-**- SETUP -**-**-**-**-**-**-**-**-**-**-**-**-**-**-**-
+
     p_PATH = os.path.abspath(__file__)
     p_PATH = os.path.dirname(os.path.dirname(p_PATH))
 
@@ -494,22 +497,16 @@ if __name__ == '__main__':
     rpu_config = IdealPreset()
     model = convert_to_analog(model, IdealPreset())
     model.eval()
-
     pl.generate_moving_hist(model,title="Distribution of Weight Values over the tiles - RESNET", file_name=p_PATH+"/resnet/plots/hist_resnet_UNQUATIZED.gif", range = (-.5,.5), top=None, split_by_rows=False, HIST_BINS = 171)
 
     model_quantized = get_quantized_model(model, SELECTED_LEVEL, rpu_config)
     model_quantized.eval()
-
-    # Get a summary of the analog model and plot the histogram of the weights
     pl.generate_moving_hist(model_quantized,title= f"Distribution of Quantized Weight Values over the tiles - RESNET{SELECTED_LEVEL}", file_name=p_PATH+f"/resnet/plots/hist_resnet_QUANTIZED_{SELECTED_LEVEL}.gif", range = (-.5,.5), top=None, split_by_rows=False, HIST_BINS = 171)
     
+    # -**-**-**-**-**-**-**-**-**-**-**-**-**-**-**- FIRST EVALUATION: 3 MODELS -**-**-**-**-**-**-**-**-**-**-**-**-**-**-**-
 
     t_inferences = [0.0]  # Times to perform infernece.
     n_reps = 10  # Number of inference repetitions.
-
-    # Evaluate the three models
-    print("Evaluating the models")
-
     model_names = ["Unquantized", "Quantized - 9 levels", "Quantized - 17 levels"]
     inference_accuracy_values = torch.zeros((len(t_inferences), n_reps, len(model_names)))
     observed_max = [0] * len(model_names)
@@ -559,7 +556,7 @@ if __name__ == '__main__':
     accuracy_plot(model_names, inference_accuracy_values, observed_max, observed_min, n_reps ,path=p_PATH + "/resnet/plots/accuracy_resnet.png")
 
 
-    # ----------------------------------Add experimental data----------------------------------
+    # -**-**-**-**-**-**-**-**-**-**-**-**-**-**-**- SECOND EVALUATION: FITTED DATA -**-**-**-**-**-**-**-**-**-**-**-**-**-**-**-
     print("Available experimental noises are: ", types)
     CHOSEN_NOISE = types[0]
     print(f"Chosen noise: {CHOSEN_NOISE}" )
@@ -633,6 +630,8 @@ if __name__ == '__main__':
                     fitted_observed_max[i] = fitted_models_accuracy[t_id, j, i]
                 if fitted_observed_min[i] > fitted_models_accuracy[t_id, j, i]:
                     fitted_observed_min[i] = fitted_models_accuracy[t_id, j, i]
+                
+                # Delete the model to free CUDA memory
                 del model_fitted
                 del dataloader
                 torch.cuda.empty_cache()
