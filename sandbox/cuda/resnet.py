@@ -221,9 +221,9 @@ def get_test_loader(batch_size=32):
     transform_test = torchvision.transforms.Compose(
         [
             torchvision.transforms.ToTensor(),
-            # torchvision.transforms.Normalize(
-            #     (0.4914, 0.4822, 0.4465), (0.2023, 0.1994, 0.2010)
-            # ),
+            torchvision.transforms.Normalize(
+                (0.4914, 0.4822, 0.4465), (0.2023, 0.1994, 0.2010)
+            ),
         ]
     )
     testset = torchvision.datasets.CIFAR10(
@@ -473,8 +473,8 @@ if __name__ == '__main__':
     # The state dict of the model with hardware-aware trained weights is stored in the
     # model_state_dict key of the external checkpoint.
     model.load_state_dict(state_dict["model_state_dict"], strict=True)
-    rpu_config = CustomDefinedPreset()
-    model = convert_to_analog(model, CustomDefinedPreset())
+    rpu_config = IdealPreset()
+    model = convert_to_analog(model, IdealPreset())
     model.eval()
 
     pl.generate_moving_hist(model,title="Distribution of Weight Values over the tiles - RESNET", file_name=p_PATH+"/resnet/plots/hist_resnet_UNQUATIZED.gif", range = (-.5,.5), top=None, split_by_rows=False, HIST_BINS = 171)
@@ -553,7 +553,7 @@ if __name__ == '__main__':
     path = p_PATH + f"/data/{MAP[SELECTED_LEVEL]}"
     print(f"Selected level: {SELECTED_LEVEL}")
 
-    RPU_CONFIG  = CustomDefinedPreset()
+    RPU_CONFIG  = IdealPreset()
     RPU_CONFIG.noise_model= ExperimentalNoiseModel(file_path = path,
                                                 type = CHOSEN_NOISE,
                                                 g_converter=SinglePairConductanceConverter(g_max=40.)),
@@ -589,7 +589,7 @@ if __name__ == '__main__':
     fitted_observed_min = [100] * len(types)
     for i in range(len(types)):
         CHOSEN_NOISE = types[i]
-        RPU_CONFIG  = CustomDefinedPreset()
+        RPU_CONFIG  = IdealPreset()
         RPU_CONFIG.quantization = WeightQuantizerParameter(
             resolution=0.2 if SELECTED_LEVEL == 9 else 0.12,
             levels = SELECTED_LEVEL,
