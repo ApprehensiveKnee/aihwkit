@@ -307,6 +307,24 @@ class IdealPreset(InferenceRPUConfig):
 
     noise_model: BaseNoiseModel = field(default_factory=NullNoiseModel)
 
+    pre_post: PrePostProcessingParameter = field(
+        default_factory=lambda: PrePostProcessingParameter(
+            # InputRangeParameter used for dynamic input range learning
+            input_range=InputRangeParameter(
+                enable=True,
+                init_value=3.0,
+                init_from_data=100,
+                init_std_alpha=3.0,
+                decay=0.001,
+                input_min_percentage=0.95,
+                output_min_percentage=0.95,
+                manage_output_clipping=False,
+                gradient_scale=1.0,
+                gradient_relative=True,
+            )
+        )
+    )
+
 
 
 
@@ -482,16 +500,9 @@ if __name__ == '__main__':
     model_quantized = get_quantized_model(model, SELECTED_LEVEL, rpu_config)
     model_quantized.eval()
 
-    # Load the test set
-    test_loader = get_test_loader()
-    sample, _ = next(iter(test_loader))
-    sample = sample[0]
-    sample = sample.permute(1, 2, 0)
-
     # Get a summary of the analog model and plot the histogram of the weights
     pl.generate_moving_hist(model_quantized,title= f"Distribution of Quantized Weight Values over the tiles - RESNET{SELECTED_LEVEL}", file_name=p_PATH+f"/resnet/plots/hist_resnet_QUANTIZED_{SELECTED_LEVEL}.gif", range = (-.5,.5), top=None, split_by_rows=False, HIST_BINS = 171)
-    #analog_summary(model_quantized, (1, sample.shape[2], sample.shape[0], sample.shape[1]), rpu_config=CustomDefinedPreset())
-
+    
 
     t_inferences = [0.0]  # Times to perform infernece.
     n_reps = 10  # Number of inference repetitions.
@@ -513,14 +524,16 @@ if __name__ == '__main__':
                 else:
                     model_i = get_quantized_model(model, SELECTED_LEVEL, rpu_config)
                 model_i.eval()
-                dataloader=Sampler(get_test_loader(), device)
-
-                # calibrate_input_ranges(
-                # model=model_i,
-                # calibration_type=InputRangeCalibrationType.CACHE_QUANTILE,
-                # dataloader=dataloader,
-                # )
                 
+                # Calibrate input ranges
+                dataloader=Sampler(get_test_loader(), device)
+                calibrate_input_ranges(
+                model=model_i,
+                calibration_type=InputRangeCalibrationType.CACHE_QUANTILE,
+                dataloader=dataloader,
+                )
+                
+                # Compute the accuracies
                 inference_accuracy_values[t_id, j, i] = evaluate_model(
                     model_i, get_test_loader(), device
                 )
@@ -606,14 +619,14 @@ if __name__ == '__main__':
                 model_fitted.eval()
                 model_fitted.program_analog_weights()
 
+                # Calibrate input ranges
                 dataloader = Sampler(get_test_loader(), device)
+                calibrate_input_ranges(
+                model=model_fitted,
+                calibration_type=InputRangeCalibrationType.CACHE_QUANTILE,
+                dataloader=dataloader,
+                )
 
-                # calibrate_input_ranges(
-                # model=model_fitted,
-                # calibration_type=InputRangeCalibrationType.CACHE_QUANTILE,
-                # dataloader=dataloader,
-                # )
-                
                 # Then evaluate the model
                 fitted_models_accuracy[t_id, j, i] = evaluate_model(model_fitted, get_test_loader(), device)
                 if fitted_observed_max[i] < fitted_models_accuracy[t_id, j, i]:
