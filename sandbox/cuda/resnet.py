@@ -293,9 +293,24 @@ class IdealPreset(InferenceRPUConfig):
         )
     )
 
+    # forward: IOParameters = field(
+    #     default_factory= lambda:PresetIOParameters(
+    #         is_perfect=True,
+    #     )
+    # )
+
     forward: IOParameters = field(
-        default_factory= lambda:PresetIOParameters(
-            is_perfect=True,
+        default_factory=lambda: PresetIOParameters(
+            inp_res=254.0,
+            out_res=254.0,
+            bound_management=BoundManagementType.NONE,
+            noise_management=NoiseManagementType.NONE,
+            nm_thres=1.0,
+            #w_noise=0.0175,
+            w_noise_type=WeightNoiseType.NONE,
+            # ir_drop=1.0,
+            # out_noise=0.04,
+            # out_bound=10.0,
         )
     )
 
@@ -307,23 +322,6 @@ class IdealPreset(InferenceRPUConfig):
 
     noise_model: BaseNoiseModel = field(default_factory=NullNoiseModel)
 
-    pre_post: PrePostProcessingParameter = field(
-        default_factory=lambda: PrePostProcessingParameter(
-            # InputRangeParameter used for dynamic input range learning
-            input_range=InputRangeParameter(
-                enable=True,
-                init_value=3.0,
-                init_from_data=100,
-                init_std_alpha=3.0,
-                decay=0.001,
-                input_min_percentage=0.95,
-                output_min_percentage=0.95,
-                manage_output_clipping=False,
-                gradient_scale=1.0,
-                gradient_relative=True,
-            )
-        )
-    )
 
 
 
