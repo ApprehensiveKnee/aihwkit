@@ -301,12 +301,12 @@ class IdealPreset(InferenceRPUConfig):
 
     forward: IOParameters = field(
         default_factory=lambda: PresetIOParameters(
-            inp_res=254.0,
-            out_res=254.0,
+            inp_res=254.,
+            out_res=254.,
             bound_management=BoundManagementType.NONE,
             noise_management=NoiseManagementType.NONE,
             nm_thres=1.0,
-            #w_noise=0.0175,
+            # w_noise=0.0175,
             w_noise_type=WeightNoiseType.NONE,
             #ir_drop=1.0,
             # out_noise=0.04,
@@ -349,7 +349,7 @@ class CustomDefinedPreset(InferenceRPUConfig):
             noise_management=NoiseManagementType.CONSTANT,
             nm_thres=1.0,
             #w_noise=0.0175,
-            w_noise_type=WeightNoiseType.NONE,
+            w_noise_type=WeightNoiseType.PCM_READ,
             ir_drop=1.0,
             out_noise=0.04,
             out_bound=10.0,
@@ -361,6 +361,14 @@ class CustomDefinedPreset(InferenceRPUConfig):
     #         remapped_wmax=1.0, type=WeightRemapType.CHANNELWISE_SYMMETRIC
     #     )
     # )
+
+    pre_post: PrePostProcessingParameter = field(
+        default_factory=lambda: PrePostProcessingParameter(
+            # InputRangeParameter used for dynamic input range learning
+            input_range=InputRangeParameter(
+                enable=False,)
+        )
+    )
 
     # drift_compensation: Optional[BaseDriftCompensation] = field(
     #     default_factory=GlobalDriftCompensation
