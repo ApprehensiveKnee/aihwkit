@@ -322,6 +322,14 @@ class IdealPreset(InferenceRPUConfig):
 
     noise_model: BaseNoiseModel = field(default_factory=NullNoiseModel)
 
+    pre_post: PrePostProcessingParameter = field(
+        default_factory=lambda: PrePostProcessingParameter(
+            # InputRangeParameter used for dynamic input range learning
+            input_range=InputRangeParameter(
+                enable=False,)
+        )
+    )
+
 
 
 
@@ -362,13 +370,6 @@ class CustomDefinedPreset(InferenceRPUConfig):
     #     )
     # )
 
-    pre_post: PrePostProcessingParameter = field(
-        default_factory=lambda: PrePostProcessingParameter(
-            # InputRangeParameter used for dynamic input range learning
-            input_range=InputRangeParameter(
-                enable=False,)
-        )
-    )
 
     # drift_compensation: Optional[BaseDriftCompensation] = field(
     #     default_factory=GlobalDriftCompensation
