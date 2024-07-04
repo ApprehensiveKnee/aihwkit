@@ -189,10 +189,10 @@ def download_url(url, dest_folder, filename=None):
 def accuracy_plot(model_names, inference_accuracy_values, r_number ,path):
     # Plot the accuracy of the models in a stem plot
     fig, ax = plt.subplots()
-    y1= np.array([0.]*3)
-    y2= np.array([0.]*3)
+    trace = np.array([0.]*3)
     for i, model_name in enumerate(model_names):
-        mean = inference_accuracy_values[0, 0, 1] 
+        mean = inference_accuracy_values[0, 0, i] 
+        trace[i] = mean
         ax.stem([model_name], [mean], linefmt="darkorange", markerfmt="D", basefmt=" ")
     ax.set_title(f"Accuracy of the models - n = {r_number} repeated measurements")
     ax.set_ylabel("Accuracy (%)")
@@ -201,7 +201,7 @@ def accuracy_plot(model_names, inference_accuracy_values, r_number ,path):
     ax.yaxis.grid(True)
     ax.yaxis.grid(which="minor", linestyle=":", linewidth="0.5", color="gray")
     x = np.arange(len(model_names))
-    ax.plot(x, mean, ls='dashdot', color = 'firebrick', label = 'Max observed accuracy', marker = '1', markersize=10)
+    ax.plot(x, trace, ls='dashdot', color = 'firebrick', label = 'Max observed accuracy', marker = '1', markersize=10)
     ax.set_ylim([75, 100])
     ax.legend()
 
