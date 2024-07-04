@@ -262,12 +262,12 @@ if __name__ == '__main__':
     ww_std = pd.DataFrame(ww_std, columns=types)
 
     # Download the model if it not already present
-    if not os.path.exists(p_PATH + 'lenet'):
-        os.makedirs(p_PATH + 'lenet')
-    if not os.path.exists(p_PATH + 'lenet/plots'):
-        os.makedirs(p_PATH + 'lenet/plots')
+    if not os.path.exists(p_PATH + '/lenet'):
+        os.makedirs(p_PATH + '/lenet')
+    if not os.path.exists(p_PATH + '/lenet/plots'):
+        os.makedirs(p_PATH + '/lenet/plots')
     url = 'https://drive.google.com/uc?id=1-dJx-mGqr5iKYpHVFaRT1AfKUZKgGMQL'
-    output = p_PATH + 'lenet/lenet5.th'
+    output = p_PATH + '/lenet/lenet5.th'
     gdown.download(url, output, quiet=False)
 
     # Set-up the RPU_config object 
@@ -283,19 +283,19 @@ if __name__ == '__main__':
 
     # Load the model
     model = inference_lenet5(RPU_CONFIG).to(device)
-    state_dict = torch.load("lenet/lenet5.th", device)
+    state_dict = torch.load(p_PATH+"/lenet/lenet5.th", device)
     model.load_state_dict(state_dict, strict=True, load_rpu_config=False)
     model.eval()
-    pl.generate_moving_hist(model,title="Distribution of Weight\n Values over the tiles - LENET", file_name= p_PATH + "lenet/plots/hist_lenet_UNQUANTIZED.gif", range = (-.7,.7), top=None, split_by_rows=False)
+    pl.generate_moving_hist(model,title="Distribution of Weight\n Values over the tiles - LENET", file_name= p_PATH + "/lenet/plots/hist_lenet_UNQUANTIZED.gif", range = (-.7,.7), top=None, split_by_rows=False)
 
 
     model_9 = get_quantized_model(model, 9, RPU_CONFIG)
     model_9.eval()
-    pl.generate_moving_hist(model_9,title="Distribution of Quantized Weight\n Values over the tiles - LENET9", file_name=p_PATH +"lenet/plots/hist_lenet_QUANTIZED_9.gif", range = (-.7,.7), top = None, split_by_rows=False)
+    pl.generate_moving_hist(model_9,title="Distribution of Quantized Weight\n Values over the tiles - LENET9", file_name=p_PATH +"/lenet/plots/hist_lenet_QUANTIZED_9.gif", range = (-.7,.7), top = None, split_by_rows=False)
 
     model_17 = get_quantized_model(model, 17, RPU_CONFIG)
     model_17.eval()
-    pl.generate_moving_hist(model_17,title="Distribution of Quantized Weight\n Values over the tiles - LENET17", file_name=p_PATH +"lenet/plots/hist_lenet_QUANTIZED_17.gif", range = (-.7,.7), top = None, split_by_rows=False)
+    pl.generate_moving_hist(model_17,title="Distribution of Quantized Weight\n Values over the tiles - LENET17", file_name=p_PATH +"/lenet/plots/hist_lenet_QUANTIZED_17.gif", range = (-.7,.7), top = None, split_by_rows=False)
 
 
     # -**-**-**-**-**-**-**-**-**-**-**-**-**-**-**- FIRST EVALUATION: 3 MODELS -**-**-**-**-**-**-**-**-**-**-**-**-**-**-**-
@@ -376,9 +376,9 @@ if __name__ == '__main__':
     # Plot the histogram of the weights of the last model
     tile_weights = next(model_fitted.analog_tiles()).get_weights()
     gaussain_noise = {"means": ww_mdn[CHOSEN_NOISE].values, "stds": ww_std[CHOSEN_NOISE].values, "gmax": 40.0}
-    pl.plot_tensor_values(tile_weights[0], 101, (-.9,.9), f"Distribution of quantized weights + Fitted Noise ({CHOSEN_NOISE}) - Conv1 - LENET{SELECTED_LEVEL}", p_PATH + f"lenet/plots/hist_lenet_QUANTIZED_{SELECTED_LEVEL}+FITTED_Conv1.png")
-    pl.plot_tensor_values(tile_weights[0], 101, (-.9,.9), f"Distribution of quantized weights + Fitted Noise ({CHOSEN_NOISE}) - Conv1+Gaussian - LENET{SELECTED_LEVEL}", p_PATH + f"lenet/plots/hist_lenet_QUANTIZED_{SELECTED_LEVEL}+FITTED_Conv1+Gaussian.png", gaussian=gaussain_noise, weight_max=weight_max)
-    pl.generate_moving_hist(model_fitted,title=f"Distribution of Quantized Weight + Fitted Noise ({CHOSEN_NOISE})\n Values over the tiles - LENET{SELECTED_LEVEL}", file_name= p_PATH + f"lenet/plots/hist_lenet_QUANTIZED_{SELECTED_LEVEL}_FITTED.gif", range = (-.7,.7), top=None, split_by_rows=False)
+    pl.plot_tensor_values(tile_weights[0], 101, (-.9,.9), f"Distribution of quantized weights + Fitted Noise ({CHOSEN_NOISE}) - Conv1 - LENET{SELECTED_LEVEL}", p_PATH + f"/lenet/plots/hist_lenet_QUANTIZED_{SELECTED_LEVEL}+FITTED_Conv1.png")
+    pl.plot_tensor_values(tile_weights[0], 101, (-.9,.9), f"Distribution of quantized weights + Fitted Noise ({CHOSEN_NOISE}) - Conv1+Gaussian - LENET{SELECTED_LEVEL}", p_PATH + f"/lenet/plots/hist_lenet_QUANTIZED_{SELECTED_LEVEL}+FITTED_Conv1+Gaussian.png", gaussian=gaussain_noise, weight_max=weight_max)
+    pl.generate_moving_hist(model_fitted,title=f"Distribution of Quantized Weight + Fitted Noise ({CHOSEN_NOISE})\n Values over the tiles - LENET{SELECTED_LEVEL}", file_name= p_PATH + f"/lenet/plots/hist_lenet_QUANTIZED_{SELECTED_LEVEL}_FITTED.gif", range = (-.7,.7), top=None, split_by_rows=False)
 
 
     # Estimate the accuracy of the model with the fitted noise with respect to the other 9 levels model
