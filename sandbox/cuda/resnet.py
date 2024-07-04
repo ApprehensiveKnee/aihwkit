@@ -313,7 +313,7 @@ class IdealPreset(InferenceRPUConfig):
             # w_noise=0.0175,
             w_noise_type=WeightNoiseType.NONE,
             ir_drop=1.0,
-            # out_noise=0.04,
+            out_noise=0.04,
             out_bound=10.0,
         )
     )
@@ -372,7 +372,8 @@ class CustomDefinedPreset(InferenceRPUConfig):
             noise_management=NoiseManagementType.CONSTANT,
             nm_thres=1.0,
             #w_noise=0.0175,
-            w_noise_type=WeightNoiseType.PCM_READ,
+            #w_noise_type=WeightNoiseType.PCM_READ,
+            w_noise_type=WeightNoiseType.NONE,
             ir_drop=1.0,
             out_noise=0.04,
             out_bound=10.0,
@@ -415,6 +416,7 @@ class CustomDefinedPreset(InferenceRPUConfig):
     # )
 
 def get_quantized_model(model,level, rpu_config):
+    
     rpu_config.quantization = WeightQuantizerParameter(
         resolution=0.12 if level == 17 else 0.2,
         levels=level
