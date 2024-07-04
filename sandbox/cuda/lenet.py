@@ -108,15 +108,15 @@ def inference_lenet5(RPU_CONFIG):
     return model
 
 
-def get_test_loader():
+def get_test_loader(batch_size = 32):
     # Load test data form MNIST dataset
 
     transform = torchvision.transforms.Compose([transforms.ToTensor()])
     test_set = datasets.MNIST(
-        root=p_PATH+"data/mnist", train=False, download=True, transform=transform
+        root=t_PATH+"/sandbox/data/mnist", train=False, download=True, transform=transform
     )
-    test_data = torch.utils.data.DataLoader(test_set, batch_size=32, shuffle=False)
-    return test_data
+    test_loader = torch.utils.data.DataLoader(test_set, batch_size=batch_size, shuffle=False)
+    return test_loader
 
 
 def evaluate_model(model,validation_data, device):
