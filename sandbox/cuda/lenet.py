@@ -429,7 +429,7 @@ if __name__ == '__main__':
         accuracies = [inference_accuracy_values[t_id, :, 0].mean(),inference_accuracy_values[t_id, :, 2].mean()]
     
     accuracies = accuracies + fitted_models_accuracy.mean(dim=1)[0].tolist()
-    std_accuracy = [.0,.0,.0] + fitted_models_accuracy.std(dim=1)[0].tolist()
+    std_accuracy = [.0,.0] + fitted_models_accuracy.std(dim=1)[0].tolist()
     observed_max = accuracies[:2] + fitted_observed_max
     observed_min = accuracies[:2] + fitted_observed_min
     ax.stem(models[:2], accuracies[:2], linefmt ='darkorange', markerfmt ='D', basefmt=' ')
