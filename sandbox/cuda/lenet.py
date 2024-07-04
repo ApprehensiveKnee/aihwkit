@@ -113,9 +113,9 @@ def get_test_loader():
 
     transform = torchvision.transforms.Compose([transforms.ToTensor()])
     test_set = datasets.MNIST(
-        root="data/mnist", train=False, download=True, transform=transform
+        root=p_PATH+"data/mnist", train=False, download=True, transform=transform
     )
-    test_data = torch.utils.data.DataLoader(test_set, batch_size=128, shuffle=False)
+    test_data = torch.utils.data.DataLoader(test_set, batch_size=32, shuffle=False)
     return test_data
 
 
@@ -148,7 +148,7 @@ def evaluate_model(model,validation_data, device):
         error = (1 - predicted_ok / total_images) * 100
 
 
-    return error, accuracy
+    return accuracy
 
 
 def get_quantized_model(model,level, rpu_config):
