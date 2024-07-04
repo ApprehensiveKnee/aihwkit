@@ -293,26 +293,26 @@ class IdealPreset(InferenceRPUConfig):
         )
     )
 
-    forward: IOParameters = field(
-        default_factory= lambda:PresetIOParameters(
-            is_perfect=True,
-        )
-    )
-
     # forward: IOParameters = field(
-    #     default_factory=lambda: PresetIOParameters(
-    #         inp_res=254.,
-    #         out_res=254.,
-    #         bound_management=BoundManagementType.NONE,
-    #         noise_management=NoiseManagementType.NONE,
-    #         nm_thres=1.0,
-    #         # w_noise=0.0175,
-    #         w_noise_type=WeightNoiseType.NONE,
-    #         #ir_drop=1.0,
-    #         # out_noise=0.04,
-    #         # out_bound=10.0,
+    #     default_factory= lambda:PresetIOParameters(
+    #         is_perfect=True,
     #     )
     # )
+
+    forward: IOParameters = field(
+        default_factory=lambda: PresetIOParameters(
+            inp_res=254.,
+            out_res=254.,
+            bound_management=BoundManagementType.ITERATIVE,
+            noise_management=NoiseManagementType.NONE,
+            nm_thres=1.0,
+            # w_noise=0.0175,
+            w_noise_type=WeightNoiseType.NONE,
+            #ir_drop=1.0,
+            # out_noise=0.04,
+            # out_bound=10.0,
+        )
+    )
 
     backward: IOParameters = field(
         default_factory= lambda:PresetIOParameters(
