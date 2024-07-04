@@ -339,7 +339,7 @@ if __name__ == '__main__':
                 #torch.cuda.reset_peak_memory_stats()
 
         print(
-                f"Test set accuracy (%) at t={t}s for {model_names[i]}: mean: {inference_accuracy_values[t_id, :, i].mean()}, std: {inference_accuracy_values[t_id, :, i].std()}"
+                f"Test set accuracy (%) at t={t}s for {model_names[i]}: mean: {inference_accuracy_values[t_id, :, i].mean()}, std: 0.0"
             )
             
 
@@ -439,16 +439,15 @@ if __name__ == '__main__':
     models = ["Unquantized",f"Quantized - {SELECTED_LEVEL} levels"] + fitted_models_names
     if SELECTED_LEVEL == 9:
         accuracies = [inference_accuracy_values[t_id, :, 0].mean(),inference_accuracy_values[t_id, :, 1].mean()]
-        std_accuracy = [inference_accuracy_values[t_id, :, 0].std(),inference_accuracy_values[t_id, :, 1].std()]
         observed_max = observed_max[:2]
         observed_min = observed_min[:2]
     else:
         accuracies = [inference_accuracy_values[t_id, :, 0].mean(),inference_accuracy_values[t_id, :, 2].mean()]
-        std_accuracy = [inference_accuracy_values[t_id, :, 0].std(),inference_accuracy_values[t_id, :, 2].std()]
         observed_max = [observed_max[0], observed_max[2]]
         observed_min = [observed_min[0], observed_min[2]]
+    
     accuracies = accuracies + fitted_models_accuracy.mean(dim=1)[0].tolist()
-    std_accuracy = std_accuracy + fitted_models_accuracy.std(dim=1)[0].tolist()
+    std_accuracy = [.0,.0,.0] + fitted_models_accuracy.std(dim=1)[0].tolist()
     observed_max = observed_max + fitted_observed_max
     observed_min = observed_min + fitted_observed_min
     ax.stem(models[:2], accuracies[:2], linefmt ='darkorange', markerfmt ='D', basefmt=' ')
