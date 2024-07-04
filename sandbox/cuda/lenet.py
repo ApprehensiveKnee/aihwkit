@@ -186,16 +186,13 @@ def download_url(url, dest_folder, filename=None):
 # ------------------------------------------- PLOTTING FUNCTIONS ------------------------------------------------------
 # ********************************************************************************************************************
 
-def accuracy_plot(model_names, inference_accuracy_values, observed_max, observed_min, r_number ,path):
+def accuracy_plot(model_names, inference_accuracy_values, observed_max, r_number ,path):
     # Plot the accuracy of the models in a stem plot
     fig, ax = plt.subplots()
     y1= np.array([0.]*3)
     y2= np.array([0.]*3)
     for i, model_name in enumerate(model_names):
-        mean = inference_accuracy_values[0, :, i].mean()
-        std = inference_accuracy_values[0, :, i].std()
-        y2[i] = mean + 3 * std
-        y1[i] = mean - 3 * std
+        mean = inference_accuracy_values[0, 0, 1] 
         ax.stem([model_name], [mean], linefmt="darkorange", markerfmt="D", basefmt=" ")
     ax.set_title(f"Accuracy of the models - n = {r_number} repeated measurements")
     ax.set_ylabel("Accuracy (%)")
@@ -204,15 +201,9 @@ def accuracy_plot(model_names, inference_accuracy_values, observed_max, observed
     ax.yaxis.grid(True)
     ax.yaxis.grid(which="minor", linestyle=":", linewidth="0.5", color="gray")
     max = np.array(observed_max)
-    min = np.array(observed_min)
     x = np.arange(len(model_names))
-    ax.fill_between(x, y1, y2, where=(y2 > y1), color='bisque', alpha=0.5, label='Confidence Interval')
-    ax.plot(x, y1, '--', color='firebrick')
-    ax.plot(x, y2, '--', color = 'firebrick')
-    ax.fill_between(x, min, max, where=(max > min), color='lightsalmon', alpha=0.5, label='Observed Accuracy Interval')
     ax.plot(x, max, ls='dashdot', color = 'olivedrab', label = 'Max observed accuracy', marker = '1', markersize=10)
-    ax.plot(x, min, ls= 'dashdot', color = 'olivedrab', label = 'Min observed accuracy', marker = '2', markersize=10)
-    ax.set_ylim([75, 82])
+    ax.set_ylim([75, 100])
     ax.legend()
 
     # Save the plot to file
