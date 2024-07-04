@@ -344,7 +344,7 @@ if __name__ == '__main__':
     print("Available experimental noises are: ", types)
     CHOSEN_NOISE = types[0]
     print(f"Chosen noise: {CHOSEN_NOISE}" )
-    path = f"./data/{MAP[SELECTED_LEVEL]}"
+    path = p_PATH + f"/data/{MAP[SELECTED_LEVEL]}"
     print(f"Selected level: {SELECTED_LEVEL}")
 
     RPU_CONFIG  = InferenceRPUConfig(forward=IOParameters(is_perfect=True),
