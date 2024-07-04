@@ -543,7 +543,7 @@ if __name__ == '__main__':
                 if model_name == "Unquantized":
                     model_i = deepcopy(model)
                 else:
-                    model_i = get_quantized_model(model, SELECTED_LEVEL, rpu_config)
+                    model_i = get_quantized_model(model, 9 if i==1 else 17, rpu_config)
                 model_i.eval()
                 
                 # Calibrate input ranges

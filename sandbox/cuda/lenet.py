@@ -303,18 +303,23 @@ if __name__ == '__main__':
     n_reps = 10  # Number of inference repetitions.
 
     model_names = ["Unquantized", "Quantized - 9 levels", "Quantized - 17 levels"]
-    inference_accuracy_values = torch.zeros((len(t_inferences), n_reps, len(model_names)))
+    inference_accuracy_values = torch.zeros((len(t_inferences), 1, len(model_names)))
     observed_max = [0] * len(model_names)
     observed_min = [100] * len(model_names)
     for i,model_name in enumerate(model_names):
         for t_id, t in enumerate(t_inferences):
-            for j in range(n_reps):
+            for j in range(1): 
+    # ////////////////////////////////////////////////////////////////////////////////////////////////
+    # In this case, differently from resnet.py, both the original model and the quantized ones are
+    # "ideal", so NO VARIABILITY will affect the models: as such, a single run to sample the accuracy 
+    # is enough
+    # ////////////////////////////////////////////////////////////////////////////////////////////////
             # For each repetition, get a new version of the quantized model and calibrare it
 
                 if model_name == "Unquantized":
                     model_i = deepcopy(model)
                 else:
-                    model_i = get_quantized_model(model, SELECTED_LEVEL, RPU_CONFIG)
+                    model_i = get_quantized_model(model, 9 if model_name=="Quantized - 9 levels" else 17, RPU_CONFIG)
                 model_i.eval()
                 
                 inference_accuracy_values[t_id, j, i] = evaluate_model(
