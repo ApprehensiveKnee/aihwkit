@@ -186,7 +186,7 @@ def download_url(url, dest_folder, filename=None):
 # ------------------------------------------- PLOTTING FUNCTIONS ------------------------------------------------------
 # ********************************************************************************************************************
 
-def accuracy_plot(model_names, inference_accuracy_values, observed_max, r_number ,path):
+def accuracy_plot(model_names, inference_accuracy_values, r_number ,path):
     # Plot the accuracy of the models in a stem plot
     fig, ax = plt.subplots()
     y1= np.array([0.]*3)
@@ -200,9 +200,8 @@ def accuracy_plot(model_names, inference_accuracy_values, observed_max, r_number
     ax.minorticks_on()
     ax.yaxis.grid(True)
     ax.yaxis.grid(which="minor", linestyle=":", linewidth="0.5", color="gray")
-    max = np.array(observed_max)
     x = np.arange(len(model_names))
-    ax.plot(x, max, ls='dashdot', color = 'olivedrab', label = 'Max observed accuracy', marker = '1', markersize=10)
+    ax.plot(x, mean, ls='dashdot', color = 'firebrick', label = 'Max observed accuracy', marker = '1', markersize=10)
     ax.set_ylim([75, 100])
     ax.legend()
 
@@ -316,10 +315,6 @@ if __name__ == '__main__':
                 inference_accuracy_values[t_id, j, i] = evaluate_model(
                     model_i, get_test_loader(), device
                 )
-                if observed_max[i] < inference_accuracy_values[t_id, j, i]:
-                    observed_max[i] = inference_accuracy_values[t_id, j, i]
-                if observed_min[i] > inference_accuracy_values[t_id, j, i]:
-                    observed_min[i] = inference_accuracy_values[t_id, j, i]
                 print(f"Accuracy on rep:{j}, model:{i} -->" , inference_accuracy_values[t_id, j, i])
                 # tile_weights = next(model_i.analog_tiles()).get_weights()
                 # print(f"Tile weights for model {model_names[i]}: {tile_weights[0][0:5, 0:5]}")
@@ -334,7 +329,7 @@ if __name__ == '__main__':
             )
             
 
-    accuracy_plot(model_names, inference_accuracy_values, observed_max, observed_min, n_reps ,path= p_PATH + "/resnet/plots/accuracy_resnet.png")
+    accuracy_plot(model_names, inference_accuracy_values, n_reps ,path= p_PATH + "/resnet/plots/accuracy_resnet.png")
 
     # -**-**-**-**-**-**-**-**-**-**-**-**-**-**-**- SECOND EVALUATION: FITTED DATA -**-**-**-**-**-**-**-**-**-**-**-**-**-**-**-
     print("Available experimental noises are: ", types)
