@@ -250,7 +250,7 @@ class JustStdNoiseModel(ExperimentalNoiseModel):
         
         diffs = torch.abs(gg_values.unsqueeze(-1) - g_target.reshape(-1))
         min_indices = torch.argmin(diffs, dim=0)
-        g_real = ww_std[min_indices] * randn_like(g_target.reshape(-1))
+        g_real =g_target.reshape(-1) + ww_std[min_indices] * randn_like(g_target.reshape(-1))
         g_real = g_real.reshape(g_target.shape)
         return g_real
 
