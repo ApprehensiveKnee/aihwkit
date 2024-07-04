@@ -588,7 +588,7 @@ if __name__ == '__main__':
     print(f"Selected level: {SELECTED_LEVEL}")
 
     RPU_CONFIG  = IdealPreset()
-    RPU_CONFIG.noise_model= JustStdNoiseModel(file_path = path,
+    RPU_CONFIG.noise_model= JustMedianNoiseModel(file_path = path,
                                                 type = CHOSEN_NOISE,
                                                 g_converter=SinglePairConductanceConverter(g_max=40.)),
                     
@@ -628,7 +628,7 @@ if __name__ == '__main__':
             resolution=0.2 if SELECTED_LEVEL == 9 else 0.12,
             levels = SELECTED_LEVEL,
             )
-        RPU_CONFIG.noise_model=JustStdNoiseModel(file_path = path,
+        RPU_CONFIG.noise_model=JustMedianNoiseModel(file_path = path,
                                                         type = CHOSEN_NOISE,
                                                         g_converter=SinglePairConductanceConverter(g_max=40.)),
 
