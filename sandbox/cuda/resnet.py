@@ -314,7 +314,7 @@ class IdealPreset(InferenceRPUConfig):
             w_noise_type=WeightNoiseType.NONE,
             #ir_drop=1.0,
             # out_noise=0.04,
-            # out_bound=10.0,
+            out_bound=10.0,
         )
     )
 
