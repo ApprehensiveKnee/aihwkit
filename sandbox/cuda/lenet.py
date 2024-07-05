@@ -2,6 +2,8 @@ import os
 import torch
 import gc
 from copy import deepcopy
+import sys
+from getopt import getopt
 from torch import nn, Tensor, device, no_grad, manual_seed
 from torch import nn
 from torchvision.datasets.utils import download_url
@@ -14,7 +16,6 @@ from torch.nn.functional import mse_loss
 # Import functions defined in a specific path
 t_PATH = os.path.abspath(__file__)
 t_PATH = os.path.dirname(os.path.dirname(os.path.dirname(t_PATH)))
-import sys
 sys.path.append(t_PATH + '/src/')
 
 from aihwkit.simulator.configs import ConstantStepDevice, SingleRPUConfig, FloatingPointDevice, FloatingPointRPUConfig
@@ -206,17 +207,28 @@ if __name__ == '__main__':
     p_PATH = os.path.dirname(os.path.dirname(p_PATH))
 
     # read the first argument, passed with the -l flag
-    if len(sys.argv) > 1 and sys.argv[1] == '-l':
-        if sys.argv[2] in ['9', '17']:
-            SELECTED_LEVEL = int(sys.argv[2])
-        else:
-            raise Exception("Please specify a valid level of quantization (9 or 17)")
-    else:
-        raise Exception("Please specify the level of quantization with the -l flag")
 
-    MAP = {
+    opts, args = getopt(sys.argv[1:], 'l:n:',['level=','noise='])
+    
+    for opt, arg in args:
+        if opt in ('-l', '--level'):
+            if int(arg) not in [9,17]:
+                raise ValueError("The selected level must be either 9 or 17")
+            SELECTED_LEVEL = int(arg)
+        elif opt in ('-n', '--noise'):
+            if arg not in ["whole","std","median"]:
+                raise ValueError("The selected noise must be either 'std' or 'median'")
+            SELECTED_NOISE = arg
+
+    MAP_LEVEL_FILE = {
         9 : "matlab/3bit.mat",
         17 : "matlab/4bit.mat",
+    }
+
+    MAP_NOISE_TYPE = {
+        "whole" : ExperimentalNoiseModel,
+        "std" : JustStdNoiseModel,
+        "median" : JustMedianNoiseModel
     }
 
     G_RANGE = [-40, 40]
@@ -226,7 +238,7 @@ if __name__ == '__main__':
     }
 
      # Extract the data from the .mat file
-    path = p_PATH+ f"/data/{MAP[SELECTED_LEVEL]}"
+    path = p_PATH+ f"/data/{MAP_LEVEL_FILE[SELECTED_LEVEL]}"
     variables = import_mat_file(path)
 
     types = variables['str']
@@ -320,7 +332,7 @@ if __name__ == '__main__':
     print("Available experimental noises are: ", types)
     CHOSEN_NOISE = types[0]
     print(f"Chosen noise: {CHOSEN_NOISE}" )
-    path = p_PATH + f"/data/{MAP[SELECTED_LEVEL]}"
+    path = p_PATH + f"/data/{MAP_LEVEL_FILE[SELECTED_LEVEL]}"
     print(f"Selected level: {SELECTED_LEVEL}")
 
     RPU_CONFIG  = InferenceRPUConfig(forward=IOParameters(is_perfect=True),
@@ -371,7 +383,7 @@ if __name__ == '__main__':
             resolution=0.18 if SELECTED_LEVEL == 9 else 0.12,
             levels = SELECTED_LEVEL,
             )
-        RPU_CONFIG.noise_model=ExperimentalNoiseModel(file_path = path,
+        RPU_CONFIG.noise_model=MAP_NOISE_TYPE[SELECTED_NOISE](file_path = path,
                                                         type = CHOSEN_NOISE,
                                                         g_converter=SinglePairConductanceConverter(g_max=40.)),
 
