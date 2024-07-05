@@ -371,7 +371,7 @@ if __name__ == '__main__':
             resolution=0.18 if SELECTED_LEVEL == 9 else 0.12,
             levels = SELECTED_LEVEL,
             )
-        RPU_CONFIG.noise_model=JustMedianNoiseModel(file_path = path,
+        RPU_CONFIG.noise_model=ExperimentalNoiseModel(file_path = path,
                                                         type = CHOSEN_NOISE,
                                                         g_converter=SinglePairConductanceConverter(g_max=40.)),
 
