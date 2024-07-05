@@ -238,8 +238,8 @@ if __name__ == '__main__':
 
     # Download the model if it not already present
    
-    os.makedirs(p_PATH + '/lenet')  if not os.path.exists(p_PATH + '/lenet')
-    os.makedirs(p_PATH + '/lenet/plots') if not os.path.exists(p_PATH + '/lenet/plots')
+    os.makedirs(p_PATH + '/lenet')  if not os.path.exists(p_PATH + '/lenet') else None
+    os.makedirs(p_PATH + '/lenet/plots') if not os.path.exists(p_PATH + '/lenet/plots') else None
     url = 'https://drive.google.com/uc?id=1-dJx-mGqr5iKYpHVFaRT1AfKUZKgGMQL'
     output = p_PATH + '/lenet/lenet5.th'
     if not os.path.exists(output):
