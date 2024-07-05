@@ -341,7 +341,7 @@ if __name__ == '__main__':
     model_fitted = convert_to_analog(original_model, RPU_CONFIG)
     model_fitted.eval()
     tile_weights = next(model_fitted.analog_tiles()).get_weights()
-    pl.plot_tensor_values(tile_weights[0], 141, (-.6,.6), f"Distribution of quantized weights - Conv1 - RESNET{SELECTED_LEVEL}", p_PATH + f"/lenet/plots/hist_rlenet_QUANTIZED_{SELECTED_LEVEL}_Conv1.png")
+    pl.plot_tensor_values(tile_weights[0], 141, (-.6,.6), f"Distribution of quantized weights - Conv1 - RESNET{SELECTED_LEVEL}", p_PATH + f"/lenet/plots/hist_lenet_QUANTIZED_{SELECTED_LEVEL}_Conv1.png")
     weight_max = max(abs(tile_weights[0].flatten().numpy()))
     model_fitted.program_analog_weights()
 
@@ -379,10 +379,10 @@ if __name__ == '__main__':
         for t_id, t in enumerate(t_inferences):
             for j in range(n_reps):
                 # For each repetition, get a new version of the quantized model and calibrare it
-                model_fitted = convert_to_analog(original_model, RPU_CONFIG)
+                model_fitted = inference_lenet5(RPU_CONFIG).to(device)
+                model_fitted.load_state_dict(state_dict, strict=True, load_rpu_config=False)
                 model_fitted.eval()
                 model_fitted.program_analog_weights()
-
                 # if j == 1:
                 #     tile_weights = next(model_fitted.analog_tiles()).get_weights()
                 #     print(f"Tile weights for model {fitted_models_names[i]} \n(-->{id(model_fitted)}<--):\n {tile_weights[0][0:5, 0:5]}")
