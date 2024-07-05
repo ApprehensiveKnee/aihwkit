@@ -81,7 +81,6 @@ class ExperimentalNoiseModel(BaseNoiseModel):
         # Neg is a boolean variable set to true to apply the noise fitted for "negative" conductances
         if neg:
             g_target = -g_target
-        print("self.ww_mdn: ", self.ww_mdn[0:10])
         g_real = self.fit_data(g_target, self.ww_mdn, self.ww_std)
         if neg:
             g_real = -g_real
