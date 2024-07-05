@@ -545,7 +545,6 @@ if __name__ == '__main__':
                     model_i = deepcopy(model)
                 else:
                     model_i = get_quantized_model(model, 9 if model_name=="Quantized - 9 levels" else 17, rpu_config)
-                model_i.eval()
                 
                 # Calibrate input ranges
                 dataloader=Sampler(get_test_loader(), device)
