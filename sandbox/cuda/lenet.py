@@ -215,10 +215,12 @@ if __name__ == '__main__':
             if int(arg) not in [9,17]:
                 raise ValueError("The selected level must be either 9 or 17")
             SELECTED_LEVEL = int(arg)
+            print(f"Selected level: {SELECTED_LEVEL}")
         if opt in ('-n', '--noise'):
             if arg not in ["whole","std","median"]:
                 raise ValueError("The selected noise must be either 'std' or 'median'")
             SELECTED_NOISE = arg
+            print(f"Selected noise: {SELECTED_NOISE}")
 
     MAP_LEVEL_FILE = {
         9 : "matlab/3bit.mat",
