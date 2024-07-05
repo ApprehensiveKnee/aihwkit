@@ -209,11 +209,8 @@ if __name__ == '__main__':
     # read the first argument, passed with the -l flag
 
     opts, args = getopt(sys.argv[1:], 'l:n:',['level=','noise='])
-
-    print(f"Options: {opts}")
-    print(f"Arguments: {args}")
     
-    for opt, arg in args:
+    for opt, arg in opts:
         if opt in ('-l', '--level'):
             if int(arg) not in [9,17]:
                 raise ValueError("The selected level must be either 9 or 17")
