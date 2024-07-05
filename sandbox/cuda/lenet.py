@@ -371,7 +371,7 @@ if __name__ == '__main__':
             resolution=0.18 if SELECTED_LEVEL == 9 else 0.12,
             levels = SELECTED_LEVEL,
             )
-        RPU_CONFIG.noise_model=JustMedianNoiseModel(file_path = path,
+        RPU_CONFIG.noise_model=ExperimentalNoiseModel(file_path = path,
                                                         type = CHOSEN_NOISE,
                                                         g_converter=SinglePairConductanceConverter(g_max=40.)),
 
@@ -438,7 +438,7 @@ if __name__ == '__main__':
     ax.minorticks_on()
     ax.yaxis.grid(True)
     ax.yaxis.grid(which='minor', linestyle=':', linewidth='0.5', color='gray')
-    ax.set_ylim([75, 100])
+    ax.set_ylim([90, 100])
     ax.legend()
     # Save the plot to file
     plt.savefig(p_PATH+f"/lenet/plots/accuracy_lenet_FittedNoise_{SELECTED_LEVEL}.png")
