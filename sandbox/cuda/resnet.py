@@ -299,10 +299,11 @@ class IdealPreset(InferenceRPUConfig):
         )
     )
 
-    ''' *--------------------------------------------------------------------------------
+    # ////////////////////////////////////////////////////////////////////////////////////////////////
     # OSS: As soon as the resolution for input and output is set to a value different from 0,
     # the input calibration step become mandatory
-       --------------------------------------------------------------------------------'''
+    # ////////////////////////////////////////////////////////////////////////////////////////////////
+    
     # forward: IOParameters = field(
     #     default_factory=lambda: PresetIOParameters(
     #         inp_res=254.0,
@@ -543,7 +544,7 @@ if __name__ == '__main__':
                 if model_name == "Unquantized":
                     model_i = deepcopy(model)
                 else:
-                    model_i = get_quantized_model(model, 9 if i==1 else 17, rpu_config)
+                    model_i = get_quantized_model(model, 9 if model_name=="Quantized - 9 levels" else 17, rpu_config)
                 model_i.eval()
                 
                 # Calibrate input ranges

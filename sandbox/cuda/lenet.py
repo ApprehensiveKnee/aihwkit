@@ -202,7 +202,7 @@ def accuracy_plot(model_names, inference_accuracy_values, r_number ,path):
     ax.yaxis.grid(which="minor", linestyle=":", linewidth="0.5", color="gray")
     x = np.arange(len(model_names))
     ax.plot(x, trace, ls='dashdot', color = 'firebrick', label = 'Max observed accuracy', marker = '1', markersize=10)
-    ax.set_ylim([75, 100])
+    ax.set_ylim([90, 100])
     ax.legend()
 
     # Save the plot to file
@@ -329,7 +329,7 @@ if __name__ == '__main__':
             )
             
 
-    accuracy_plot(model_names, inference_accuracy_values, n_reps ,path= p_PATH + "/resnet/plots/accuracy_resnet.png")
+    accuracy_plot(model_names, inference_accuracy_values, n_reps ,path= p_PATH + "/lenet/plots/accuracy_lenet.png")
 
     # -**-**-**-**-**-**-**-**-**-**-**-**-**-**-**- SECOND EVALUATION: FITTED DATA -**-**-**-**-**-**-**-**-**-**-**-**-**-**-**-
     print("Available experimental noises are: ", types)
@@ -367,8 +367,8 @@ if __name__ == '__main__':
     # Plot the histogram of the weights of the last model
     tile_weights = next(model_fitted.analog_tiles()).get_weights()
     gaussain_noise = {"means": ww_mdn[CHOSEN_NOISE].values, "stds": ww_std[CHOSEN_NOISE].values, "gmax": 40.0}
-    pl.plot_tensor_values(tile_weights[0], 101, (-.9,.9), f"Distribution of quantized weights + Fitted Noise ({CHOSEN_NOISE}) - Conv1 - LENET{SELECTED_LEVEL}", p_PATH + f"/lenet/plots/hist_lenet_QUANTIZED_{SELECTED_LEVEL}+FITTED_Conv1.png")
-    pl.plot_tensor_values(tile_weights[0], 101, (-.9,.9), f"Distribution of quantized weights + Fitted Noise ({CHOSEN_NOISE}) - Conv1+Gaussian - LENET{SELECTED_LEVEL}", p_PATH + f"/lenet/plots/hist_lenet_QUANTIZED_{SELECTED_LEVEL}+FITTED_Conv1+Gaussian.png", gaussian=gaussain_noise, weight_max=weight_max)
+    pl.plot_tensor_values(tile_weights[0], 101, (-.9,.9), f"Distribution of quantized weights + Fitted Noise ({CHOSEN_NOISE})\n - Conv1 - LENET{SELECTED_LEVEL}", p_PATH + f"/lenet/plots/hist_lenet_QUANTIZED_{SELECTED_LEVEL}+FITTED_Conv1.png")
+    pl.plot_tensor_values(tile_weights[0], 101, (-.9,.9), f"Distribution of quantized weights + Fitted Noise ({CHOSEN_NOISE})\n - Conv1+Gaussian - LENET{SELECTED_LEVEL}", p_PATH + f"/lenet/plots/hist_lenet_QUANTIZED_{SELECTED_LEVEL}+FITTED_Conv1+Gaussian.png", gaussian=gaussain_noise, weight_max=weight_max)
     pl.generate_moving_hist(model_fitted,title=f"Distribution of Quantized Weight + Fitted Noise ({CHOSEN_NOISE})\n Values over the tiles - LENET{SELECTED_LEVEL}", file_name= p_PATH + f"/lenet/plots/hist_lenet_QUANTIZED_{SELECTED_LEVEL}_FITTED.gif", range = (-.7,.7), top=None, split_by_rows=False)
 
 
@@ -380,9 +380,6 @@ if __name__ == '__main__':
     for i in range(len(types)):
         CHOSEN_NOISE = types[i]
         RPU_CONFIG  = InferenceRPUConfig(forward=IOParameters(is_perfect=True),
-                                        noise_model=ExperimentalNoiseModel(file_path = path,
-                                                                        type = CHOSEN_NOISE,
-                                                                        g_converter=SinglePairConductanceConverter(g_max=40.)),
                                         clip= WeightClipParameter(type=WeightClipType.NONE,),
                                         remap= WeightRemapParameter(type=WeightRemapType.NONE,),
                                         modifier= WeightModifierParameter(type=WeightModifierType.NONE,), 
