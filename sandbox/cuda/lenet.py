@@ -438,7 +438,7 @@ if __name__ == '__main__':
     ax.minorticks_on()
     ax.yaxis.grid(True)
     ax.yaxis.grid(which='minor', linestyle=':', linewidth='0.5', color='gray')
-    ax.set_ylim([50, 100])
+    ax.set_ylim([75, 100])
     ax.legend()
     # Save the plot to file
     plt.savefig(p_PATH+f"/lenet/plots/accuracy_lenet_FittedNoise_{SELECTED_LEVEL}.png")
