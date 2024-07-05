@@ -199,7 +199,7 @@ class JustMedianNoiseModel(ExperimentalNoiseModel):
         Returns:
             g_real: the fittted conductances tensor
         """
-
+        print("Just median noise model:", ww_mdn)
         g_max = g_target.max() if g_target.max() > -g_target.min() else -g_target.min()
         if ww_mdn.shape == ww_std.shape: # Check on identical shapes
             gg_values = [-g_max + i * 2 * g_max / (ww_mdn.shape[0]-1)  for i in range(ww_mdn.shape[0])]
