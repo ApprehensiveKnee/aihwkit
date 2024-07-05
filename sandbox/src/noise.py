@@ -181,7 +181,7 @@ class ExperimentalNoiseModel(BaseNoiseModel):
 
     
 
-class JustMedianNoiseModel(ExperimentalNoiseModel):
+class JustMedianNoiseModel(BaseNoiseModel):
     """ 
     This new noise model just considers the median values of the experimental data:
     the conductances are shifted from their original quantized values to the corresponding median values
@@ -290,7 +290,7 @@ class JustMedianNoiseModel(ExperimentalNoiseModel):
         return g_real
 
 
-class JustStdNoiseModel(ExperimentalNoiseModel):  
+class JustStdNoiseModel(BaseNoiseModel):  
     """ 
     This new noise model just considers the standard deviation values of the experimental data:
     the conductances are shifted from their original quantized values to the corresponding standard deviation values
