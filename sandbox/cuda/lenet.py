@@ -388,7 +388,7 @@ if __name__ == '__main__':
 
                 if j == 1:
                     tile_weights = next(model_fitted.analog_tiles()).get_weights()
-                    print(f"Tile weights for model {fitted_models_names[i]}: {tile_weights[0][0:5, 0:5]}")
+                    print(f"Tile weights for model {fitted_models_names[i]} (-->{model_fitted}<--):\n {tile_weights[0][0:5, 0:5]}")
 
                 # Then evaluate the model
                 fitted_models_accuracy[t_id, j, i] = evaluate_model(model_fitted, get_test_loader(), device)
