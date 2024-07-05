@@ -406,6 +406,10 @@ if __name__ == '__main__':
                 f"Test set accuracy (%) at t={t}s for {fitted_models_names[i]}: mean: {fitted_models_accuracy[t_id, :, i].mean()}, std: {fitted_models_accuracy[t_id, :, i].std()}"
             )
 
+        del RPU_CONFIG
+
+    accuracy_plot(fitted_models_names, fitted_models_accuracy, n_reps, path= p_PATH + f"/lenet/plots/accuracy_lenet_FittedNoise_{SELECTED_LEVEL}.png")
+
     # Plot the accuracy of the models in a stem plot
     fig, ax = plt.subplots(figsize=(23,7))
     models = ["Unquantized",f"Quantized - {SELECTED_LEVEL} levels"] + fitted_models_names
