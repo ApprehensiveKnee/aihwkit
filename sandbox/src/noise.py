@@ -188,7 +188,6 @@ class JustMedianNoiseModel(ExperimentalNoiseModel):
     """
     def __init__(self, file_path: str, type: str, **kwargs):
         super().__init__(file_path, type, **kwargs)
-        print("Just median noise model:", self.ww_mdn)
 
     @staticmethod
     def fit_data(g_target, ww_mdn, ww_std):
@@ -215,7 +214,6 @@ class JustMedianNoiseModel(ExperimentalNoiseModel):
         diffs = torch.abs(gg_values.unsqueeze(-1) - g_target.reshape(-1))
         min_indices = torch.argmin(diffs, dim=0)
         g_real = ww_mdn[min_indices]
-        print("---> g_real: ", g_real[0:10])
         g_real = g_real.reshape(g_target.shape)
         return g_real
 
