@@ -122,7 +122,7 @@ class ExperimentalNoiseModel(BaseNoiseModel):
             nu_drift_list.append(self.generate_drift_coefficients(g_target))
         noisy_weights = self.g_converter.convert_back_to_weights(noisy_conductances, params)
 
-        print("Noisy weights: ", noisy_weights[0, 0:10])
+        #print("Noisy weights: ", noisy_weights[0, 0:10])
 
         return noisy_weights, nu_drift_list
     
@@ -214,6 +214,7 @@ class JustMedianNoiseModel(ExperimentalNoiseModel):
         diffs = torch.abs(gg_values.unsqueeze(-1) - g_target.reshape(-1))
         min_indices = torch.argmin(diffs, dim=0)
         g_real = ww_mdn[min_indices]
+        print("---> g_real: ", g_real[0,10])
         g_real = g_real.reshape(g_target.shape)
         return g_real
 
