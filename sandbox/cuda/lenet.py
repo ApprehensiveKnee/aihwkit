@@ -209,6 +209,9 @@ if __name__ == '__main__':
     # read the first argument, passed with the -l flag
 
     opts, args = getopt(sys.argv[1:], 'l:n:',['level=','noise='])
+
+    print(f"Options: {opts}")
+    print(f"Arguments: {args}")
     
     for opt, arg in args:
         if opt in ('-l', '--level'):
