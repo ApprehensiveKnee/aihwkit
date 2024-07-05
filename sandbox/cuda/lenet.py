@@ -208,7 +208,7 @@ if __name__ == '__main__':
 
     # read the first argument, passed with the -l flag
 
-    opts, args = getopt(sys.argv[1:], 'l:n:',['level=','noise='])
+    opts, args = getopt(sys.argv[1:], 'l:n:r:',['level=','noise=', 'reps='])
     
     for opt, arg in opts:
         if opt in ('-l', '--level'):
@@ -221,6 +221,9 @@ if __name__ == '__main__':
                 raise ValueError("The selected noise must be either 'std' or 'median'")
             SELECTED_NOISE = arg
             print(f"Selected noise: {SELECTED_NOISE}")
+        if opt in ('-r', '--reps'):
+            N_REPS = int(arg)
+            print(f"Number of repetitions: {N_REPS}")
 
     MAP_LEVEL_FILE = {
         9 : "matlab/3bit.mat",
@@ -289,7 +292,7 @@ if __name__ == '__main__':
 
     # -**-**-**-**-**-**-**-**-**-**-**-**-**-**-**- FIRST EVALUATION: 3 MODELS -**-**-**-**-**-**-**-**-**-**-**-**-**-**-**-
     t_inferences = [0.0]  # Times to perform infernece.
-    n_reps = 10  # Number of inference repetitions.
+    n_reps = N_REPS  # Number of inference repetitions.
 
     model_names = ["Unquantized", "Quantized - 9 levels", "Quantized - 17 levels"]
     inference_accuracy_values = torch.zeros((len(t_inferences), 1, len(model_names)))
