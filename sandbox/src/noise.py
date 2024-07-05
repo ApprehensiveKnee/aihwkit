@@ -81,6 +81,7 @@ class ExperimentalNoiseModel(BaseNoiseModel):
         # Neg is a boolean variable set to true to apply the noise fitted for "negative" conductances
         if neg:
             g_target = -g_target
+        print("self.ww_mdn: ", self.ww_mdn[0:10])
         g_real = self.fit_data(g_target, self.ww_mdn, self.ww_std)
         if neg:
             g_real = -g_real
@@ -214,7 +215,7 @@ class JustMedianNoiseModel(ExperimentalNoiseModel):
         diffs = torch.abs(gg_values.unsqueeze(-1) - g_target.reshape(-1))
         min_indices = torch.argmin(diffs, dim=0)
         g_real = ww_mdn[min_indices]
-        print("---> g_real: ", g_real[0:10], "\n ww_mdn: ", ww_mdn[0:10])
+        print("---> g_real: ", g_real[0:10])
         g_real = g_real.reshape(g_target.shape)
         return g_real
 
