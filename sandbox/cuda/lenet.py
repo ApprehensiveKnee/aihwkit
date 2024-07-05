@@ -371,7 +371,7 @@ if __name__ == '__main__':
             resolution=0.18 if SELECTED_LEVEL == 9 else 0.12,
             levels = SELECTED_LEVEL,
             )
-        RPU_CONFIG.noise_model=ExperimentalNoiseModel(file_path = path,
+        RPU_CONFIG.noise_model=JustMedianNoiseModel(file_path = path,
                                                         type = CHOSEN_NOISE,
                                                         g_converter=SinglePairConductanceConverter(g_max=40.)),
 
@@ -383,9 +383,9 @@ if __name__ == '__main__':
                 model_fitted.load_state_dict(state_dict, strict=True, load_rpu_config=False)
                 model_fitted.eval()
                 model_fitted.program_analog_weights()
-                # if j == 1:
-                #     tile_weights = next(model_fitted.analog_tiles()).get_weights()
-                #     print(f"Tile weights for model {fitted_models_names[i]} \n(-->{id(model_fitted)}<--):\n {tile_weights[0][0:5, 0:5]}")
+                if j == 1:
+                    tile_weights = next(model_fitted.analog_tiles()).get_weights()
+                    print(f"Tile weights for model {fitted_models_names[i]} \n(-->{id(model_fitted)}<--):\n {tile_weights[0][0:5, 0:5]}")
 
                 # Then evaluate the model
                 fitted_models_accuracy[t_id, j, i] = evaluate_model(model_fitted, get_test_loader(), device)
