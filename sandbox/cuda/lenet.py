@@ -68,7 +68,7 @@ sys.path.append(t_PATH + '/sandbox/')
 import src.plotting as pl
 from src.utilities import import_mat_file
 
-from src.noise import NullNoiseModel, ExperimentalNoiseModel
+from src.noise import NullNoiseModel, ExperimentalNoiseModel, JustMedianNoiseModel, JustStdNoiseModel
 from aihwkit.inference.converter.conductance import SinglePairConductanceConverter
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
@@ -339,7 +339,7 @@ if __name__ == '__main__':
     print(f"Selected level: {SELECTED_LEVEL}")
 
     RPU_CONFIG  = InferenceRPUConfig(forward=IOParameters(is_perfect=True),
-                                        noise_model=ExperimentalNoiseModel(file_path = path,
+                                        noise_model=JustMedianNoiseModel(file_path = path,
                                                                         type = CHOSEN_NOISE,
                                                                         g_converter=SinglePairConductanceConverter(g_max=40.)),
                                         clip= WeightClipParameter(type=WeightClipType.NONE,),
@@ -389,7 +389,7 @@ if __name__ == '__main__':
             resolution=0.18 if SELECTED_LEVEL == 9 else 0.12,
             levels = SELECTED_LEVEL,
             )
-        RPU_CONFIG.noise_model=ExperimentalNoiseModel(file_path = path,
+        RPU_CONFIG.noise_model=JustMedianNoiseModel(file_path = path,
                                                         type = CHOSEN_NOISE,
                                                         g_converter=SinglePairConductanceConverter(g_max=40.)),
 
