@@ -119,36 +119,21 @@ def get_test_loader(batch_size = 32):
     return test_loader
 
 
-def evaluate_model(model,validation_data, device):
-    """Test trained network.
-
-    Args:
-        validation_data (DataLoader): Validation set to perform the evaluation
-        model (nn.Module): Trained model to be evaluated
-        criterion (nn.CrossEntropyLoss): criterion to compute loss
-
-    Returns:
-        nn.Module, float, float, float:  model, loss, error, and accuracy
-    """
-    predicted_ok = 0
-    total_images = 0
-
+def evaluate_model(model, test_loader, device):
     model.eval()
+    with torch.no_grad():
+        correct = 0
+        total = 0
+        for inputs, targets in tqdm(test_loader, desc="Evaluating model"):
 
-    for images, labels in validation_data:
-        images = images.to(device)
-        labels = labels.to(device)
+            inputs, targets = inputs.to(device), targets.to(device)
+            outputs = model(inputs)
+            _, predicted = outputs.max(1)
+            total += targets.size(0)
+            correct += predicted.eq(targets).sum().item()
 
-        pred = model(images)
-
-        _, predicted = torch.max(pred.data, 1)
-        total_images += labels.size(0)
-        predicted_ok += (predicted == labels).sum().item()
-        accuracy = predicted_ok / total_images * 100
-        error = (1 - predicted_ok / total_images) * 100
-
-
-    return accuracy
+        return 100.0 * correct / total
+    
 
 
 def get_quantized_model(model,level, rpu_config):
