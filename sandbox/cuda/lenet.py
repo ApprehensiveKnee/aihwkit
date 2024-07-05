@@ -224,9 +224,16 @@ if __name__ == '__main__':
         if opt in ('-r', '--reps'):
             N_REPS = int(arg)
             print(f"Number of repetitions: {N_REPS}")
-
-    if N_REPS is None:
+    
+    if 'SELECTED_LEVEL' not in locals():
+        SELECTED_LEVEL = 9
+        print(f"Selected level: {SELECTED_LEVEL}")
+    if 'SELECTED_NOISE' not in locals():
+        SELECTED_NOISE = "whole"
+        print(f"Selected noise: {SELECTED_NOISE}")
+    if 'N_REPS' not in locals():
         N_REPS = 10
+        print(f"Number of repetitions: {N_REPS}")
 
     MAP_LEVEL_FILE = {
         9 : "matlab/3bit.mat",
