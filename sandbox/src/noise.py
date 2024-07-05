@@ -122,6 +122,8 @@ class ExperimentalNoiseModel(BaseNoiseModel):
             nu_drift_list.append(self.generate_drift_coefficients(g_target))
         noisy_weights = self.g_converter.convert_back_to_weights(noisy_conductances, params)
 
+        print("Noisy weights: ", noisy_weights[0:5][0:5])
+
         return noisy_weights, nu_drift_list
     
     def __str__(self) -> str:

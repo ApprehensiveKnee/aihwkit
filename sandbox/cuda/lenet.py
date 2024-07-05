@@ -382,13 +382,13 @@ if __name__ == '__main__':
         for t_id, t in enumerate(t_inferences):
             for j in range(n_reps):
                 # For each repetition, get a new version of the quantized model and calibrare it
-                model_fitted = convert_to_analog(deepcopy(original_model), RPU_CONFIG)
+                model_fitted = convert_to_analog(original_model, RPU_CONFIG)
                 model_fitted.eval()
                 model_fitted.program_analog_weights()
 
-                if j == 1:
-                    tile_weights = next(model_fitted.analog_tiles()).get_weights()
-                    print(f"Tile weights for model {fitted_models_names[i]} \n(-->{id(model_fitted)}<--):\n {tile_weights[0][0:5, 0:5]}")
+                # if j == 1:
+                #     tile_weights = next(model_fitted.analog_tiles()).get_weights()
+                #     print(f"Tile weights for model {fitted_models_names[i]} \n(-->{id(model_fitted)}<--):\n {tile_weights[0][0:5, 0:5]}")
 
                 # Then evaluate the model
                 fitted_models_accuracy[t_id, j, i] = evaluate_model(model_fitted, get_test_loader(), device)
