@@ -181,85 +181,15 @@ class ExperimentalNoiseModel(BaseNoiseModel):
 
     
 
-class JustMedianNoiseModel(BaseNoiseModel):
+class JustMedianNoiseModel(ExperimentalNoiseModel):
     """ 
     This new noise model just considers the median values of the experimental data:
     the conductances are shifted from their original quantized values to the corresponding median values
     """
-    def __init__(self, file_path: str, type:str, **kwargs):
-        super().__init__(**kwargs)
-        self.chosen_type = type
-        variables = import_mat_file(file_path)
-        types = variables['str']
-        types = [types[0][t][0] for t in range(types.shape[1])]
-        ww_mdn = variables['ww_mdn']
-        ww_std = variables['ww_std']
-        ww_mdn = pd.DataFrame(ww_mdn, columns=types)
-        ww_std = pd.DataFrame(ww_std, columns=types)
-        self.ww_mdn = torch.tensor(ww_mdn[self.chosen_type].values) * 1e6 # handle conversion from muS
-        self.ww_std = torch.tensor(ww_std[self.chosen_type].values) * 1e6 # handle conversion from muS
+    def __init__(self, file_path: str, type: str, **kwargs):
+        super().__init__(file_path, type, **kwargs)
+        print("Just median noise model:", self.ww_mdn)
 
-    def apply_programming_noise_to_conductance(self, g_target: torch.Tensor, neg: bool) -> torch.Tensor:
-        """Apply programming noise to a target conductance Tensor. """
-        # Neg is a boolean variable set to true to apply the noise fitted for "negative" conductances
-        if neg:
-            g_target = -g_target
-        print("self.ww_mdn: ", self.ww_mdn[0:10])
-        g_real = self.fit_data(g_target, self.ww_mdn, self.ww_std)
-        if neg:
-            g_real = -g_real
-        return g_real
-
-    def generate_drift_coefficients(self, g_target: torch.Tensor) ->torch.Tensor:
-        """Not used"""
-        return torch.tensor(0.)
-     
-    def apply_drift_noise_to_conductance(self, g_prog, t_inference) -> torch.Tensor:
-        """No drift noise is applied in this model"""
-        return g_prog 
-    
-    @no_grad()
-    def apply_programming_noise(self, weights: Tensor) -> Tuple[Tensor, List[Tensor]]:
-        """Apply the expected programming noise to weights.
-
-        Uses the :meth:`~apply_programming_noise_to_conductances` on
-        each of the conductance slices.
-
-        Args:
-            weights: weights tensor
-
-        Returns:
-            weight tensor with programming noise applied, and tuple of
-            all drift coefficients (per conductances slice) that are
-            determined during programming.
-        """
-        target_conductances, params = self.g_converter.convert_to_conductances(weights)
-
-        noisy_conductances = []
-        nu_drift_list = []
-        for i,g_target in enumerate(target_conductances):
-            if i % 2 == 0:
-                neg = False
-            else:
-                neg = True
-            noisy_conductances.append(self.apply_programming_noise_to_conductance(g_target, neg))
-            nu_drift_list.append(self.generate_drift_coefficients(g_target))
-        noisy_weights = self.g_converter.convert_back_to_weights(noisy_conductances, params)
-
-        #print("Noisy weights: ", noisy_weights[0, 0:10])
-
-        return noisy_weights, nu_drift_list
-    
-    def __str__(self) -> str:
-        return (
-            "{}(type={}, ww_mdn={}, ww_std={}, g_converter={})"
-        ).format(  # type: ignore
-            self.__class__.__name__,
-            self.chosen_type,
-            self.ww_mdn,
-            self.ww_std,
-            self.g_converter)
-    
     @staticmethod
     def fit_data(g_target, ww_mdn, ww_std):
         """ Differently from the handle of the parent class, this function
@@ -290,86 +220,15 @@ class JustMedianNoiseModel(BaseNoiseModel):
         return g_real
 
 
-class JustStdNoiseModel(BaseNoiseModel):  
+class JustStdNoiseModel(ExperimentalNoiseModel):  
     """ 
     This new noise model just considers the standard deviation values of the experimental data:
     the conductances are shifted from their original quantized values to the corresponding standard deviation values
     """
 
-    def __init__(self, file_path: str, type:str, **kwargs):
-        super().__init__(**kwargs)
-        self.chosen_type = type
-        variables = import_mat_file(file_path)
-        types = variables['str']
-        types = [types[0][t][0] for t in range(types.shape[1])]
-        ww_mdn = variables['ww_mdn']
-        ww_std = variables['ww_std']
-        ww_mdn = pd.DataFrame(ww_mdn, columns=types)
-        ww_std = pd.DataFrame(ww_std, columns=types)
-        self.ww_mdn = torch.tensor(ww_mdn[self.chosen_type].values) * 1e6 # handle conversion from muS
-        self.ww_std = torch.tensor(ww_std[self.chosen_type].values) * 1e6 # handle conversion from muS
+    def __init__(self, file_path: str, type: str, **kwargs):
+        super().__init__(file_path, type, **kwargs)
 
-    def apply_programming_noise_to_conductance(self, g_target: torch.Tensor, neg: bool) -> torch.Tensor:
-        """Apply programming noise to a target conductance Tensor. """
-        # Neg is a boolean variable set to true to apply the noise fitted for "negative" conductances
-        if neg:
-            g_target = -g_target
-        print("self.ww_mdn: ", self.ww_mdn[0:10])
-        g_real = self.fit_data(g_target, self.ww_mdn, self.ww_std)
-        if neg:
-            g_real = -g_real
-        return g_real
-
-    def generate_drift_coefficients(self, g_target: torch.Tensor) ->torch.Tensor:
-        """Not used"""
-        return torch.tensor(0.)
-     
-    def apply_drift_noise_to_conductance(self, g_prog, t_inference) -> torch.Tensor:
-        """No drift noise is applied in this model"""
-        return g_prog 
-    
-    @no_grad()
-    def apply_programming_noise(self, weights: Tensor) -> Tuple[Tensor, List[Tensor]]:
-        """Apply the expected programming noise to weights.
-
-        Uses the :meth:`~apply_programming_noise_to_conductances` on
-        each of the conductance slices.
-
-        Args:
-            weights: weights tensor
-
-        Returns:
-            weight tensor with programming noise applied, and tuple of
-            all drift coefficients (per conductances slice) that are
-            determined during programming.
-        """
-        target_conductances, params = self.g_converter.convert_to_conductances(weights)
-
-        noisy_conductances = []
-        nu_drift_list = []
-        for i,g_target in enumerate(target_conductances):
-            if i % 2 == 0:
-                neg = False
-            else:
-                neg = True
-            noisy_conductances.append(self.apply_programming_noise_to_conductance(g_target, neg))
-            nu_drift_list.append(self.generate_drift_coefficients(g_target))
-        noisy_weights = self.g_converter.convert_back_to_weights(noisy_conductances, params)
-
-        #print("Noisy weights: ", noisy_weights[0, 0:10])
-
-        return noisy_weights, nu_drift_list
-    
-    def __str__(self) -> str:
-        return (
-            "{}(type={}, ww_mdn={}, ww_std={}, g_converter={})"
-        ).format(  # type: ignore
-            self.__class__.__name__,
-            self.chosen_type,
-            self.ww_mdn,
-            self.ww_std,
-            self.g_converter)
-    
     @staticmethod
     def fit_data(g_target, ww_mdn, ww_std):
         """ Differently from the handle of the parent class, this function

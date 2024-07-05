@@ -237,13 +237,13 @@ if __name__ == '__main__':
     ww_std = pd.DataFrame(ww_std, columns=types)
 
     # Download the model if it not already present
-    if not os.path.exists(p_PATH + '/lenet'):
-        os.makedirs(p_PATH + '/lenet')
-    if not os.path.exists(p_PATH + '/lenet/plots'):
-        os.makedirs(p_PATH + '/lenet/plots')
+   
+    os.makedirs(p_PATH + '/lenet')  if not os.path.exists(p_PATH + '/lenet')
+    os.makedirs(p_PATH + '/lenet/plots') if not os.path.exists(p_PATH + '/lenet/plots')
     url = 'https://drive.google.com/uc?id=1-dJx-mGqr5iKYpHVFaRT1AfKUZKgGMQL'
     output = p_PATH + '/lenet/lenet5.th'
-    gdown.download(url, output, quiet=False)
+    if not os.path.exists(output):
+        gdown.download(url, output, quiet=False)
 
     # Set-up the RPU_config object 
     RPU_CONFIG  = InferenceRPUConfig(forward=IOParameters(is_perfect=True),
@@ -324,9 +324,6 @@ if __name__ == '__main__':
     print(f"Selected level: {SELECTED_LEVEL}")
 
     RPU_CONFIG  = InferenceRPUConfig(forward=IOParameters(is_perfect=True),
-                                        noise_model=JustMedianNoiseModel(file_path = path,
-                                                                        type = CHOSEN_NOISE,
-                                                                        g_converter=SinglePairConductanceConverter(g_max=40.)),
                                         clip= WeightClipParameter(type=WeightClipType.NONE,),
                                         remap= WeightRemapParameter(type=WeightRemapType.NONE,),
                                         modifier= WeightModifierParameter(type=WeightModifierType.NONE,), 
