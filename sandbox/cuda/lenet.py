@@ -362,6 +362,9 @@ if __name__ == '__main__':
     fitted_models_accuracy = torch.zeros((len(t_inferences), n_reps, len(types)))
     fitted_observed_max = [0] * len(types)
     fitted_observed_min = [100] * len(types)
+    del RPU_CONFIG
+    torch.cuda.empty_cache()
+    gc.collect()
     for i in range(len(types)):
         CHOSEN_NOISE = types[i]
         RPU_CONFIG  = InferenceRPUConfig(forward=IOParameters(is_perfect=True),
@@ -407,6 +410,8 @@ if __name__ == '__main__':
             )
 
         del RPU_CONFIG
+        torch.cuda.empty_cache()
+        gc.collect()
 
     accuracy_plot(fitted_models_names, fitted_models_accuracy, n_reps, path= p_PATH + f"/lenet/plots/accuracy_lenet_FittedNoise_{SELECTED_LEVEL}.png")
 
