@@ -206,8 +206,6 @@ if __name__ == '__main__':
     p_PATH = os.path.abspath(__file__)
     p_PATH = os.path.dirname(os.path.dirname(p_PATH))
 
-    # read the first argument, passed with the -l flag
-
     opts, args = getopt(sys.argv[1:], 'l:n:r:',['level=','noise=', 'reps='])
     
     for opt, arg in opts:
