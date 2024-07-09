@@ -310,7 +310,7 @@ class IdealPreset(InferenceRPUConfig):
             inp_res=254.0,
             out_res=254.0,
             bound_management=BoundManagementType.NONE,
-            noise_management=NoiseManagementType.NONE,
+            noise_management=NoiseManagementType.CONSTANT,
             nm_thres=1.0,
             # w_noise=0.0175,
             w_noise_type=WeightNoiseType.NONE,
