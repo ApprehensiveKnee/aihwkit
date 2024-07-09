@@ -294,31 +294,31 @@ class IdealPreset(InferenceRPUConfig):
         )
     )
 
-    forward: IOParameters = field(
-        default_factory= lambda:PresetIOParameters(
-            is_perfect=True,
-        )
-    )
+    # forward: IOParameters = field(
+    #     default_factory= lambda:PresetIOParameters(
+    #         is_perfect=True,
+    #     )
+    # )
 
     # ////////////////////////////////////////////////////////////////////////////////////////////////
     # OSS: As soon as the resolution for input and output is set to a value different from 0,
     # the input calibration step become mandatory
     # ////////////////////////////////////////////////////////////////////////////////////////////////
     
-    # forward: IOParameters = field(
-    #     default_factory=lambda: PresetIOParameters(
-    #         inp_res=254.0,
-    #         out_res=254.0,
-    #         bound_management=BoundManagementType.NONE,
-    #         noise_management=NoiseManagementType.CONSTANT,
-    #         nm_thres=1.0,
-    #         # w_noise=0.0175,
-    #         w_noise_type=WeightNoiseType.NONE,
-    #         ir_drop=1.0,
-    #         out_noise=0.04,
-    #         out_bound=10.0,
-    #     )
-    # )
+    forward: IOParameters = field(
+        default_factory=lambda: PresetIOParameters(
+            inp_res=0.0,
+            out_res=0.0,
+            bound_management=BoundManagementType.NONE,
+            noise_management=NoiseManagementType.NONE,
+            nm_thres=1.0,
+            # w_noise=0.0175,
+            w_noise_type=WeightNoiseType.NONE,
+            #ir_drop=1.0,
+            out_noise=0.04,
+            # out_bound=10.0,
+        )
+    )
 
     backward: IOParameters = field(
         default_factory= lambda:PresetIOParameters(
@@ -545,8 +545,8 @@ if __name__ == '__main__':
     # The state dict of the model with hardware-aware trained weights is stored in the
     # model_state_dict key of the external checkpoint.
     model.load_state_dict(state_dict["model_state_dict"], strict=True)
-    rpu_config = IdealPreset()
-    model = convert_to_analog(model, IdealPreset())
+    rpu_config = CustomDefinedPreset()
+    model = convert_to_analog(model, CustomDefinedPreset())
     model.eval()
     pl.generate_moving_hist(model,title="Distribution of Weight Values over the tiles - RESNET", file_name=p_PATH+"/resnet/plots/hist_resnet_UNQUATIZED.gif", range = (-.5,.5), top=None, split_by_rows=False, HIST_BINS = 171)
 
@@ -613,7 +613,7 @@ if __name__ == '__main__':
     path = p_PATH + f"/data/{MAP_LEVEL_FILE[SELECTED_LEVEL]}"
     print(f"Selected level: {SELECTED_LEVEL}")
 
-    RPU_CONFIG  = IdealPreset()
+    RPU_CONFIG  = CustomDefinedPreset()
     RPU_CONFIG.noise_model= MAP_NOISE_TYPE[SELECTED_NOISE](file_path = path,
                                                             type = CHOSEN_NOISE,
                                                             g_converter=SinglePairConductanceConverter(g_max=40.)),
@@ -649,7 +649,7 @@ if __name__ == '__main__':
     fitted_observed_min = [100] * len(types)
     for i in range(len(types)):
         CHOSEN_NOISE = types[i]
-        RPU_CONFIG  = IdealPreset()
+        RPU_CONFIG  = CustomDefinedPreset()
         RPU_CONFIG.quantization = WeightQuantizerParameter(
             resolution=0.2 if SELECTED_LEVEL == 9 else 0.12,
             levels = SELECTED_LEVEL,
