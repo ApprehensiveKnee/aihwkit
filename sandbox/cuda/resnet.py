@@ -2,6 +2,8 @@ import os
 import torch
 import gc
 from copy import deepcopy
+import sys
+from getopt import getopt
 from torch import nn, Tensor, device, no_grad, manual_seed
 from torch import nn
 from torchvision.datasets.utils import download_url
@@ -14,7 +16,6 @@ from torch.nn.functional import mse_loss
 # Import functions defined in a specific path
 t_PATH = os.path.abspath(__file__)
 t_PATH = os.path.dirname(os.path.dirname(os.path.dirname(t_PATH)))
-import sys
 sys.path.append(t_PATH + '/src/')
 
 
@@ -474,18 +475,43 @@ if __name__ == '__main__':
     p_PATH = os.path.abspath(__file__)
     p_PATH = os.path.dirname(os.path.dirname(p_PATH))
 
-    # read the first argument, passed with the -l flag
-    if len(sys.argv) > 1 and sys.argv[1] == '-l':
-        if sys.argv[2] in ['9', '17']:
-            SELECTED_LEVEL = int(sys.argv[2])
-        else:
-            raise Exception("Please specify a valid level of quantization (9 or 17)")
-    else:
-        raise Exception("Please specify the level of quantization with the -l flag")
+    # Parse the command line arguments
+    opts, args = getopt(sys.argv[1:], 'l:n:r:',['level=','noise=', 'reps='])
+    
+    for opt, arg in opts:
+        if opt in ('-l', '--level'):
+            if int(arg) not in [9,17]:
+                raise ValueError("The selected level must be either 9 or 17")
+            SELECTED_LEVEL = int(arg)
+            print(f"Selected level: {SELECTED_LEVEL}")
+        if opt in ('-n', '--noise'):
+            if arg not in ["whole","std","median"]:
+                raise ValueError("The selected noise must be either 'std' or 'median'")
+            SELECTED_NOISE = arg
+            print(f"Selected noise: {SELECTED_NOISE}")
+        if opt in ('-r', '--reps'):
+            N_REPS = int(arg)
+            print(f"Number of repetitions: {N_REPS}")
+    
+    if 'SELECTED_LEVEL' not in locals():
+        SELECTED_LEVEL = 9
+        print(f"Selected level: {SELECTED_LEVEL}")
+    if 'SELECTED_NOISE' not in locals():
+        SELECTED_NOISE = "whole"
+        print(f"Selected noise: {SELECTED_NOISE}")
+    if 'N_REPS' not in locals():
+        N_REPS = 10
+        print(f"Number of repetitions: {N_REPS}")
 
-    MAP = {
+    MAP_LEVEL_FILE = {
         9 : "matlab/3bit.mat",
         17 : "matlab/4bit.mat",
+    }
+
+    MAP_NOISE_TYPE = {
+        "whole" : ExperimentalNoiseModel,
+        "std" : JustStdNoiseModel,
+        "median" : JustMedianNoiseModel
     }
 
     G_RANGE = [-40, 40]
@@ -495,7 +521,7 @@ if __name__ == '__main__':
     }
 
     # Extract the data from the .mat file
-    path = p_PATH+ f"/data/{MAP[SELECTED_LEVEL]}"
+    path = p_PATH+ f"/data/{MAP_LEVEL_FILE[SELECTED_LEVEL]}"
     variables = import_mat_file(path)
 
     types = variables['str']
@@ -531,7 +557,7 @@ if __name__ == '__main__':
     # -**-**-**-**-**-**-**-**-**-**-**-**-**-**-**- FIRST EVALUATION: 3 MODELS -**-**-**-**-**-**-**-**-**-**-**-**-**-**-**-
 
     t_inferences = [0.0]  # Times to perform infernece.
-    n_reps = 10  # Number of inference repetitions.
+    n_reps = N_REPS  # Number of inference repetitions.
     model_names = ["Unquantized", "Quantized - 9 levels", "Quantized - 17 levels"]
     inference_accuracy_values = torch.zeros((len(t_inferences), n_reps, len(model_names)))
     observed_max = [0] * len(model_names)
@@ -584,13 +610,13 @@ if __name__ == '__main__':
     print("Available experimental noises are: ", types)
     CHOSEN_NOISE = types[0]
     print(f"Chosen noise: {CHOSEN_NOISE}" )
-    path = p_PATH + f"/data/{MAP[SELECTED_LEVEL]}"
+    path = p_PATH + f"/data/{MAP_LEVEL_FILE[SELECTED_LEVEL]}"
     print(f"Selected level: {SELECTED_LEVEL}")
 
     RPU_CONFIG  = IdealPreset()
-    RPU_CONFIG.noise_model= JustMedianNoiseModel(file_path = path,
-                                                type = CHOSEN_NOISE,
-                                                g_converter=SinglePairConductanceConverter(g_max=40.)),
+    RPU_CONFIG.noise_model= MAP_NOISE_TYPE[SELECTED_NOISE](file_path = path,
+                                                            type = CHOSEN_NOISE,
+                                                            g_converter=SinglePairConductanceConverter(g_max=40.)),
                     
 
     original_model = resnet9s().to(device)
