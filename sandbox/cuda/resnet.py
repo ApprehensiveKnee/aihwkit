@@ -456,7 +456,7 @@ def accuracy_plot(model_names, inference_accuracy_values, observed_max, observed
     ax.fill_between(x, min, max, where=(max > min), color='lightsalmon', alpha=0.5, label='Observed Accuracy Interval')
     ax.plot(x, max, ls='dashdot', color = 'olivedrab', label = 'Max observed accuracy', marker = '1', markersize=10)
     ax.plot(x, min, ls= 'dashdot', color = 'olivedrab', label = 'Min observed accuracy', marker = '2', markersize=10)
-    ax.set_ylim([75, 82])
+    ax.set_ylim([30, 100])
     ax.legend()
 
     # Save the plot to file
@@ -731,7 +731,7 @@ if __name__ == '__main__':
     ax.minorticks_on()
     ax.yaxis.grid(True)
     ax.yaxis.grid(which='minor', linestyle=':', linewidth='0.5', color='gray')
-    ax.set_ylim([50, 90])
+    ax.set_ylim([30, 100])
     ax.legend()
     # Save the plot to file
     plt.savefig(p_PATH+f"/resnet/plots/accuracy_resnet_FittedNoise_{SELECTED_LEVEL}.png")
