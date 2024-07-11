@@ -307,8 +307,8 @@ class IdealPreset(InferenceRPUConfig):
     
     forward: IOParameters = field(
         default_factory=lambda: PresetIOParameters(
-            inp_res=0.0,
-            out_res=0.0,
+            inp_res=254.0,
+            out_res=254.0,
             bound_management=BoundManagementType.NONE,
             noise_management=NoiseManagementType.NONE,
             nm_thres=1.0,
