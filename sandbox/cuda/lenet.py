@@ -445,7 +445,7 @@ if __name__ == '__main__':
     # Define the points for the boundary lines
     x = np.arange(len(models))
     y1 = np.array([accuracies[i] - 3*std_accuracy[i] for i in range(len(models))])
-    y2 = np.array([accuracies[i] + 3*std_accuracy[i] for i in range(len(models))])
+    y2 = np.array([accuracies[i] + 3*std_accuracy[i] if accuracies[i] + 3*std_accuracy[i] < 100. else 100. for i in range(len(models))])
     max = np.array(observed_max)
     min = np.array(observed_min)
     # Interpolating or directly using the points to fill the region
