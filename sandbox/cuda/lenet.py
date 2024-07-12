@@ -398,6 +398,7 @@ if __name__ == '__main__':
             )
         RPU_CONFIG.noise_model=MAP_NOISE_TYPE[SELECTED_NOISE](file_path = path,
                                                         type = CHOSEN_NOISE,
+                                                        debug = True,
                                                         g_converter=SinglePairConductanceConverter(g_max=40.)),
 
         fitted_models_names.append(f"Quantized - {SELECTED_LEVEL} levels \n+ Fitted Noise \n ({CHOSEN_NOISE})")

@@ -54,7 +54,7 @@ def feed_to_plot(data, split_by_rows: bool = True):
 
 #  -------*-------- HISTOGRAPH FUNCTIONS --------*--------
 
-def plot_tensor_values(tensor: torch.Tensor,bins:int, range: tuple, title: str, name_file: str = None, gaussian: dict = None, weight_max = None):
+def plot_tensor_values(tensor: torch.Tensor,bins:int, range: tuple, title: str, name_file: str, gaussian: dict = None, weight_max = None):
     # Create a new figure
     fig, ax = plt.subplots()
     # Create a histogram of the tensor values
@@ -91,6 +91,21 @@ def plot_tensor_values(tensor: torch.Tensor,bins:int, range: tuple, title: str, 
             # Plot the area under the curve
             ax.fill_between(x, y, color = colors[i], alpha=0.3)
 
+    # Save the figure
+    if name_file:
+        plt.savefig(name_file)
+    # return the figure and axis
+    return container, fig
+
+def plot_conductances(tensor:torch.Tensor, bins:int, range: tuple, title: str, name_file: str):
+    # Create a new figure
+    fig, ax = plt.subplots()
+    # Create a histogram of the tensor values
+    container = ax.hist(tensor.flatten().numpy(), bins=bins,range=range, alpha=0.7, color='darkorange', edgecolor=None)
+    ax.set_xlabel('Conductance Values')
+    ax.set_xlim(left=range[0], right=range[1])
+    ax.set_ylabel('Frequency')
+    ax.set_title(title)
     # Save the figure
     if name_file:
         plt.savefig(name_file)

@@ -63,7 +63,7 @@ class TestNVMNoiseModel(BaseNoiseModel):
 class ExperimentalNoiseModel(BaseNoiseModel):
     """Experimental noise model. """
 
-    def __init__(self, file_path: str, type:str, **kwargs):
+    def __init__(self, file_path: str, type:str, debug:bool= False ,**kwargs):
         super().__init__(**kwargs)
         self.chosen_type = type
         variables = import_mat_file(file_path)
@@ -75,13 +75,16 @@ class ExperimentalNoiseModel(BaseNoiseModel):
         ww_std = pd.DataFrame(ww_std, columns=types)
         self.ww_mdn = torch.tensor(ww_mdn[self.chosen_type].values) * 1e6 # handle conversion from muS
         self.ww_std = torch.tensor(ww_std[self.chosen_type].values) * 1e6 # handle conversion from muS
+        self.debug = debug
+        if debug:
+            self.tile_index = 0
 
     def apply_programming_noise_to_conductance(self, g_target: torch.Tensor, neg: bool) -> torch.Tensor:
         """Apply programming noise to a target conductance Tensor. """
         # Neg is a boolean variable set to true to apply the noise fitted for "negative" conductances
         if neg:
             g_target = -g_target
-        g_real = self.fit_data(g_target, self.ww_mdn, self.ww_std)
+        g_real = self.fit_data(g_target, self.ww_mdn, self.ww_std, self.debug)
         if neg:
             g_real = -g_real
         return g_real
@@ -137,8 +140,7 @@ class ExperimentalNoiseModel(BaseNoiseModel):
             self.g_converter)
     
     # Define a function to fit the experimental data
-    @staticmethod
-    def fit_data(g_target,ww_mdn, ww_std):
+    def fit_data(self,g_target,ww_mdn, ww_std, debug:bool = False):
         '''
         A handle function to fit the experimental data to the model, to be used in
         the NoiseModel class
@@ -164,18 +166,60 @@ class ExperimentalNoiseModel(BaseNoiseModel):
         # Determine the quantization level each conductance belongs to
         g_real = torch.zeros_like(g_target)
 
+        # //////////////////////////////////////////////////////////////////////////////////////////////////////
+
+        if debug:
+            # First, plot a distribution of the conductances over the different tiles
+            from plotting import plot_conductances
+            import os
+            import matplotlib.pyplot as plt
+            import numpy as np
+            RANGE = (-g_max - 0.1, g_max + 0.1)
+            BINS = 121
+            SAVE_PATH = os.path.join(os.getcwd(), 'debugging_plots')
+            if not os.path.exists(SAVE_PATH):
+                os.makedirs(SAVE_PATH)
+            plot_conductances(g_target, BINS, RANGE, f'Target conductances of tile {self.tile_index}', os.path.join(SAVE_PATH, f'target_conductances_{self.tile_index}.png'))
+
+
+        # //////////////////////////////////////////////////////////////////////////////////////////////////////
+
         
         diffs = torch.abs(gg_values.unsqueeze(-1) - g_target.reshape(-1))
         min_indices = torch.argmin(diffs, dim=0)
         g_real = ww_mdn[min_indices] + ww_std[min_indices] * randn_like(g_target.reshape(-1))
         g_real = g_real.reshape(g_target.shape)
-        # for i in range(g_real.shape[0]):
-        #     for j in range(g_real.shape[1]):  
-        #         if g_target[i,j] < 0:
-        #             print("Before: ", g_target[i,j], "After: ", g_real[i,j])
-        #             print("Min index: ", min_indices[i* g_real.shape[1] + j])
-        #             print("Diff: ", diffs[:,i* g_real.shape[1] + j])
-        #             print("gg_values: ", gg_values)
+
+        # //////////////////////////////////////////////////////////////////////////////////////////////////////
+        if debug:
+            # After the transition to the programmed conductances, plot the distribution of the conductances over the different tiles, 
+            # for the different median quantized values
+            SAVE_PATH = os.path.join(SAVE_PATH, f'distrbution_plots_{self.tile_index}')
+            fig, ax = plt.subplots()
+            y = []
+            x = []
+            colors = []
+            color_range = plt.get_cmap('viridis')(range(min_indices.shape[0]))
+            dot = 'x'
+            for i in range(min_indices.shape[0]):
+                plot_conductances(g_target[min_indices == i], BINS, RANGE, f'Conductances of tile {self.tile_index} with quantized value {gg_values[i]}', os.path.join(SAVE_PATH, f'conductances_distribution_{gg_values[i]}.png'))
+                # Also plot in a single plot the distribution of the conductances for the same tile, over different quantized values
+                y_add = g_target[min_indices == i].reshape(-1).numpy()
+                x_add = [gg_values[i] for _ in range(y.shape[0])]
+                colors_add = color_range[i] * np.ones_like(y_add)
+                x = x + x_add
+                y = y + y_add
+                colors = colors + colors_add
+            ax.scatter(x, y, color = colors, marker = dot)
+            ax.set_ylabel('Conductance shifted values')
+            ax.set_xlabel('Target values')
+            ax.set_title(f'Conductance values of tile {self.tile_index} shifted to the quantized values')
+            ax.set_xlim(left= -g_max - 5 , right= g_max + 5)
+            plt.savefig(os.path.join(SAVE_PATH, f'conductances_distribution_all.png'))
+
+            self.tile_index += 1   
+        # //////////////////////////////////////////////////////////////////////////////////////////////////////
+
         return g_real
 
     
@@ -185,8 +229,8 @@ class JustMedianNoiseModel(ExperimentalNoiseModel):
     This new noise model just considers the median values of the experimental data:
     the conductances are shifted from their original quantized values to the corresponding median values
     """
-    def __init__(self, file_path: str, type: str, **kwargs):
-        super().__init__(file_path, type, **kwargs)
+    def __init__(self, file_path: str, type: str, debug: bool= False,**kwargs):
+        super().__init__(file_path, type, debug,**kwargs)
 
     @staticmethod
     def fit_data(g_target, ww_mdn, ww_std):
@@ -223,8 +267,8 @@ class JustStdNoiseModel(ExperimentalNoiseModel):
     the conductances are shifted from their original quantized values to the corresponding standard deviation values
     """
 
-    def __init__(self, file_path: str, type: str, **kwargs):
-        super().__init__(file_path, type, **kwargs)
+    def __init__(self, file_path: str, type: str, debug: bool= False, **kwargs):
+        super().__init__(file_path, type, debug,**kwargs)
 
     @staticmethod
     def fit_data(g_target, ww_mdn, ww_std):
