@@ -173,16 +173,16 @@ class InferenceTileWithPeriphery(TileWithPeriphery):
 
             self.rpu_config.noise_model = noise_model
 
-        if self.rpu_config.noise_model.debug is not None and self.rpu_config.noise_model.debug:
-            print(f"Programming weights for layer {tile_id}")
-            self.rpu_config.noise_model.current_tile(tile_id)
-
         if not from_reference or self.reference_combined_weights is None:
             self.reference_combined_weights = Tensor(self.tile.get_weights())
 
         # --+-- BUG? --+--
         if isinstance(self.rpu_config.noise_model, tuple):
             self.rpu_config.noise_model = self.rpu_config.noise_model[0]
+
+            if self.rpu_config.noise_model.debug is not None and self.rpu_config.noise_model.debug:
+                print(f"Programming weights for layer {tile_id}")
+                self.rpu_config.noise_model.current_tile(tile_id)
 
             (
                 self.programmed_weights,
@@ -191,6 +191,11 @@ class InferenceTileWithPeriphery(TileWithPeriphery):
 
             self.rpu_config.noise_model = (self.rpu_config.noise_model,)
         else:
+
+            if self.rpu_config.noise_model.debug is not None and self.rpu_config.noise_model.debug:
+                print(f"Programming weights for layer {tile_id}")
+                self.rpu_config.noise_model.current_tile(tile_id)
+
             (
                 self.programmed_weights,
                 self.drift_noise_parameters,
