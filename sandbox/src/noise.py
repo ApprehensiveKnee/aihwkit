@@ -77,7 +77,7 @@ class ExperimentalNoiseModel(BaseNoiseModel):
         self.ww_std = torch.tensor(ww_std[self.chosen_type].values) * 1e6 # handle conversion from muS
         self.debug = debug
         if debug:
-            self.tile_index = 0
+            self.c_index = 0
             import os
             import shutil
             PATH = os.path.join(os.getcwd(), 'debugging_plots')
@@ -119,6 +119,8 @@ class ExperimentalNoiseModel(BaseNoiseModel):
             determined during programming.
         """
         target_conductances, params = self.g_converter.convert_to_conductances(weights)
+
+        print("Target conductances: ", target_conductances[0, 0:10])
 
         noisy_conductances = []
         nu_drift_list = []
@@ -186,12 +188,11 @@ class ExperimentalNoiseModel(BaseNoiseModel):
             SAVE_PATH = os.path.join(os.getcwd(), 'debugging_plots')
             if not os.path.exists(SAVE_PATH):
                 os.makedirs(SAVE_PATH)
-            plot_conductances(g_target, BINS, RANGE, f'Target conductances of tile {self.tile_index}', os.path.join(SAVE_PATH, f'target_conductances_{self.tile_index}.png'))
+            plot_conductances(g_target, BINS, RANGE, f'Target conductances #{self.c_index}', os.path.join(SAVE_PATH, f'target_conductances_{self.c_index}.png'))
 
 
         # //////////////////////////////////////////////////////////////////////////////////////////////////////
-
-        
+ 
         diffs = torch.abs(gg_values.unsqueeze(-1) - g_target.reshape(-1))
         min_indices = torch.argmin(diffs, dim=0)
         g_real = ww_mdn[min_indices] + ww_std[min_indices] * randn_like(g_target.reshape(-1))
@@ -200,17 +201,17 @@ class ExperimentalNoiseModel(BaseNoiseModel):
         if debug:
             # After the transition to the programmed conductances, plot the distribution of the conductances over the different tiles, 
             # for the different median quantized values
-            SAVE_PATH = os.path.join(SAVE_PATH, f'distrbution_plots_{self.tile_index}')
+            SAVE_PATH = os.path.join(SAVE_PATH, f'distrbution_plots_{self.c_index}')
             if not os.path.exists(SAVE_PATH):
                 os.makedirs(SAVE_PATH)
-            fig, ax = plt.subplots()
+            _, ax = plt.subplots()
             y = []
             x = []
             colors = []
             color_range = plt.get_cmap('viridis')(range(ww_mdn.shape[0]))
             dot = 'x'
             for i in range(min_indices.unique().shape[0]):
-                plot_conductances(g_real[min_indices == i], BINS, RANGE, f'Conductances of tile {self.tile_index} with quantized value {gg_values[i]}', os.path.join(SAVE_PATH, f'conductances_distribution_{gg_values[i]}.png'))
+                plot_conductances(g_real[min_indices == i], BINS, RANGE, f'Conductances #{self.c_index} with quantized value {gg_values[i]}', os.path.join(SAVE_PATH, f'conductances_distribution_{gg_values[i]}.png'))
                 # Also plot in a single plot the distribution of the conductances for the same tile, over different quantized values
                 y_add = g_real[min_indices == i].reshape(-1).tolist()
                 x_add = [gg_values[i] for _ in range(len(y_add))]
@@ -221,11 +222,12 @@ class ExperimentalNoiseModel(BaseNoiseModel):
             ax.scatter(x, y, color = colors, marker = dot)
             ax.set_ylabel('Conductance shifted values')
             ax.set_xlabel('Target values')
-            ax.set_title(f'Conductance values of tile {self.tile_index} shifted to the quantized values')
+            ax.set_title(f'Conductance values of tile {self.c_index} shifted to the quantized values')
             ax.set_xlim(left= RANGE[0] , right= RANGE[1])
             plt.savefig(os.path.join(SAVE_PATH, f'conductances_distribution_all.png'))
+            plt.close()
 
-            self.tile_index += 1   
+            self.c_index += 1   
         # //////////////////////////////////////////////////////////////////////////////////////////////////////
 
         g_real = g_real.reshape(g_target.shape)

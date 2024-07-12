@@ -99,7 +99,7 @@ def plot_tensor_values(tensor: torch.Tensor,bins:int, range: tuple, title: str, 
 
 def plot_conductances(tensor:torch.Tensor, bins:int, range: tuple, title: str, name_file: str):
     # Create a new figure
-    fig, ax = plt.subplots()
+    _, ax = plt.subplots()
     # Create a histogram of the tensor values
     ax.hist(tensor.flatten().numpy(), bins=bins,range=range, alpha=0.7, color='darkorange', edgecolor=None)
     ax.set_xlabel('Conductance Values')
@@ -110,8 +110,6 @@ def plot_conductances(tensor:torch.Tensor, bins:int, range: tuple, title: str, n
     if name_file:
         plt.savefig(name_file)
     plt.close()
-    plt.clf()
-    return 
 
 def custom_hist(data: list, colors:list, num_bins:int, RANGE: tuple, alpha: float, edgecolor:str, extension: int,title:str, collaterals: dict = None, file_name:str = None):
     # Create a custom histogram used specifically to 

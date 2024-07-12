@@ -422,6 +422,7 @@ if __name__ == '__main__':
                 
                 # Delete the model to free CUDA memory
                 del model_fitted
+                del RPU_CONFIG
                 torch.cuda.empty_cache()
                 gc.collect()
                 #torch.cuda.reset_peak_memory_stats()
