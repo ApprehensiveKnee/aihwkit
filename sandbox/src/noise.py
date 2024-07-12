@@ -155,7 +155,7 @@ class ExperimentalNoiseModel(BaseNoiseModel):
 
         '''
         # First, determine the quantization level each conductance belongs to
-        g_max = g_target.max() if g_target.max() > -g_target.min() else -g_target.min()
+        g_max = self.g_converter.g_max
         if ww_mdn.shape == ww_std.shape: # Check on identical shapes
             # gg_values will represent the possible conductance values
             #gg_values = torch.unique(gg_mdn)
