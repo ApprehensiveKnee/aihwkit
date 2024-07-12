@@ -173,7 +173,7 @@ class InferenceTileWithPeriphery(TileWithPeriphery):
 
             self.rpu_config.noise_model = noise_model
 
-        if self.rpu_config.noise_model.debug is not None and self.rpu_config.noise_model.debug:+
+        if self.rpu_config.noise_model.debug is not None and self.rpu_config.noise_model.debug:
             print(f"Programming weights for layer {layer_id}")
             self.rpu_config.noise_model.current_layer(layer_id)
 
