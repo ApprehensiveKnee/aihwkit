@@ -68,10 +68,8 @@ def program_analog_weights(model: Module, noise_model: Optional["BaseNoiseModel"
     if model.training:
         raise ModuleError("program_analog_weights can only be applied in evaluation mode")
 
-    # /////////////////// MODIFIED CODE ///////////////////
-    for i, module in enumerate(model.modules()):
+    
+    for module in model.modules():
         if not isinstance(module, AnalogLayerBase):
             continue
-        print(f"Programming analog weights for layer {i}")
-        module.program_analog_weights(noise_model=noise_model, layer_id=i)
-    # /////////////////// MODIFIED CODE ///////////////////
+        module.program_analog_weights(noise_model=noise_model)

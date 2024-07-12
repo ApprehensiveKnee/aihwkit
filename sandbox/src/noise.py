@@ -79,14 +79,14 @@ class ExperimentalNoiseModel(BaseNoiseModel):
         if debug:
             self.c_index = 0
 
-    def current_layer(self, layer: int ):
+    def current_tile(self, tile: int ):
         if self.debug:
             import os
             import shutil
-            self.current_layer = layer
-            if os.path.exists(os.path.join(os.getcwd(), 'debugging_plots/id={}'.format(layer))):
-                shutil.rmtree(os.path.join(os.getcwd(), 'debugging_plots/id={}'.format(layer)))
-            os.makedirs(os.path.join(os.getcwd(), 'debugging_plots/id={}'.format(layer)))
+            self.current_t = tile
+            if os.path.exists(os.path.join(os.getcwd(), 'debugging_plots/id={}'.format(tile))):
+                shutil.rmtree(os.path.join(os.getcwd(), 'debugging_plots/id={}'.format(tile)))
+            os.makedirs(os.path.join(os.getcwd(), 'debugging_plots/id={}'.format(tile)))
 
         
 
@@ -190,12 +190,12 @@ class ExperimentalNoiseModel(BaseNoiseModel):
             import shutil
             RANGE = (-g_max - 5, g_max + 5)
             BINS = 121
-            if self.current_layer is None:
+            if self.current_t is None:
                 raise ValueError("The current layer must be set before calling programm noise function with 'debug=True'")
-            SAVE_PATH = os.path.join(os.getcwd(), 'debugging_plots/id={}'.format(self.current_layer))
+            SAVE_PATH = os.path.join(os.getcwd(), 'debugging_plots/id={}'.format(self.current_t))
             if not os.path.exists(SAVE_PATH):
                 os.makedirs(SAVE_PATH)
-            plot_conductances(g_target, BINS, RANGE, f'Target conductances - tile {self.current_layer}, #{self.c_index}', os.path.join(SAVE_PATH, f'target_conductances_{self.c_index}.png'))
+            plot_conductances(g_target, BINS, RANGE, f'Target conductances - tile {self.current_t}, #{self.c_index}', os.path.join(SAVE_PATH, f'target_conductances_{self.c_index}.png'))
 
 
         # //////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -218,7 +218,7 @@ class ExperimentalNoiseModel(BaseNoiseModel):
             color_range = plt.get_cmap('viridis')(range(ww_mdn.shape[0]))
             dot = 'x'
             for i in range(min_indices.unique().shape[0]):
-                plot_conductances(g_real[min_indices == i], BINS, RANGE, f'Conductances - tile {self.current_layer}, #{self.c_index} with quantized value {gg_values[i]}', os.path.join(SAVE_PATH, f'conductances_distribution_{gg_values[i]}.png'))
+                plot_conductances(g_real[min_indices == i], BINS, RANGE, f'Conductances - tile {self.current_t}, #{self.c_index} with quantized value {gg_values[i]}', os.path.join(SAVE_PATH, f'conductances_distribution_{gg_values[i]}.png'))
                 # Also plot in a single plot the distribution of the conductances for the same tile, over different quantized values
                 y_add = g_real[min_indices == i].reshape(-1).tolist()
                 x_add = [gg_values[i] for _ in range(len(y_add))]
@@ -229,7 +229,7 @@ class ExperimentalNoiseModel(BaseNoiseModel):
             ax.scatter(x, y, color = colors, marker = dot)
             ax.set_ylabel('Conductance shifted values')
             ax.set_xlabel('Target values')
-            ax.set_title(f'Conductance values of tile{self.current_layer}, #{self.c_index} shifted to the quantized values')
+            ax.set_title(f'Conductance values of tile{self.current_t}, #{self.c_index} shifted to the quantized values')
             ax.set_xlim(left= RANGE[0] , right= RANGE[1])
             plt.savefig(os.path.join(SAVE_PATH, f'conductances_distribution_all.png'))
             plt.close()

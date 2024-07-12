@@ -134,7 +134,7 @@ class InferenceTileWithPeriphery(TileWithPeriphery):
     def program_weights(
         # ///////////////////////// MODIFIED CODE /////////////////////////
         #                       Added layer_id parameter
-        self, from_reference: bool = True, noise_model: Optional[BaseNoiseModel] = None, layer_id: Optional[int] = None
+        self, from_reference: bool = True, noise_model: Optional[BaseNoiseModel] = None, tile_id: Optional[int] = None
         # ///////////////////////// MODIFIED CODE /////////////////////////
     ) -> None:
         """Apply weights noise to the current tile weights and saves these for
@@ -174,8 +174,8 @@ class InferenceTileWithPeriphery(TileWithPeriphery):
             self.rpu_config.noise_model = noise_model
 
         if self.rpu_config.noise_model.debug is not None and self.rpu_config.noise_model.debug:
-            print(f"Programming weights for layer {layer_id}")
-            self.rpu_config.noise_model.current_layer(layer_id)
+            print(f"Programming weights for layer {tile_id}")
+            self.rpu_config.noise_model.current_tile(tile_id)
 
         if not from_reference or self.reference_combined_weights is None:
             self.reference_combined_weights = Tensor(self.tile.get_weights())
