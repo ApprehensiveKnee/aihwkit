@@ -354,19 +354,20 @@ if __name__ == '__main__':
                                         modifier= WeightModifierParameter(type=WeightModifierType.NONE,), 
                                         drift_compensation=None,
                                         )
+    RPU_CONFIG.noise_model=MAP_NOISE_TYPE[SELECTED_NOISE](file_path = path,
+                                                        type = CHOSEN_NOISE,
+                                                        debug = True,
+                                                        g_converter=SinglePairConductanceConverter(g_max=40.))
+    
+    original_model = inference_lenet5(RPU_CONFIG).to(device)
+    original_model.load_state_dict(state_dict, strict=True, load_rpu_config=False)
 
     '''QUANTIZED 9 levels'''
     RPU_CONFIG.quantization = WeightQuantizerParameter(
         resolution=0.18 if SELECTED_LEVEL == 9 else 0.12,
         levels = SELECTED_LEVEL,
     )
-    RPU_CONFIG.noise_model=MAP_NOISE_TYPE[SELECTED_NOISE](file_path = path,
-                                                        type = CHOSEN_NOISE,
-                                                        debug = True,
-                                                        g_converter=SinglePairConductanceConverter(g_max=40.))
-    
-    model_fitted = inference_lenet5(RPU_CONFIG).to(device)
-    model_fitted.load_state_dict(state_dict, strict=True, load_rpu_config=False)
+    model_fitted = convert_to_analog(original_model, RPU_CONFIG)
     model_fitted.eval()
     tile_weights = next(model_fitted.analog_tiles()).get_weights()
     pl.plot_tensor_values(tile_weights[0], 141, (-.6,.6), f"Distribution of quantized weights - Conv1 - LENET{SELECTED_LEVEL}", p_PATH + f"/lenet/plots/hist_lenet_QUANTIZED_{SELECTED_LEVEL}_Conv1.png")
