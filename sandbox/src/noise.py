@@ -170,7 +170,7 @@ class ExperimentalNoiseModel(BaseNoiseModel):
 
         if debug:
             # First, plot a distribution of the conductances over the different tiles
-            from plotting import plot_conductances
+            from src.plotting import plot_conductances
             import os
             import matplotlib.pyplot as plt
             import numpy as np
