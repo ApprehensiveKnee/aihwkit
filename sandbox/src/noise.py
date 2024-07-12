@@ -188,7 +188,6 @@ class ExperimentalNoiseModel(BaseNoiseModel):
         diffs = torch.abs(gg_values.unsqueeze(-1) - g_target.reshape(-1))
         min_indices = torch.argmin(diffs, dim=0)
         g_real = ww_mdn[min_indices] + ww_std[min_indices] * randn_like(g_target.reshape(-1))
-        g_real = g_real.reshape(g_target.shape)
 
         # //////////////////////////////////////////////////////////////////////////////////////////////////////
         if debug:
@@ -202,9 +201,9 @@ class ExperimentalNoiseModel(BaseNoiseModel):
             color_range = plt.get_cmap('viridis')(range(min_indices.shape[0]))
             dot = 'x'
             for i in range(min_indices.shape[0]):
-                plot_conductances(g_target[min_indices == i], BINS, RANGE, f'Conductances of tile {self.tile_index} with quantized value {gg_values[i]}', os.path.join(SAVE_PATH, f'conductances_distribution_{gg_values[i]}.png'))
+                plot_conductances(g_real[min_indices == i], BINS, RANGE, f'Conductances of tile {self.tile_index} with quantized value {gg_values[i]}', os.path.join(SAVE_PATH, f'conductances_distribution_{gg_values[i]}.png'))
                 # Also plot in a single plot the distribution of the conductances for the same tile, over different quantized values
-                y_add = g_target[min_indices == i].reshape(-1).numpy()
+                y_add = g_real[min_indices == i].reshape(-1).numpy()
                 x_add = [gg_values[i] for _ in range(y.shape[0])]
                 colors_add = color_range[i] * np.ones_like(y_add)
                 x = x + x_add
@@ -219,6 +218,8 @@ class ExperimentalNoiseModel(BaseNoiseModel):
 
             self.tile_index += 1   
         # //////////////////////////////////////////////////////////////////////////////////////////////////////
+
+        g_real = g_real.reshape(g_target.shape)
 
         return g_real
 
