@@ -110,6 +110,7 @@ def plot_conductances(tensor:torch.Tensor, bins:int, range: tuple, title: str, n
     if name_file:
         plt.savefig(name_file)
     plt.close()
+    plt.clf()
     return 
 
 def custom_hist(data: list, colors:list, num_bins:int, RANGE: tuple, alpha: float, edgecolor:str, extension: int,title:str, collaterals: dict = None, file_name:str = None):
