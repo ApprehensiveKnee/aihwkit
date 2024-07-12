@@ -109,6 +109,8 @@ def plot_conductances(tensor:torch.Tensor, bins:int, range: tuple, title: str, n
     # Save the figure
     if name_file:
         plt.savefig(name_file)
+    # close the figure
+    plt.clf()
     # return the figure and axis
     return container, fig
 
