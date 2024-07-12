@@ -176,7 +176,7 @@ class ExperimentalNoiseModel(BaseNoiseModel):
             import matplotlib.pyplot as plt
             import numpy as np
             import shutil
-            RANGE = (-g_max.item() - 0.1, g_max.item() + 0.1)
+            RANGE = (-g_max - 5, g_max + 5)
             BINS = 121
             SAVE_PATH = os.path.join(os.getcwd(), 'debugging_plots')
             if not os.path.exists(SAVE_PATH):
@@ -223,7 +223,7 @@ class ExperimentalNoiseModel(BaseNoiseModel):
             ax.set_ylabel('Conductance shifted values')
             ax.set_xlabel('Target values')
             ax.set_title(f'Conductance values of tile {self.tile_index} shifted to the quantized values')
-            ax.set_xlim(left= -g_max - 5 , right= g_max + 5)
+            ax.set_xlim(left= RANGE[0] , right= RANGE[1])
             plt.savefig(os.path.join(SAVE_PATH, f'conductances_distribution_all.png'))
 
             self.tile_index += 1   
