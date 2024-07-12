@@ -173,6 +173,7 @@ class ExperimentalNoiseModel(BaseNoiseModel):
             raise ValueError("The median and standard deviation tensors must have the same shape")
         # Determine the quantization level each conductance belongs to
         g_real = torch.zeros_like(g_target)
+        print("g_target shape: ", g_target.shape)
 
         # //////////////////////////////////////////////////////////////////////////////////////////////////////
 
