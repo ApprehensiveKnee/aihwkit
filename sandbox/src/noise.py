@@ -174,7 +174,7 @@ class ExperimentalNoiseModel(BaseNoiseModel):
             import os
             import matplotlib.pyplot as plt
             import numpy as np
-            RANGE = (-g_max - 0.1, g_max + 0.1)
+            RANGE = (-g_max.item() - 0.1, g_max.item() + 0.1)
             BINS = 121
             SAVE_PATH = os.path.join(os.getcwd(), 'debugging_plots')
             if not os.path.exists(SAVE_PATH):
