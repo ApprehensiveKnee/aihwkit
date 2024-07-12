@@ -363,10 +363,15 @@ if __name__ == '__main__':
         resolution=0.18 if SELECTED_LEVEL == 9 else 0.12,
         levels = SELECTED_LEVEL,
     )
+    RPU_CONFIG.noise_model=MAP_NOISE_TYPE[SELECTED_NOISE](file_path = path,
+                                                        type = CHOSEN_NOISE,
+                                                        debug = True,
+                                                        g_converter=SinglePairConductanceConverter(g_max=40.))
+    
     model_fitted = convert_to_analog(original_model, RPU_CONFIG)
     model_fitted.eval()
     tile_weights = next(model_fitted.analog_tiles()).get_weights()
-    pl.plot_tensor_values(tile_weights[0], 141, (-.6,.6), f"Distribution of quantized weights - Conv1 - RESNET{SELECTED_LEVEL}", p_PATH + f"/lenet/plots/hist_lenet_QUANTIZED_{SELECTED_LEVEL}_Conv1.png")
+    pl.plot_tensor_values(tile_weights[0], 141, (-.6,.6), f"Distribution of quantized weights - Conv1 - LENET{SELECTED_LEVEL}", p_PATH + f"/lenet/plots/hist_lenet_QUANTIZED_{SELECTED_LEVEL}_Conv1.png")
     weight_max = max(abs(tile_weights[0].flatten().numpy()))
     model_fitted.program_analog_weights()
 
