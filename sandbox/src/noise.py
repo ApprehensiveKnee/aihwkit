@@ -215,7 +215,7 @@ class ExperimentalNoiseModel(BaseNoiseModel):
             colors = []
             color_range = plt.get_cmap('viridis')(range(ww_mdn.shape[0]))
             dot = 'x'
-            for i in range(min_indices.unique().shape[0]):
+            for i in min_indices.unique():
                 plot_conductances(g_real[min_indices == i], BINS, RANGE, f'Conductances - tile {self.current_t}, #{self.c_index} with quantized value {gg_values[i]}', os.path.join(SAVE_PATH, f'conductances_distribution_{gg_values[i]}.png'))
                 # Also plot in a single plot the distribution of the conductances for the same tile, over different quantized values
                 y_add = g_real[min_indices == i].reshape(-1).tolist()
