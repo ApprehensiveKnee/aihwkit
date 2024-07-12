@@ -125,8 +125,6 @@ class ExperimentalNoiseModel(BaseNoiseModel):
         """
         target_conductances, params = self.g_converter.convert_to_conductances(weights)
 
-        print("Target conductances: ", target_conductances[0][0][0:10])
-
         noisy_conductances = []
         nu_drift_list = []
         for i,g_target in enumerate(target_conductances):
