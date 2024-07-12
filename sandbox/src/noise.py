@@ -208,7 +208,8 @@ class ExperimentalNoiseModel(BaseNoiseModel):
             y = []
             x = []
             colors = []
-            color_range = plt.get_cmap('viridis')(min_indices.shape[0])
+            color_range = plt.get_cmap('viridis')(range(ww_mdn.shape[0]))
+            print(color_range)
             dot = 'x'
             for i in range(min_indices.shape[0]):
                 plot_conductances(g_real[min_indices == i], BINS, RANGE, f'Conductances of tile {self.tile_index} with quantized value {gg_values[i]}', os.path.join(SAVE_PATH, f'conductances_distribution_{gg_values[i]}.png'))
