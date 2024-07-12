@@ -161,6 +161,7 @@ class ExperimentalNoiseModel(BaseNoiseModel):
             #gg_values = torch.unique(gg_mdn)
             gg_values = [-g_max + i * 2 * g_max / (ww_mdn.shape[0]-1)  for i in range(ww_mdn.shape[0])]
             gg_values = torch.tensor(gg_values)
+            print(gg_values)
         else:
             raise ValueError("The median and standard deviation tensors must have the same shape")
         # Determine the quantization level each conductance belongs to
@@ -174,10 +175,14 @@ class ExperimentalNoiseModel(BaseNoiseModel):
             import os
             import matplotlib.pyplot as plt
             import numpy as np
+            import shutil
             RANGE = (-g_max.item() - 0.1, g_max.item() + 0.1)
             BINS = 121
             SAVE_PATH = os.path.join(os.getcwd(), 'debugging_plots')
             if not os.path.exists(SAVE_PATH):
+                os.makedirs(SAVE_PATH)
+            else:
+                shutil.rmtree(SAVE_PATH)
                 os.makedirs(SAVE_PATH)
             plot_conductances(g_target, BINS, RANGE, f'Target conductances of tile {self.tile_index}', os.path.join(SAVE_PATH, f'target_conductances_{self.tile_index}.png'))
 
@@ -194,6 +199,11 @@ class ExperimentalNoiseModel(BaseNoiseModel):
             # After the transition to the programmed conductances, plot the distribution of the conductances over the different tiles, 
             # for the different median quantized values
             SAVE_PATH = os.path.join(SAVE_PATH, f'distrbution_plots_{self.tile_index}')
+            if not os.path.exists(SAVE_PATH):
+                os.makedirs(SAVE_PATH)
+            else:
+                shutil.rmtree(SAVE_PATH)
+                os.makedirs(SAVE_PATH)
             fig, ax = plt.subplots()
             y = []
             x = []
