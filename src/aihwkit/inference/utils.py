@@ -72,5 +72,6 @@ def program_analog_weights(model: Module, noise_model: Optional["BaseNoiseModel"
     for i, module in enumerate(model.modules()):
         if not isinstance(module, AnalogLayerBase):
             continue
+        print(f"Programming analog weights for layer {i}")
         module.program_analog_weights(noise_model=noise_model, layer_id=i)
     # /////////////////// MODIFIED CODE ///////////////////
