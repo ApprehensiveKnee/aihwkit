@@ -378,8 +378,8 @@ if __name__ == '__main__':
     # Plot the histogram of the weights of the last model
     tile_weights = next(model_fitted.analog_tiles()).get_weights()
     gaussain_noise = {"means": ww_mdn[CHOSEN_NOISE].values, "stds": ww_std[CHOSEN_NOISE].values, "gmax": 40.0}
-    pl.plot_tensor_values(tile_weights[0], 101, (-.9,.9), f"Distribution of quantized weights + Fitted Noise ({CHOSEN_NOISE})\n - Conv1 - LENET{SELECTED_LEVEL}", p_PATH + f"/lenet/plots/hist_lenet_QUANTIZED_{SELECTED_LEVEL}+FITTED_Conv1.png")
-    pl.plot_tensor_values(tile_weights[0], 101, (-.9,.9), f"Distribution of quantized weights + Fitted Noise ({CHOSEN_NOISE})\n - Conv1+Gaussian - LENET{SELECTED_LEVEL}", p_PATH + f"/lenet/plots/hist_lenet_QUANTIZED_{SELECTED_LEVEL}+FITTED_Conv1+Gaussian.png", gaussian=gaussain_noise, weight_max=weight_max)
+    pl.plot_tensor_values(tile_weights[0], 141, (-.9,.9), f"Distribution of quantized weights + Fitted Noise ({CHOSEN_NOISE})\n - Conv1 - LENET{SELECTED_LEVEL}", p_PATH + f"/lenet/plots/hist_lenet_QUANTIZED_{SELECTED_LEVEL}+FITTED_Conv1.png")
+    pl.plot_tensor_values(tile_weights[0], 141, (-.9,.9), f"Distribution of quantized weights + Fitted Noise ({CHOSEN_NOISE})\n - Conv1+Gaussian - LENET{SELECTED_LEVEL}", p_PATH + f"/lenet/plots/hist_lenet_QUANTIZED_{SELECTED_LEVEL}+FITTED_Conv1+Gaussian.png", gaussian=gaussain_noise, weight_max=weight_max)
     pl.generate_moving_hist(model_fitted,title=f"Distribution of Quantized Weight + Fitted Noise ({CHOSEN_NOISE})\n Values over the tiles - LENET{SELECTED_LEVEL}", file_name= p_PATH + f"/lenet/plots/hist_lenet_QUANTIZED_{SELECTED_LEVEL}_FITTED.gif", range = (-.7,.7), top=None, split_by_rows=False)
 
 
@@ -396,10 +396,6 @@ if __name__ == '__main__':
                                         modifier= WeightModifierParameter(type=WeightModifierType.NONE,), 
                                         drift_compensation=None,
                                         )
-        RPU_CONFIG.quantization = WeightQuantizerParameter(
-            resolution=0.18 if SELECTED_LEVEL == 9 else 0.12,
-            levels = SELECTED_LEVEL,
-            )
         RPU_CONFIG.noise_model=MAP_NOISE_TYPE[SELECTED_NOISE](file_path = path,
                                                         type = CHOSEN_NOISE,
                                                         debug = True,
@@ -411,6 +407,11 @@ if __name__ == '__main__':
                 # For each repetition, get a new version of the quantized model and calibrare it
                 model_fitted = inference_lenet5(RPU_CONFIG).to(device)
                 model_fitted.load_state_dict(state_dict, strict=True, load_rpu_config=False)
+                RPU_CONFIG.quantization = WeightQuantizerParameter(
+                    resolution=0.18 if SELECTED_LEVEL == 9 else 0.12,
+                    levels = SELECTED_LEVEL,
+                    )
+                model_fitted = convert_to_analog(model_fitted, RPU_CONFIG)
                 model_fitted.eval()
                 model_fitted.program_analog_weights()
                 if j == 1:
@@ -426,7 +427,6 @@ if __name__ == '__main__':
                 
                 # Delete the model to free CUDA memory
                 del model_fitted
-                del RPU_CONFIG
                 torch.cuda.empty_cache()
                 gc.collect()
                 #torch.cuda.reset_peak_memory_stats()
