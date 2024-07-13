@@ -451,7 +451,7 @@ if __name__ == '__main__':
                         real = np.append(real, np.load(tile_dir + f"/g_real_{tile_id}.npy"))
                     
                     # Add the contribution of the current model to the plot
-                    ax.scatter(target, real, label=f"Noise: {CHOSEN_NOISE}", alpha=0.7*(len(types)- i), color = next(model_fitted.analog_tiles()).rpu_config.noise_model[0].color_noise, marker = "x")
+                    ax.scatter(target, real, label=f"Noise: {CHOSEN_NOISE}", alpha=0.7*(len(types)- i)/len(types), color = next(model_fitted.analog_tiles()).rpu_config.noise_model[0].color_noise, marker = "x")
                         
                         
                         
