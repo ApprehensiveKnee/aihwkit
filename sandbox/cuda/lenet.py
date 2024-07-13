@@ -391,11 +391,11 @@ if __name__ == '__main__':
     DEBUGGING_PLOTS = True
 
     if DEBUGGING_PLOTS:
-        fig, ax = plt.subplots()
+        fig, ax = plt.subplots(figsize=(12,17))
         ax.set_title("Conductance values of the tiles")
         ax.set_xlabel("Target Conductance (muS)")
         ax.set_ylabel("Real Conductance (muS)")
-        ax.set_xlim([-40, 40])
+        ax.set_xlim([-45, 45])
         ax.set_ylim([-65, 65])
 
     for i in range(len(types)):
