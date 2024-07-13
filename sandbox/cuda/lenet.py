@@ -395,8 +395,8 @@ if __name__ == '__main__':
         ax.set_title("Conductance values of the tiles")
         ax.set_xlabel("Target Conductance (muS)")
         ax.set_ylabel("Real Conductance (muS)")
-        ax.set_xlim([-45, 45])
-        ax.set_ylim([-45, 45])
+        ax.set_xlim([-50, 50])
+        ax.set_ylim([-50, 50])
         ax.set_aspect('equal')
 
     for i in range(len(types)):
@@ -451,7 +451,7 @@ if __name__ == '__main__':
                         real = np.append(real, np.load(tile_dir + f"/g_real_{tile_id}.npy"))
                     
                     # Add the contribution of the current model to the plot
-                    ax.scatter(target, real, label=f"Model {j}", alpha=0.5, color = next(model_fitted.analog_tiles()).rpu_config.noise_model[0].color_noise)
+                    ax.scatter(target, real, label=f"Noise: {CHOSEN_NOISE}", alpha=0.7*(len(types)- i), color = next(model_fitted.analog_tiles()).rpu_config.noise_model[0].color_noise, marker = "x")
                         
                         
                         
