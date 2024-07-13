@@ -440,11 +440,12 @@ if __name__ == '__main__':
                     # for each tile, where x is the tile number
                     target = []
                     real = []
-                    for tile_dir in os.listdir(next(model_fitted.analog_tiles()).rpu_config.noise_model.debug_dir):
+                    debug_dir = next(model_fitted.analog_tiles()).rpu_config.noise_model.debug_dir
+                    for tile_dir in os.listdir(debug_dir):
                         # Tile dir has the form id=x, get the tile number
                         tile_id = tile_dir.split("=")[1]
                         # Get inside the tile directory
-                        tile_dir = model_fitted.rpu_config.noise_model.debug_dir + "/" + tile_dir
+                        tile_dir = debug_dir + "/" + tile_dir
                         # Get the target and real conductance arrays
                         target = target + np.load(tile_dir + f"/g_target_{tile_id}.npy")
                         real = real + np.load(tile_dir + f"/g_real_{tile_id}.npy")
