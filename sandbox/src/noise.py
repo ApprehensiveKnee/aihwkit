@@ -84,12 +84,11 @@ class ExperimentalNoiseModel(BaseNoiseModel):
             import os
             import shutil
             self.current_t = tile
-            if os.path.exists(os.path.join(os.getcwd(), 'debugging_plots/id={}'.format(tile))):
-                shutil.rmtree(os.path.join(os.getcwd(), 'debugging_plots/id={}'.format(tile)))
-            os.makedirs(os.path.join(os.getcwd(), 'debugging_plots/id={}'.format(tile)))
+            if os.path.exists(os.path.join(os.getcwd(), 'debugging_plots/noise_type={}/id={}'.format(self.chosen_type, tile))):
+                shutil.rmtree(os.path.join(os.getcwd(), 'debugging_plots/noise_type={}/id={}'.format(self.chosen_type,tile)))
+            os.makedirs(os.path.join(os.getcwd(), 'debugging_plots/noise_type={}/id={}'.format(self.chosen_type,tile)))
 
         
-
     def apply_programming_noise_to_conductance(self, g_target: torch.Tensor, neg: bool) -> torch.Tensor:
         """Apply programming noise to a target conductance Tensor. """
         # Neg is a boolean variable set to true to apply the noise fitted for "negative" conductances
@@ -191,10 +190,10 @@ class ExperimentalNoiseModel(BaseNoiseModel):
             BINS = 121
             if self.current_t is None:
                 raise ValueError("The current layer must be set before calling programm noise function with 'debug=True'")
-            SAVE_PATH = os.path.join(os.getcwd(), 'debugging_plots/id={}'.format(self.current_t))
+            SAVE_PATH = os.path.join(os.getcwd(), 'debugging_plots/noise_type={}/id={}'.format(self.chosen_type,self.current_t))
             if not os.path.exists(SAVE_PATH):
                 os.makedirs(SAVE_PATH)
-            plot_conductances(g_target, BINS, RANGE, f'Target conductances - tile {self.current_t}, #{self.c_index}', os.path.join(SAVE_PATH, f'target_conductances_{self.c_index}.png'))
+            plot_conductances(g_target, BINS, RANGE, f'Target conductances - noise type: {self.chosen_type}- tile {self.current_t}, #{self.c_index}', os.path.join(SAVE_PATH, f'target_conductances_{self.c_index}.png'))
 
 
         # //////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -215,10 +214,10 @@ class ExperimentalNoiseModel(BaseNoiseModel):
             x = []
             colors = []
             color_range = plt.get_cmap('inferno')
-            norm = Normalize(vmin=-g_max, vmax=g_max)
+            norm = Normalize(vmin=-g_max-5, vmax=g_max+5)
             dot = 'x'
             for i in min_indices.unique():
-                plot_conductances(g_real[min_indices == i], BINS, RANGE, f'Conductances - tile {self.current_t}, #{self.c_index} with quantized value {gg_values[i]}', os.path.join(SAVE_PATH, f'conductances_distribution_{gg_values[i]}.png'))
+                plot_conductances(g_real[min_indices == i], BINS, RANGE, f'Conductances - noise type: {self.chosen_type} - tile {self.current_t}, #{self.c_index} with quantized value {gg_values[i]}', os.path.join(SAVE_PATH, f'conductances_distribution_{gg_values[i]}.png'))
                 # Also plot in a single plot the distribution of the conductances for the same tile, over different quantized values
                 y_add = g_real[min_indices == i].reshape(-1).tolist()
                 x_add = [gg_values[i] for _ in range(len(y_add))]
@@ -229,7 +228,7 @@ class ExperimentalNoiseModel(BaseNoiseModel):
             ax.scatter(x, y, color = colors, marker = dot)
             ax.set_ylabel('Conductance shifted values')
             ax.set_xlabel('Target values')
-            ax.set_title(f'Conductance values of tile{self.current_t}, #{self.c_index} shifted to the quantized values')
+            ax.set_title(f'Conductance values of tile{self.current_t}, #{self.c_index} shifted to the quantized values \n for noise type: {self.chosen_type}')
             ax.set_xlim(left= RANGE[0] , right= RANGE[1])
             plt.savefig(os.path.join(SAVE_PATH, f'conductances_distribution_all.png'))
             plt.close()
@@ -251,8 +250,7 @@ class JustMedianNoiseModel(ExperimentalNoiseModel):
     def __init__(self, file_path: str, type: str, debug: bool= False,**kwargs):
         super().__init__(file_path, type, debug,**kwargs)
 
-    @staticmethod
-    def fit_data(g_target, ww_mdn, ww_std):
+    def fit_data(self,g_target, ww_mdn, ww_std):
         """ Differently from the handle of the parent class, this function
         just considers the median values of the experimental data.
 
@@ -264,7 +262,7 @@ class JustMedianNoiseModel(ExperimentalNoiseModel):
         Returns:
             g_real: the fittted conductances tensor
         """
-        g_max = g_target.max() if g_target.max() > -g_target.min() else -g_target.min()
+        g_max = self.g_converter.g_ma
         if ww_mdn.shape == ww_std.shape: # Check on identical shapes
             gg_values = [-g_max + i * 2 * g_max / (ww_mdn.shape[0]-1)  for i in range(ww_mdn.shape[0])]
             gg_values = torch.tensor(gg_values)
@@ -289,8 +287,7 @@ class JustStdNoiseModel(ExperimentalNoiseModel):
     def __init__(self, file_path: str, type: str, debug: bool= False, **kwargs):
         super().__init__(file_path, type, debug,**kwargs)
 
-    @staticmethod
-    def fit_data(g_target, ww_mdn, ww_std):
+    def fit_data(self, g_target, ww_mdn, ww_std):
         """ Differently from the handle of the parent class, this function
         just considers the standard deviation values of the experimental data.
 
@@ -303,7 +300,7 @@ class JustStdNoiseModel(ExperimentalNoiseModel):
             g_real: the fittted conductances tensor
         """
 
-        g_max = g_target.max() if g_target.max() > -g_target.min() else -g_target.min()
+        g_max = self.g_converter.g_ma
         if ww_mdn.shape == ww_std.shape: # Check on identical shapes
             gg_values = [-g_max + i * 2 * g_max / (ww_mdn.shape[0]-1)  for i in range(ww_mdn.shape[0])]
             gg_values = torch.tensor(gg_values)
