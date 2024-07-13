@@ -388,6 +388,17 @@ if __name__ == '__main__':
     fitted_models_accuracy = torch.zeros((len(t_inferences), n_reps, len(types)))
     fitted_observed_max = [0] * len(types)
     fitted_observed_min = [100] * len(types)
+    DEBUGGING_PLOTS = True
+
+    if DEBUGGING_PLOTS:
+        fig, ax = plt.subplots()
+        ax.set_title("Conductance values of the tiles")
+        ax.set_xlabel("Target Conductance (muS)")
+        ax.set_ylabel("Real Conductance (muS)")
+        ax.set_xlim([-45, 45])
+        ax.set_ylim([-45, 45])
+        ax.set_aspect('equal')
+
     for i in range(len(types)):
         CHOSEN_NOISE = types[i]
         RPU_CONFIG  = InferenceRPUConfig(forward=IOParameters(is_perfect=True),
@@ -398,8 +409,10 @@ if __name__ == '__main__':
                                         )
         RPU_CONFIG.noise_model=MAP_NOISE_TYPE[SELECTED_NOISE](file_path = path,
                                                         type = CHOSEN_NOISE,
-                                                        debug = True,
+                                                        debug = DEBUGGING_PLOTS,
                                                         g_converter=SinglePairConductanceConverter(g_max=40.)),
+        
+    
 
         fitted_models_names.append(f"Quantized - {SELECTED_LEVEL} levels \n+ Fitted Noise \n ({CHOSEN_NOISE})")
         for t_id, t in enumerate(t_inferences):
@@ -414,9 +427,30 @@ if __name__ == '__main__':
                 model_fitted = convert_to_analog(model_fitted, RPU_CONFIG)
                 model_fitted.eval()
                 model_fitted.program_analog_weights()
-                if j == 1:
-                    tile_weights = next(model_fitted.analog_tiles()).get_weights()
-                    print(f"Tile weights for model {fitted_models_names[i]} \n(-->{id(model_fitted)}<--):\n {tile_weights[0][0:5, 0:5]}")
+                
+
+                # //////////////////////////////////////    DEBUGGING    /////////////////////////////////////////
+
+                if model_fitted.rpu_config.noise_model.debug:
+                    # Loop over the debugging directory (.debug_dir/id=x/g_target_x) to get the conductance arrays
+                    # for each tile, where x is the tile number
+                    target = []
+                    real = []
+                    for tile_dir in os.listdir(model_fitted.rpu_config.noise_model.debug_dir):
+                        # Tile dir has the form id=x, get the tile number
+                        tile_id = tile_dir.split("=")[1]
+                        # Get inside the tile directory
+                        tile_dir = model_fitted.rpu_config.noise_model.debug_dir + "/" + tile_dir
+                        # Get the target and real conductance arrays
+                        target = target + np.load(tile_dir + f"/g_target_{tile_id}.npy")
+                        real = real + np.load(tile_dir + f"/g_real_{tile_id}.npy")
+                    
+                    # Add the contribution of the current model to the plot
+                    ax.scatter(target, real, label=f"Model {j}", alpha=0.5, color = model_fitted.rpu_config.noise_model.color_noise)
+                        
+                        
+                        
+                # ////////////////////////////////////////////////////////////////////////////////////////////////
 
                 # Then evaluate the model
                 fitted_models_accuracy[t_id, j, i] = evaluate_model(model_fitted, get_test_loader(), device)
@@ -433,6 +467,10 @@ if __name__ == '__main__':
             print(
                 f"Test set accuracy (%) at t={t}s for {fitted_models_names[i]}: mean: {fitted_models_accuracy[t_id, :, i].mean()}, std: {fitted_models_accuracy[t_id, :, i].std()}"
             )
+
+    if DEBUGGING_PLOTS:
+        plt.legend()
+        plt.savefig(p_PATH + f"/cuda/debugging_plots/Conductance_values.png")
 
     # Plot the accuracy of the models in a stem plot
     fig, ax = plt.subplots(figsize=(23,7))

@@ -331,8 +331,10 @@ class AnalogLayerBase:
         if self.training:  # type: ignore
             raise ModuleError("program_analog_weights can only be applied in evaluation mode")
         # /////////////////// MODIFIED CODE ///////////////////
+        
         for i, analog_tile in enumerate(self.analog_tiles()):
             analog_tile.program_weights(noise_model=noise_model, tile_id=i)
+
         # /////////////////// MODIFIED CODE ///////////////////
 
     def extra_repr(self) -> str:
