@@ -83,7 +83,7 @@ class ExperimentalNoiseModel(BaseNoiseModel):
             import matplotlib.pyplot as plt
             import matplotlib.colors as mcolors
             color_noise_range = plt.get_cmap('viridis')
-            norm = mcolors.Normalize(vmin=0, vmax=types.shape[1]-1)
+            norm = mcolors.Normalize(vmin=0, vmax=len(types)-1)
             self.color_noise = color_noise_range(norm(types.index(self.chosen_type)))
             self.debug_dir = f"debugging_plots/noise_type={self.chosen_type}"
 
