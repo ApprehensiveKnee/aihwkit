@@ -438,17 +438,17 @@ if __name__ == '__main__':
                 if next(model_fitted.analog_tiles()).rpu_config.noise_model[0].debug:
                     # Loop over the debugging directory (.debug_dir/id=x/g_target_x) to get the conductance arrays
                     # for each tile, where x is the tile number
-                    target = []
-                    real = []
+                    target = np.array([])
+                    real = np.array([])
                     debug_dir = next(model_fitted.analog_tiles()).rpu_config.noise_model[0].debug_dir
                     for tile_dir in os.listdir(debug_dir):
                         # Tile dir has the form id=x, get the tile number
                         tile_id = tile_dir.split("=")[1]
                         # Get inside the tile directory
                         tile_dir = debug_dir + "/" + tile_dir
-                        # Get the target and real conductance arrays
-                        target = target + np.load(tile_dir + f"/g_target_{tile_id}.npy")
-                        real = real + np.load(tile_dir + f"/g_real_{tile_id}.npy")
+                        # Get the target and real conductance arrays and append them to the global arrays
+                        target = np.append(target, np.load(tile_dir + f"/g_target_{tile_id}.npy"))
+                        real = np.append(real, np.load(tile_dir + f"/g_real_{tile_id}.npy"))
                     
                     # Add the contribution of the current model to the plot
                     ax.scatter(target, real, label=f"Model {j}", alpha=0.5, color = model_fitted.rpu_config.noise_model.color_noise)
