@@ -431,12 +431,16 @@ if __name__ == '__main__':
 
                 # //////////////////////////////////////    DEBUGGING    /////////////////////////////////////////
 
-                if model_fitted.rpu_config.noise_model.debug:
+                # Expose all the member of the model_fitted object
+
+                
+
+                if next(model_fitted.analog_tiles()).rpu_config.noise_model.debug:
                     # Loop over the debugging directory (.debug_dir/id=x/g_target_x) to get the conductance arrays
                     # for each tile, where x is the tile number
                     target = []
                     real = []
-                    for tile_dir in os.listdir(model_fitted.rpu_config.noise_model.debug_dir):
+                    for tile_dir in os.listdir(next(model_fitted.analog_tiles()).rpu_config.noise_model.debug_dir):
                         # Tile dir has the form id=x, get the tile number
                         tile_id = tile_dir.split("=")[1]
                         # Get inside the tile directory
