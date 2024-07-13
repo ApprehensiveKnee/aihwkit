@@ -359,6 +359,14 @@ class JustMedianNoiseModel(ExperimentalNoiseModel):
             plt.savefig(os.path.join(SAVE_PATH, f'conductances_distribution_all.png'))
             plt.close()
 
+            if self.c_index == 0: # We are considering positive conductances, store those for the next iteration
+                self.g_real = g_real
+                self.g_target = g_target.reshape(g_real.shape)
+            else:
+                # We are considering negative conductances, sum the two tensors
+                self.g_real = self.g_real + g_real
+                self.g_target = self.g_target + g_target.reshape(g_real.shape)
+
             self.c_index += 1   
         # //////////////////////////////////////////////////////////////////////////////////////////////////////
         g_real = g_real.reshape(g_target.shape)
@@ -452,6 +460,14 @@ class JustStdNoiseModel(ExperimentalNoiseModel):
             ax.set_xlim(left= RANGE[0] , right= RANGE[1])
             plt.savefig(os.path.join(SAVE_PATH, f'conductances_distribution_all.png'))
             plt.close()
+
+            if self.c_index == 0: # We are considering positive conductances, store those for the next iteration
+                self.g_real = g_real
+                self.g_target = g_target.reshape(g_real.shape)
+            else:
+                # We are considering negative conductances, sum the two tensors
+                self.g_real = self.g_real + g_real
+                self.g_target = self.g_target + g_target.reshape(g_real.shape)
 
             self.c_index += 1   
         # //////////////////////////////////////////////////////////////////////////////////////////////////////

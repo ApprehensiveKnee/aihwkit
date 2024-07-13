@@ -395,9 +395,8 @@ if __name__ == '__main__':
         ax.set_title("Conductance values of the tiles")
         ax.set_xlabel("Target Conductance (muS)")
         ax.set_ylabel("Real Conductance (muS)")
-        ax.set_xlim([-50, 50])
-        ax.set_ylim([-50, 50])
-        ax.set_aspect('equal')
+        ax.set_xlim([-40, 40])
+        ax.set_ylim([-65, 65])
 
     for i in range(len(types)):
         CHOSEN_NOISE = types[i]
@@ -474,7 +473,8 @@ if __name__ == '__main__':
             )
 
     if DEBUGGING_PLOTS:
-        plt.legend()
+        # Move the legend outside the plot
+        ax.legend(loc='center left', bbox_to_anchor=(1, 0.5))
         plt.savefig(p_PATH + f"/cuda/debugging_plots/Conductance_values.png")
 
     # Plot the accuracy of the models in a stem plot
