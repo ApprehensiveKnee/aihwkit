@@ -184,7 +184,7 @@ class ExperimentalNoiseModel(BaseNoiseModel):
             from src.plotting import plot_conductances
             import os
             import matplotlib.pyplot as plt
-            import matplotlib.colors as clrs
+            from matplotlib.colors import Normalize
             import numpy as np
             import shutil
             RANGE = (-g_max - 5, g_max + 5)
@@ -214,8 +214,8 @@ class ExperimentalNoiseModel(BaseNoiseModel):
             y = []
             x = []
             colors = []
-            color_range = plt.get_cmap('viridis')
-            norm = clrs.Normalize(vmin=-40.0, vmax=40.0)
+            color_range = plt.get_cmap('inferno')
+            norm = Normalize(vmin=-g_max, vmax=g_max)
             dot = 'x'
             for i in min_indices.unique():
                 plot_conductances(g_real[min_indices == i], BINS, RANGE, f'Conductances - tile {self.current_t}, #{self.c_index} with quantized value {gg_values[i]}', os.path.join(SAVE_PATH, f'conductances_distribution_{gg_values[i]}.png'))
