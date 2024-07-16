@@ -317,6 +317,7 @@ if __name__ == '__main__':
 
 
     # -**-**-**-**-**-**-**-**-**-**-**-**-**-**-**- FIRST EVALUATION: 5 MODELS -**-**-**-**-**-**-**-**-**-**-**-**-**-**-**-
+    print('-**-**-**-**-**-**-**-**-**-**-**-**-**-**-**- FIRST EVALUATION -**-**-**-**-**-**-**-**-**-**-**-**-**-**-**-')
     t_inferences = [0.0]  # Times to perform infernece.
     n_reps = N_REPS  # Number of inference repetitions.
 
@@ -361,7 +362,8 @@ if __name__ == '__main__':
     accuracy_plot(model_names, inference_accuracy_values, n_reps ,path= p_PATH + "/lenet/plots/accuracy_lenet.png")
 
     # -**-**-**-**-**-**-**-**-**-**-**-**-**-**-**- SECOND EVALUATION: FITTED DATA -**-**-**-**-**-**-**-**-**-**-**-**-**-**-**-
-    print("Available experimental noises are: ", types)
+    print('-**-**-**-**-**-**-**-**-**-**-**-**-**-**-**- SECOND EVALUATION: FITTED DATA -**-**-**-**-**-**-**-**-**-**-**-**-**-**-**-')
+    print("\n\nAvailable experimental noises are: ", types)
     CHOSEN_NOISE = types[0]
     print(f"Chosen noise: {CHOSEN_NOISE}" )
     path = p_PATH + f"/data/{MAP_LEVEL_FILE[SELECTED_LEVEL]}"
@@ -507,7 +509,7 @@ if __name__ == '__main__':
     # Plot the accuracy of the models in a stem plot
     fig, ax = plt.subplots(figsize=(23,7))
     models = ["Unquantized",f"Quantized - {SELECTED_LEVEL} levels"] + fitted_models_names
-    accuracies = [inference_accuracy_values[0, :, model_names.index(models[0])], inference_accuracy_values[0, :, model_names.index(models[1])]]
+    accuracies = [inference_accuracy_values[0, :, model_names.index(models[0])].mean(), inference_accuracy_values[0, :, model_names.index(models[1])].mean()]
     accuracies = accuracies + fitted_models_accuracy.mean(dim=1)[0].tolist()
     std_accuracy = [.0,.0] + fitted_models_accuracy.std(dim=1)[0].tolist()
     observed_max = accuracies[:2] + fitted_observed_max
