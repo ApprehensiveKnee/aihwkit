@@ -61,7 +61,7 @@ def interpolate(levels: int, file_path: str):
         # If the number fo levels is 5 or 3, we can just get rid of the redundant levels
         if levels == 5 or levels == 3:
             for key in ['ww_mdn', 'ww_std']:
-                data[key] = data[key][::levels-1, :]
+                data[key] = data[key][::2 if levels==5 else 4, :]
         # If the number of levels is 33, we need to interpolate the data
         # to match the number of levels
         if levels == 33:
