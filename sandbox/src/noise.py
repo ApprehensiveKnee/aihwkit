@@ -74,7 +74,8 @@ class ExperimentalNoiseModel(BaseNoiseModel):
         ww_mdn = variables['ww_mdn']
         ww_std = variables['ww_std']
         self.ww_mdn = torch.tensor(ww_mdn[:,types.index(self.chosen_type)]) * 1e6 # handle conversion from muS
-        print(self.ww_mdn)
+        print('MEADIAN VALUES:', self.ww_mdn)
+        print('STD VALUES:', self.ww_std)
         self.ww_std = torch.tensor(ww_std[:,types.index(self.chosen_type)]) * 1e6 # handle conversion from muS
         self.debug = debug
         if debug:
