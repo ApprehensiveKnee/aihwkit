@@ -182,7 +182,7 @@ def download_url(url, dest_folder, filename=None):
 def accuracy_plot(model_names, inference_accuracy_values, r_number ,path):
     # Plot the accuracy of the models in a stem plot
     fig, ax = plt.subplots()
-    trace = np.array([0.]*3)
+    trace = np.array([0.]*len(model_names))
     for i, model_name in enumerate(model_names):
         mean = inference_accuracy_values[0, 0, i] 
         trace[i] = mean
