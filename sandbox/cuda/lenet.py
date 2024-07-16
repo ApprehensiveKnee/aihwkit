@@ -143,7 +143,7 @@ def get_quantized_model(model,level, rpu_config):
         5 : 0.3,
         9 : 0.18,
         17 : 0.12,
-        33 : 0.09
+        33 : 0.05
     }
     rpu_config.quantization = WeightQuantizerParameter(
         resolution=resolution[level],
@@ -263,7 +263,7 @@ if __name__ == '__main__':
         33 : [G_RANGE[0] + i * (G_RANGE[1] - G_RANGE[0]) / 32 for i in range(33)]
     }
 
-    DEBUGGING_PLOTS = True
+    DEBUGGING_PLOTS = False
 
      # Extract the data from the .mat file
     path = p_PATH+ f"/data/{MAP_LEVEL_FILE[SELECTED_LEVEL]}"
