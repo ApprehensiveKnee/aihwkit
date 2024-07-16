@@ -507,7 +507,7 @@ if __name__ == '__main__':
     # Plot the accuracy of the models in a stem plot
     fig, ax = plt.subplots(figsize=(23,7))
     models = ["Unquantized",f"Quantized - {SELECTED_LEVEL} levels"] + fitted_models_names
-    accuracies = [inference_accuracy_values[model_names.index(models[0])], inference_accuracy_values[model_names.index(models[1])]]
+    accuracies = [inference_accuracy_values[0, :, model_names.index(models[0])], inference_accuracy_values[0, :, model_names.index(models[1])]]
     accuracies = accuracies + fitted_models_accuracy.mean(dim=1)[0].tolist()
     std_accuracy = [.0,.0] + fitted_models_accuracy.std(dim=1)[0].tolist()
     observed_max = accuracies[:2] + fitted_observed_max
