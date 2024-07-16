@@ -23,13 +23,15 @@ def import_mat_file(file_path):
             variables[key] = data[key]
     return variables
 
-def interpolate(levels, file_path):
+def interpolate(levels: int, file_path: str):
     '''
     The function is to be used in pair with the import_mat_file function.
     In addition to importing the data, it interpolates the data to match the number of levels chosen:
     up to 5 bits -> 32 + 1 levels
     down to 1 bits -> 4 + 1 levels
     '''
+    if levels is None:
+        return import_mat_file(file_path)
 
     MAP = {
         "3bit.mat": 9,

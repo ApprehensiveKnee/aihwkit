@@ -375,7 +375,8 @@ if __name__ == '__main__':
                                         )
     RPU_CONFIG.noise_model=MAP_NOISE_TYPE[SELECTED_NOISE](file_path = path,
                                                         type = CHOSEN_NOISE,
-                                                        debug = True,
+                                                        levels = SELECTED_LEVEL,
+                                                        debug = DEBUGGING_PLOTS,
                                                         g_converter=SinglePairConductanceConverter(g_max=40.))
     
     original_model = inference_lenet5(RPU_CONFIG).to(device)
@@ -434,6 +435,7 @@ if __name__ == '__main__':
         RPU_CONFIG.noise_model=MAP_NOISE_TYPE[SELECTED_NOISE](file_path = path,
                                                         type = CHOSEN_NOISE,
                                                         debug = DEBUGGING_PLOTS,
+                                                        levels = SELECTED_LEVEL,
                                                         g_converter=SinglePairConductanceConverter(g_max=40.)),
         
     
