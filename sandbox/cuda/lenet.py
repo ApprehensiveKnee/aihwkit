@@ -138,8 +138,15 @@ def evaluate_model(model, test_loader, device):
 
 
 def get_quantized_model(model,level, rpu_config):
+    resolution = {
+        3 : 0.5,
+        5 : 0.3,
+        9 : 0.18,
+        17 : 0.12,
+        33 : 0.09
+    }
     rpu_config.quantization = WeightQuantizerParameter(
-        resolution=0.12 if level == 17 else 0.18,
+        resolution=resolution[level],
         levels=level
     )
     model_quantized = convert_to_analog(model, rpu_config)
@@ -210,7 +217,7 @@ if __name__ == '__main__':
     
     for opt, arg in opts:
         if opt in ('-l', '--level'):
-            if int(arg) not in [9,17]:
+            if int(arg) not in [3, 5, 9, 17, 33]:
                 raise ValueError("The selected level must be either 9 or 17")
             SELECTED_LEVEL = int(arg)
             print(f"Selected level: {SELECTED_LEVEL}")
@@ -234,8 +241,11 @@ if __name__ == '__main__':
         print(f"Number of repetitions: {N_REPS}")
 
     MAP_LEVEL_FILE = {
+        3 : "matlab/3bit.mat",
+        5 : "matlab/3bit.mat",
         9 : "matlab/3bit.mat",
         17 : "matlab/4bit.mat",
+        33 : "matlab/4bit.mat"
     }
 
     MAP_NOISE_TYPE = {
@@ -246,9 +256,14 @@ if __name__ == '__main__':
 
     G_RANGE = [-40, 40]
     CONDUCTANCES = {
+        3 : [G_RANGE[0] + i * (G_RANGE[1] - G_RANGE[0]) / 2 for i in range(5)],
+        5 : [G_RANGE[0] + i * (G_RANGE[1] - G_RANGE[0]) / 4 for i in range(33)],
         9 : [G_RANGE[0] + i * (G_RANGE[1] - G_RANGE[0]) / 8 for i in range(9)],
-        17 : [G_RANGE[0] + i * (G_RANGE[1] - G_RANGE[0]) / 16 for i in range(17)]
+        17 : [G_RANGE[0] + i * (G_RANGE[1] - G_RANGE[0]) / 16 for i in range(17)],
+        33 : [G_RANGE[0] + i * (G_RANGE[1] - G_RANGE[0]) / 32 for i in range(33)]
     }
+
+    DEBUGGING_PLOTS = True
 
      # Extract the data from the .mat file
     path = p_PATH+ f"/data/{MAP_LEVEL_FILE[SELECTED_LEVEL]}"
@@ -260,6 +275,12 @@ if __name__ == '__main__':
     ww_std = variables['ww_std'] * 1e6
     ww_mdn = pd.DataFrame(ww_mdn, columns=types)
     ww_std = pd.DataFrame(ww_std, columns=types)
+    
+    if MAP_LEVEL_FILE[SELECTED_LEVEL] == "matlab/4bit.mat":
+        # Delete the noise type '1d,RT' for faulty measurement
+        ww_mdn.drop(columns=['1d,RT'], inplace=True)
+        ww_std.drop(columns=['1d,RT'], inplace=True)
+        types.remove('1d,RT')
 
     # Download the model if it not already present
    
@@ -288,21 +309,18 @@ if __name__ == '__main__':
     model.eval()
     pl.generate_moving_hist(model,title="Distribution of Weight\n Values over the tiles - LENET", file_name= p_PATH + "/lenet/plots/hist_lenet_UNQUANTIZED.gif", range = (-.7,.7), top=None, split_by_rows=False)
 
-
-    model_9 = get_quantized_model(model, 9, RPU_CONFIG)
-    model_9.eval()
-    pl.generate_moving_hist(model_9,title="Distribution of Quantized Weight\n Values over the tiles - LENET9", file_name=p_PATH +"/lenet/plots/hist_lenet_QUANTIZED_9.gif", range = (-.7,.7), top = None, split_by_rows=False)
-
-    model_17 = get_quantized_model(model, 17, RPU_CONFIG)
-    model_17.eval()
-    pl.generate_moving_hist(model_17,title="Distribution of Quantized Weight\n Values over the tiles - LENET17", file_name=p_PATH +"/lenet/plots/hist_lenet_QUANTIZED_17.gif", range = (-.7,.7), top = None, split_by_rows=False)
+    model_i = []
+    for level in MAP_LEVEL_FILE.keys():
+        model_i.append(get_quantized_model(model, level, RPU_CONFIG))
+        model_i[-1].eval()
+        pl.generate_moving_hist(model_i[-1],title=f"Distribution of Quantized Weight\n Values over the tiles - LENET{level}", file_name= p_PATH + f"/lenet/plots/hist_lenet_QUANTIZED_{level}.gif", range = (-.7,.7), top=None, split_by_rows=False)
 
 
-    # -**-**-**-**-**-**-**-**-**-**-**-**-**-**-**- FIRST EVALUATION: 3 MODELS -**-**-**-**-**-**-**-**-**-**-**-**-**-**-**-
+    # -**-**-**-**-**-**-**-**-**-**-**-**-**-**-**- FIRST EVALUATION: 5 MODELS -**-**-**-**-**-**-**-**-**-**-**-**-**-**-**-
     t_inferences = [0.0]  # Times to perform infernece.
     n_reps = N_REPS  # Number of inference repetitions.
 
-    model_names = ["Unquantized", "Quantized - 9 levels", "Quantized - 17 levels"]
+    model_names = ["Unquantized","Quantized - 3 levels", "Quantized - 5 levels", "Quantized - 9 levels", "Quantized - 17 levels", "Quantized - 33 levels",]
     inference_accuracy_values = torch.zeros((len(t_inferences), 1, len(model_names)))
     observed_max = [0] * len(model_names)
     observed_min = [100] * len(model_names)
@@ -319,7 +337,8 @@ if __name__ == '__main__':
                 if model_name == "Unquantized":
                     model_i = deepcopy(model)
                 else:
-                    model_i = get_quantized_model(model, 9 if model_name=="Quantized - 9 levels" else 17, RPU_CONFIG)
+                    model_name = model_name.split(" ")
+                    model_i = get_quantized_model(model, int(model_name[-2]), RPU_CONFIG)
                 model_i.eval()
                 
                 inference_accuracy_values[t_id, j, i] = evaluate_model(
@@ -362,9 +381,15 @@ if __name__ == '__main__':
     original_model = inference_lenet5(RPU_CONFIG).to(device)
     original_model.load_state_dict(state_dict, strict=True, load_rpu_config=False)
 
-    '''QUANTIZED 9 levels'''
+    resolution = {
+        3 : 0.5,
+        5 : 0.3,
+        9 : 0.18,
+        17 : 0.12,
+        33 : 0.09
+    }
     RPU_CONFIG.quantization = WeightQuantizerParameter(
-        resolution=0.18 if SELECTED_LEVEL == 9 else 0.12,
+        resolution=resolution[SELECTED_LEVEL],
         levels = SELECTED_LEVEL,
     )
     model_fitted = convert_to_analog(original_model, RPU_CONFIG)
@@ -388,10 +413,10 @@ if __name__ == '__main__':
     fitted_models_accuracy = torch.zeros((len(t_inferences), n_reps, len(types)))
     fitted_observed_max = [0] * len(types)
     fitted_observed_min = [100] * len(types)
-    DEBUGGING_PLOTS = True
+    
 
     if DEBUGGING_PLOTS:
-        fig, ax = plt.subplots(figsize=(12,17))
+        fig, ax = plt.subplots(figsize=(17,12))
         ax.set_title("Conductance values of the tiles")
         ax.set_xlabel("Target Conductance (muS)")
         ax.set_ylabel("Real Conductance (muS)")
@@ -420,7 +445,7 @@ if __name__ == '__main__':
                 model_fitted = inference_lenet5(RPU_CONFIG).to(device)
                 model_fitted.load_state_dict(state_dict, strict=True, load_rpu_config=False)
                 RPU_CONFIG.quantization = WeightQuantizerParameter(
-                    resolution=0.18 if SELECTED_LEVEL == 9 else 0.12,
+                    resolution=resolution[SELECTED_LEVEL],
                     levels = SELECTED_LEVEL,
                     )
                 model_fitted = convert_to_analog(model_fitted, RPU_CONFIG)
@@ -480,11 +505,7 @@ if __name__ == '__main__':
     # Plot the accuracy of the models in a stem plot
     fig, ax = plt.subplots(figsize=(23,7))
     models = ["Unquantized",f"Quantized - {SELECTED_LEVEL} levels"] + fitted_models_names
-    if SELECTED_LEVEL == 9:
-        accuracies = [inference_accuracy_values[t_id, :, 0].mean(),inference_accuracy_values[t_id, :, 1].mean()]
-    else:
-        accuracies = [inference_accuracy_values[t_id, :, 0].mean(),inference_accuracy_values[t_id, :, 2].mean()]
-    
+    accuracies = [inference_accuracy_values[model_names.index(models[0])], inference_accuracy_values[model_names.index(models[1])]]
     accuracies = accuracies + fitted_models_accuracy.mean(dim=1)[0].tolist()
     std_accuracy = [.0,.0] + fitted_models_accuracy.std(dim=1)[0].tolist()
     observed_max = accuracies[:2] + fitted_observed_max
@@ -504,8 +525,6 @@ if __name__ == '__main__':
     ax.fill_between(x, min, max, where=(max > min), color='lightsalmon', alpha=0.5, label='Observed Accuracy Interval')
     ax.plot(x, max, ls='dashdot', color = 'olivedrab', label = 'Max observed accuracy', marker = '1', markersize=10)
     ax.plot(x, min, ls= 'dashdot', color = 'olivedrab', label = 'Min observed accuracy', marker = '2', markersize=10)
-
-
     ax.set_title(f"Accuracy of the models over {n_reps} repetitions")
     ax.set_ylabel("Accuracy (%)")
     ax.set_xlim([-0.5, len(models)- 0.5])

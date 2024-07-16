@@ -525,7 +525,7 @@ if __name__ == '__main__':
     variables = import_mat_file(path)
 
     types = variables['str']
-    types = [types[0][t][0] for t in range(types.shape[1])]
+    types = [types[0][t][0] for t in range(types.shape[1]) if types[0][t][0]!= 'Read']
     ww_mdn = variables['ww_mdn'] * 1e6
     ww_std = variables['ww_std'] * 1e6
     ww_mdn = pd.DataFrame(ww_mdn, columns=types)

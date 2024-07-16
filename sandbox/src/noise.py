@@ -9,10 +9,12 @@ from torch import randn_like
 from torch import Tensor
 from torch.autograd import no_grad
 from typing import List, Tuple, Optional
+import numpy as np
 import pandas as pd
 from random import gauss
-from .utilities import import_mat_file
+from .utilities import import_mat_file, interpolate
 from aihwkit.inference.noise.base import BaseNoiseModel
+
 
 class NullNoiseModel(BaseNoiseModel):
     """Null noise model. """
@@ -68,13 +70,12 @@ class ExperimentalNoiseModel(BaseNoiseModel):
         self.chosen_type = type
         variables = import_mat_file(file_path)
         types = variables['str']
-        types = [types[0][t][0] for t in range(types.shape[1])]
+        types = [types[0][t][0] for t in range(types.shape[1]) if types[0][t][0] != 'Read']
         ww_mdn = variables['ww_mdn']
         ww_std = variables['ww_std']
-        ww_mdn = pd.DataFrame(ww_mdn, columns=types)
-        ww_std = pd.DataFrame(ww_std, columns=types)
-        self.ww_mdn = torch.tensor(ww_mdn[self.chosen_type].values) * 1e6 # handle conversion from muS
-        self.ww_std = torch.tensor(ww_std[self.chosen_type].values) * 1e6 # handle conversion from muS
+        self.ww_mdn = torch.tensor(ww_mdn[:,types.index(self.chosen_type)]) * 1e6 # handle conversion from muS
+        print(self.ww_mdn)
+        self.ww_std = torch.tensor(ww_std[:,types.index(self.chosen_type)]) * 1e6 # handle conversion from muS
         self.debug = debug
         if debug:
             self.c_index = 0
