@@ -108,7 +108,7 @@ def sel_model_init(model_name:str, RPU_CONFIG, state_dict):
 
     return model
 
-if __name__ == 'main':
+if __name__ == '__main__':
     # -**-**-**-**-**-**-**-**-**-**-**-**-**-**-**- SETUP -**-**-**-**-**-**-**-**-**-**-**-**-**-**-**-
 
     p_PATH = os.path.abspath(__file__)
