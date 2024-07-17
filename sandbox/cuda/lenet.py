@@ -1,3 +1,10 @@
+# --*-- lenet.py --*--
+#
+# The script is used to evaluate the accuracy of the LeNet model
+# over different levels of quantization and noise
+#
+# --*-- coding: utf-8 --*--
+
 import os
 import torch
 import gc
@@ -71,43 +78,14 @@ from src.utilities import interpolate
 
 from src.noise import NullNoiseModel, ExperimentalNoiseModel, JustMedianNoiseModel, JustStdNoiseModel
 from aihwkit.inference.converter.conductance import SinglePairConductanceConverter
+from shared import get_quantized_model, evaluate_model, inference_lenet5
+
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
-
 # ********************************************************************************************************************
-# ---------------------------------------------- MODEL DEFINITION ----------------------------------------------------
+# ------------------------------------------- UTILITY FUNCTIONS ------------------------------------------------------
 # ********************************************************************************************************************
-
-# Rebuild the LeNet5 model
-def inference_lenet5(RPU_CONFIG):
-    """Return a LeNet5 inspired analog model."""
-    channel = [16, 32, 512, 128]
-    model = AnalogSequential(
-        AnalogConv2d(
-            in_channels=1, out_channels=channel[0], kernel_size=5, stride=1, rpu_config=RPU_CONFIG
-        ),
-        nn.Tanh(),
-        nn.MaxPool2d(kernel_size=2),
-        AnalogConv2d(
-            in_channels=channel[0],
-            out_channels=channel[1],
-            kernel_size=5,
-            stride=1,
-            rpu_config=RPU_CONFIG,
-        ),
-        nn.Tanh(),
-        nn.MaxPool2d(kernel_size=2),
-        nn.Tanh(),
-        nn.Flatten(),
-        AnalogLinear(in_features=channel[2], out_features=channel[3], rpu_config=RPU_CONFIG),
-        nn.Tanh(),
-        AnalogLinear(in_features=channel[3], out_features=N_CLASSES, rpu_config=RPU_CONFIG),
-        nn.LogSoftmax(dim=1),
-    )
-
-    return model
-
 
 def get_test_loader(batch_size = 32):
     # Load test data form MNIST dataset
@@ -118,40 +96,7 @@ def get_test_loader(batch_size = 32):
     )
     test_loader = torch.utils.data.DataLoader(test_set, batch_size=batch_size, shuffle=False)
     return test_loader
-
-
-def evaluate_model(model, test_loader, device):
-    model.eval()
-    with torch.no_grad():
-        correct = 0
-        total = 0
-        for inputs, targets in tqdm(test_loader, desc="Evaluating model"):
-
-            inputs, targets = inputs.to(device), targets.to(device)
-            outputs = model(inputs)
-            _, predicted = outputs.max(1)
-            total += targets.size(0)
-            correct += predicted.eq(targets).sum().item()
-
-        return 100.0 * correct / total
     
-
-
-def get_quantized_model(model,level, rpu_config):
-    resolution = {
-        3 : 0.5,
-        5 : 0.3,
-        9 : 0.18,
-        17 : 0.12,
-        33 : 0.05
-    }
-    rpu_config.quantization = WeightQuantizerParameter(
-        resolution=resolution[level],
-        levels=level
-    )
-    model_quantized = convert_to_analog(model, rpu_config)
-    return model_quantized
-
 
 def download_url(url, dest_folder, filename=None):
     if not os.path.exists(dest_folder):
@@ -218,7 +163,7 @@ if __name__ == '__main__':
     for opt, arg in opts:
         if opt in ('-l', '--level'):
             if int(arg) not in [3, 5, 9, 17, 33]:
-                raise ValueError("The selected level must be either 9 or 17")
+                raise ValueError("The selected level must be either 3, 5, 9, 17 or 33")
             SELECTED_LEVEL = int(arg)
             print(f"Selected level: {SELECTED_LEVEL}")
         if opt in ('-n', '--noise'):
@@ -527,7 +472,7 @@ if __name__ == '__main__':
                boxprops=dict(facecolor="mediumorchid", alpha = 0.7),
                medianprops = dict(linewidth=2.5, color='darkorange'), 
                whiskerprops = dict(linewidth=1.5, color='black'),
-               flierprops = dict(marker='0', color='firebrick', markersize=15),
+               flierprops = dict(marker='o', color='firebrick', markersize=15),
                bootstrap=1000,
                widths=0.23,)
     ax.stem(models[2:], accuracies[2:], linefmt ='darkorchid', markerfmt ='D', markerfacecolor ='black', basefmt=' ')
