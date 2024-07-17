@@ -418,9 +418,15 @@ class CustomDefinedPreset(InferenceRPUConfig):
     # )
 
 def get_quantized_model(model,level, rpu_config):
-
+    resolution = {
+        3 : 0.5,
+        5 : 0.3,
+        9 : 0.18,
+        17 : 0.12,
+        33 : 0.05
+    }
     rpu_config.quantization = WeightQuantizerParameter(
-        resolution=0.12 if level == 17 else 0.2,
+        resolution=resolution[level],
         levels=level
     )
     model_quantized = convert_to_analog(model, rpu_config)
@@ -433,8 +439,8 @@ def get_quantized_model(model,level, rpu_config):
 def accuracy_plot(model_names, inference_accuracy_values, observed_max, observed_min, r_number ,path):
     # Plot the accuracy of the models in a stem plot
     fig, ax = plt.subplots()
-    y1= np.array([0.]*3)
-    y2= np.array([0.]*3)
+    y1= np.array([0.]*len(model_names))
+    y2= np.array([0.]*len(model_names))
     for i, model_name in enumerate(model_names):
         mean = inference_accuracy_values[0, :, i].mean()
         std = inference_accuracy_values[0, :, i].std()
@@ -515,21 +521,32 @@ if __name__ == '__main__':
     }
 
     G_RANGE = [-40, 40]
-    CONDUCTANCES = {
+    TARGET_CONDUCTANCES = {
+        3 : [G_RANGE[0] + i * (G_RANGE[1] - G_RANGE[0]) / 2 for i in range(5)],
+        5 : [G_RANGE[0] + i * (G_RANGE[1] - G_RANGE[0]) / 4 for i in range(33)],
         9 : [G_RANGE[0] + i * (G_RANGE[1] - G_RANGE[0]) / 8 for i in range(9)],
-        17 : [G_RANGE[0] + i * (G_RANGE[1] - G_RANGE[0]) / 16 for i in range(17)]
+        17 : [G_RANGE[0] + i * (G_RANGE[1] - G_RANGE[0]) / 16 for i in range(17)],
+        33 : [G_RANGE[0] + i * (G_RANGE[1] - G_RANGE[0]) / 32 for i in range(33)]
     }
+
+    DEBUGGING_PLOTS = False
 
     # Extract the data from the .mat file
     path = p_PATH+ f"/data/{MAP_LEVEL_FILE[SELECTED_LEVEL]}"
     variables = import_mat_file(path)
 
     types = variables['str']
-    types = [types[0][t][0] for t in range(types.shape[1]) if types[0][t][0]!= 'Read']
+    types = [types[0][t][0] for t in range(types.shape[1])]
     ww_mdn = variables['ww_mdn'] * 1e6
     ww_std = variables['ww_std'] * 1e6
     ww_mdn = pd.DataFrame(ww_mdn, columns=types)
     ww_std = pd.DataFrame(ww_std, columns=types)
+
+    if MAP_LEVEL_FILE[SELECTED_LEVEL] == "matlab/4bit.mat":
+        # Delete the noise type '1d,RT' for faulty measurement
+        ww_mdn.drop(columns=['1d,RT'], inplace=True)
+        ww_std.drop(columns=['1d,RT'], inplace=True)
+        types.remove('1d,RT')
 
     # Create the model and load the weights
     model = resnet9s().to(device)
@@ -550,15 +567,17 @@ if __name__ == '__main__':
     model.eval()
     pl.generate_moving_hist(model,title="Distribution of Weight Values over the tiles - RESNET", file_name=p_PATH+"/resnet/plots/hist_resnet_UNQUATIZED.gif", range = (-.5,.5), top=None, split_by_rows=False, HIST_BINS = 171)
 
-    model_quantized = get_quantized_model(model, SELECTED_LEVEL, rpu_config)
-    model_quantized.eval()
-    pl.generate_moving_hist(model_quantized,title= f"Distribution of Quantized Weight Values over the tiles - RESNET{SELECTED_LEVEL}", file_name=p_PATH+f"/resnet/plots/hist_resnet_QUANTIZED_{SELECTED_LEVEL}.gif", range = (-.5,.5), top=None, split_by_rows=False, HIST_BINS = 171)
-    
-    # -**-**-**-**-**-**-**-**-**-**-**-**-**-**-**- FIRST EVALUATION: 3 MODELS -**-**-**-**-**-**-**-**-**-**-**-**-**-**-**-
-
+    model_i = []
+    for level in MAP_LEVEL_FILE.keys():
+        model_i.append(get_quantized_model(model, level, rpu_config))
+        model_i[-1].eval()
+        pl.generate_moving_hist(model_i[-1],title=f"Distribution of Quantized Weight Values - RESNET{level}", file_name=p_PATH+f"/resnet/plots/hist_resnet_QUANTIZED_{level}.gif", range = (-.5,.5), top=None, split_by_rows=False, HIST_BINS = 171)
+    # -**-**-**-**-**-**-**-**-**-**-**-**-**-**-**- FIRST EVALUATION: 5 MODELS -**-**-**-**-**-**-**-**-**-**-**-**-**-**-**-
+    print('-**-**-**-**-**-**-**-**-**-**-**-**-**-**-**- FIRST EVALUATION -**-**-**-**-**-**-**-**-**-**-**-**-**-**-**-')
     t_inferences = [0.0]  # Times to perform infernece.
     n_reps = N_REPS  # Number of inference repetitions.
-    model_names = ["Unquantized", "Quantized - 9 levels", "Quantized - 17 levels"]
+
+    model_names = ["Unquantized","Quantized - 3 levels", "Quantized - 5 levels", "Quantized - 9 levels", "Quantized - 17 levels", "Quantized - 33 levels",]
     inference_accuracy_values = torch.zeros((len(t_inferences), n_reps, len(model_names)))
     observed_max = [0] * len(model_names)
     observed_min = [100] * len(model_names)
@@ -570,10 +589,13 @@ if __name__ == '__main__':
                 if model_name == "Unquantized":
                     model_i = deepcopy(model)
                 else:
-                    model_i = get_quantized_model(model, 9 if model_name=="Quantized - 9 levels" else 17, rpu_config)
-                
+                    model_name =model_name.split(" ")
+                    model_i = get_quantized_model(model, int(model_name[-2]), rpu_config)
+                model_i.eval()
+
                 # Calibrate input ranges
                 dataloader=Sampler(get_test_loader(), device)
+
                 calibrate_input_ranges(
                 model=model_i,
                 calibration_type=InputRangeCalibrationType.CACHE_QUANTILE,
@@ -607,6 +629,8 @@ if __name__ == '__main__':
 
 
     # -**-**-**-**-**-**-**-**-**-**-**-**-**-**-**- SECOND EVALUATION: FITTED DATA -**-**-**-**-**-**-**-**-**-**-**-**-**-**-**-
+    print('\n-**-**-**-**-**-**-**-**-**-**-**-**-**-**-**- SECOND EVALUATION: FITTED DATA -**-**-**-**-**-**-**-**-**-**-**-**-**-**-**-')
+    print("\n\nAvailable experimental noises are: ", types)
     print("Available experimental noises are: ", types)
     CHOSEN_NOISE = types[0]
     print(f"Chosen noise: {CHOSEN_NOISE}" )
@@ -616,15 +640,23 @@ if __name__ == '__main__':
     RPU_CONFIG  = IdealPreset()
     RPU_CONFIG.noise_model= MAP_NOISE_TYPE[SELECTED_NOISE](file_path = path,
                                                             type = CHOSEN_NOISE,
+                                                            levels = SELECTED_LEVEL,
+                                                            debug = DEBUGGING_PLOTS,
                                                             g_converter=SinglePairConductanceConverter(g_max=40.)),
                     
 
     original_model = resnet9s().to(device)
     original_model.load_state_dict(state_dict["model_state_dict"], strict=True)
 
-    '''QUANTIZED 9 levels'''
+    resolution = {
+        3 : 0.5,
+        5 : 0.3,
+        9 : 0.18,
+        17 : 0.12,
+        33 : 0.09
+    }
     RPU_CONFIG.quantization = WeightQuantizerParameter(
-        resolution=0.2 if SELECTED_LEVEL == 9 else 0.12,
+        resolution=resolution[SELECTED_LEVEL],
         levels = SELECTED_LEVEL,
     )
     model_fitted = convert_to_analog(original_model, RPU_CONFIG)
@@ -647,6 +679,15 @@ if __name__ == '__main__':
     fitted_models_accuracy = torch.zeros((len(t_inferences), n_reps, len(types)))
     fitted_observed_max = [0] * len(types)
     fitted_observed_min = [100] * len(types)
+
+    if DEBUGGING_PLOTS:
+        fig, ax = plt.subplots(figsize=(17,12))
+        ax.set_title("Conductance values of the tiles")
+        ax.set_xlabel("Target Conductance (muS)")
+        ax.set_ylabel("Real Conductance (muS)")
+        ax.set_xlim([-45, 45])
+        ax.set_ylim([-65, 65])
+
     for i in range(len(types)):
         CHOSEN_NOISE = types[i]
         RPU_CONFIG  = IdealPreset()
@@ -674,6 +715,29 @@ if __name__ == '__main__':
                 dataloader=dataloader,
                 )
 
+
+                # //////////////////////////////////////    DEBUGGING    /////////////////////////////////////////
+
+                if next(model_fitted.analog_tiles()).rpu_config.noise_model[0].debug:
+                    # Loop over the debugging directory (.debug_dir/id=x/g_target_x) to get the conductance arrays
+                    # for each tile, where x is the tile number
+                    target = np.array([])
+                    real = np.array([])
+                    debug_dir = next(model_fitted.analog_tiles()).rpu_config.noise_model[0].debug_dir
+                    for tile_dir in os.listdir(debug_dir):
+                        # Tile dir has the form id=x, get the tile number
+                        tile_id = tile_dir.split("=")[1]
+                        # Get inside the tile directory
+                        tile_dir = debug_dir + "/" + tile_dir
+                        # Get the target and real conductance arrays and append them to the global arrays
+                        target = np.append(target, np.load(tile_dir + f"/g_target_{tile_id}.npy"))
+                        real = np.append(real, np.load(tile_dir + f"/g_real_{tile_id}.npy"))
+                    
+                    # Add the contribution of the current model to the plot
+                    ax.scatter(target, real, label=f"Noise: {CHOSEN_NOISE}", alpha=0.7*(len(types)- i*0.5)/len(types), color = next(model_fitted.analog_tiles()).rpu_config.noise_model[0].color_noise, marker = "x")   
+                        
+                # ////////////////////////////////////////////////////////////////////////////////////////////////
+
                 # Then evaluate the model
                 fitted_models_accuracy[t_id, j, i] = evaluate_model(model_fitted, get_test_loader(), device)
                 if fitted_observed_max[i] < fitted_models_accuracy[t_id, j, i]:
@@ -690,20 +754,22 @@ if __name__ == '__main__':
             print(
                 f"Test set accuracy (%) at t={t}s for {fitted_models_names[i]}: mean: {fitted_models_accuracy[t_id, :, i].mean()}, std: {fitted_models_accuracy[t_id, :, i].std()}"
             )
+    
+    if DEBUGGING_PLOTS:
+        # Move the legend outside the plot
+        ax.legend(loc='center left', bbox_to_anchor=(1, 0.5))
+        plt.savefig(p_PATH + f"/cuda/debugging_plots/Conductance_values.png")
+
 
     # Plot the accuracy of the models in a stem plot
     fig, ax = plt.subplots(figsize=(23,7))
     models = ["Unquantized",f"Quantized - {SELECTED_LEVEL} levels"] + fitted_models_names
-    if SELECTED_LEVEL == 9:
-        accuracies = [inference_accuracy_values[t_id, :, 0].mean(),inference_accuracy_values[t_id, :, 1].mean()]
-        std_accuracy = [inference_accuracy_values[t_id, :, 0].std(),inference_accuracy_values[t_id, :, 1].std()]
-        observed_max = observed_max[:2]
-        observed_min = observed_min[:2]
-    else:
-        accuracies = [inference_accuracy_values[t_id, :, 0].mean(),inference_accuracy_values[t_id, :, 2].mean()]
-        std_accuracy = [inference_accuracy_values[t_id, :, 0].std(),inference_accuracy_values[t_id, :, 2].std()]
-        observed_max = [observed_max[0], observed_max[2]]
-        observed_min = [observed_min[0], observed_min[2]]
+
+    accuracies = [inference_accuracy_values[0, :, model_names.index(models[0])].mean(), inference_accuracy_values[0, :, model_names.index(models[1])].mean()]
+    std_accuracy = [inference_accuracy_values[0, :, model_names.index(models[0])].std(),inference_accuracy_values[0, :, model_names.index(models[1])].std()]
+    observed_max = [observed_max[0], observed_max[model_names.index(models[1])]]
+    observed_min = [observed_min[0], observed_min[model_names.index(models[1])]]
+
     accuracies = accuracies + fitted_models_accuracy.mean(dim=1)[0].tolist()
     std_accuracy = std_accuracy + fitted_models_accuracy.std(dim=1)[0].tolist()
     observed_max = observed_max + fitted_observed_max

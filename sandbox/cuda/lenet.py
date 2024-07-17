@@ -255,7 +255,7 @@ if __name__ == '__main__':
     }
 
     G_RANGE = [-40, 40]
-    CONDUCTANCES = {
+    TARGET_CONDUCTANCES = {
         3 : [G_RANGE[0] + i * (G_RANGE[1] - G_RANGE[0]) / 2 for i in range(5)],
         5 : [G_RANGE[0] + i * (G_RANGE[1] - G_RANGE[0]) / 4 for i in range(33)],
         9 : [G_RANGE[0] + i * (G_RANGE[1] - G_RANGE[0]) / 8 for i in range(9)],
@@ -283,7 +283,6 @@ if __name__ == '__main__':
         types.remove('1d,RT')
 
     # Download the model if it not already present
-   
     os.makedirs(p_PATH + '/lenet')  if not os.path.exists(p_PATH + '/lenet') else None
     os.makedirs(p_PATH + '/lenet/plots') if not os.path.exists(p_PATH + '/lenet/plots') else None
     url = 'https://drive.google.com/uc?id=1-dJx-mGqr5iKYpHVFaRT1AfKUZKgGMQL'
@@ -459,10 +458,6 @@ if __name__ == '__main__':
 
                 # //////////////////////////////////////    DEBUGGING    /////////////////////////////////////////
 
-                # Expose all the member of the model_fitted object
-
-                
-
                 if next(model_fitted.analog_tiles()).rpu_config.noise_model[0].debug:
                     # Loop over the debugging directory (.debug_dir/id=x/g_target_x) to get the conductance arrays
                     # for each tile, where x is the tile number
@@ -479,9 +474,7 @@ if __name__ == '__main__':
                         real = np.append(real, np.load(tile_dir + f"/g_real_{tile_id}.npy"))
                     
                     # Add the contribution of the current model to the plot
-                    ax.scatter(target, real, label=f"Noise: {CHOSEN_NOISE}", alpha=0.7*(len(types)- i*0.5)/len(types), color = next(model_fitted.analog_tiles()).rpu_config.noise_model[0].color_noise, marker = "x")
-                        
-                        
+                    ax.scatter(target, real, label=f"Noise: {CHOSEN_NOISE}", alpha=0.7*(len(types)- i*0.5)/len(types), color = next(model_fitted.analog_tiles()).rpu_config.noise_model[0].color_noise, marker = "x")   
                         
                 # ////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -511,7 +504,7 @@ if __name__ == '__main__':
     models = ["Unquantized",f"Quantized - {SELECTED_LEVEL} levels"] + fitted_models_names
     accuracies = [inference_accuracy_values[0, :, model_names.index(models[0])].mean(), inference_accuracy_values[0, :, model_names.index(models[1])].mean()]
     accuracies = accuracies + fitted_models_accuracy.mean(dim=1)[0].tolist()
-    std_accuracy = [.0,.0] + fitted_models_accuracy.std(dim=1)[0].tolist()
+    std_accuracy = [.0,.0] + (fitted_models_accuracy.std(dim=1)[0].tolist() if n_reps > 1 else [0.]*len(fitted_models_accuracy[0]))
     observed_max = accuracies[:2] + fitted_observed_max
     observed_min = accuracies[:2] + fitted_observed_min
     ax.stem(models[:2], accuracies[:2], linefmt ='darkorange', markerfmt ='D', basefmt=' ')
