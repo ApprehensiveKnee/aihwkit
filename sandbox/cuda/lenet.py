@@ -510,7 +510,7 @@ if __name__ == '__main__':
     accuracies = accuracies + fitted_models_accuracy.mean(dim=1)[0].tolist()
     # observed_max = accuracies[:2] + fitted_observed_max
     # observed_min = accuracies[:2] + fitted_observed_min
-    ax.plot(x, accuracies, ls='dashdot', color = 'olivedrab', label = 'Mean observed accuracy', marker='None')
+    
     ax.stem(models[:2], accuracies[:2], linefmt ='darkorange', markerfmt ='D', basefmt=' ')
     ax.boxplot([inference_accuracy_values[0,:,model_names.index(models[0])],inference_accuracy_values[0, :, model_names.index(models[1])]], 
                patch_artist=True, 
@@ -534,6 +534,7 @@ if __name__ == '__main__':
     # max = np.array(observed_max)
     # min = np.array(observed_min)
     # Interpolating or directly using the points to fill the region
+    ax.plot(x, accuracies, ls='dashdot', color = 'black', label = 'Mean observed accuracy', marker='None')
     # ax.plot(x, max, ls = 'None', color = 'firebrick', label = 'Max observed accuracy', marker = '1', markersize=10)
     # ax.plot(x, min,ls = 'None', color = 'firebrick', label = 'Min observed accuracy', marker = '2', markersize=10)
     ax.set_title(f"Accuracy of the models over {n_reps} repetitions")
