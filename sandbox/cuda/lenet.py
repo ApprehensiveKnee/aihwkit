@@ -515,22 +515,22 @@ if __name__ == '__main__':
                patch_artist=True, 
                positions=[0,1], 
                boxprops=dict(facecolor="darkorange", alpha = 0.7), 
-               medianprops = dict(linewidth=2.5, color='black'),
+               medianprops = dict(linewidth=2.5, color='indigo'),
                whiskerprops = dict(linewidth=1.5, color='black'),
-               flierprops = dict(marker='1', markerfacecolor='firebrick', markersize=15),
+               flierprops = dict(marker='o', color='firebrick', markersize=15),
                bootstrap=1000, 
                widths=0.23,)
-    ax.stem(models[:2], accuracies[:2], linefmt ='darkorange', markerfmt ='D', basefmt=' ')
+    ax.stem(models[:2], accuracies[:2], linefmt ='darkorange', markerfmt ='D', markerfacecolor ='black', basefmt=' ')
     ax.boxplot([fitted_models_accuracy[0, :, i] for i in range(fitted_models_accuracy.shape[2])], 
                patch_artist=True, 
                positions=range(2,fitted_models_accuracy.shape[2]+2), 
                boxprops=dict(facecolor="mediumorchid", alpha = 0.7),
-               medianprops = dict(linewidth=2.5, color='black'), 
+               medianprops = dict(linewidth=2.5, color='darkorange'), 
                whiskerprops = dict(linewidth=1.5, color='black'),
-               flierprops = dict(marker='1', markerfacecolor='firebrick', markersize=15),
+               flierprops = dict(marker='0', color='firebrick', markersize=15),
                bootstrap=1000,
                widths=0.23,)
-    ax.stem(models[2:], accuracies[2:], linefmt ='darkorchid', markerfmt ='D', basefmt=' ')
+    ax.stem(models[2:], accuracies[2:], linefmt ='darkorchid', markerfmt ='D', markerfacecolor ='black', basefmt=' ')
     # Define the points min max
     x = np.arange(len(models))
     # max = np.array(observed_max)
