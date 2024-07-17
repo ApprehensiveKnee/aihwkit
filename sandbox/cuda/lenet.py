@@ -517,6 +517,7 @@ if __name__ == '__main__':
                boxprops=dict(facecolor="darkorange", alpha = 0.7), 
                medianprops = dict(linewidth=2.5, color='black'),
                whiskerprops = dict(linewidth=1.5, color='black'),
+               flierprops = dict(marker='1', markerfacecolor='firebrick', markersize=5),
                bootstrap=1000, 
                widths=0.23,)
     ax.stem(models[:2], accuracies[:2], linefmt ='darkorange', markerfmt ='D', basefmt=' ')
@@ -526,6 +527,7 @@ if __name__ == '__main__':
                boxprops=dict(facecolor="mediumorchid", alpha = 0.7),
                medianprops = dict(linewidth=2.5, color='black'), 
                whiskerprops = dict(linewidth=1.5, color='black'),
+               flierprops = dict(marker='1', markerfacecolor='firebrick', markersize=5),
                bootstrap=1000,
                widths=0.23,)
     ax.stem(models[2:], accuracies[2:], linefmt ='darkorchid', markerfmt ='D', basefmt=' ')
@@ -539,6 +541,7 @@ if __name__ == '__main__':
     # ax.plot(x, min,ls = 'None', color = 'firebrick', label = 'Min observed accuracy', marker = '2', markersize=10)
     ax.set_title(f"Accuracy of the models over {n_reps} repetitions")
     ax.set_ylabel("Accuracy (%)")
+    ax.set_xticks(models)
     ax.set_xlim([-0.5, len(models)- 0.5])
     ax.minorticks_on()
     ax.yaxis.grid(True)
