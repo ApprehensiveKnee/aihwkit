@@ -106,7 +106,7 @@ def inference_lenet5(RPU_CONFIG):
         nn.Flatten(),
         AnalogLinear(in_features=channel[2], out_features=channel[3], rpu_config=RPU_CONFIG),
         nn.Tanh(),
-        AnalogLinear(in_features=channel[3], out_features=N_CLASSES, rpu_config=RPU_CONFIG),
+        AnalogLinear(in_features=channel[3], out_features=10, rpu_config=RPU_CONFIG),
         nn.LogSoftmax(dim=1),
     )
 
