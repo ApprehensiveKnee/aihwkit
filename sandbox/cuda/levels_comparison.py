@@ -216,6 +216,19 @@ if __name__ == '__main__':
                 model_i = get_quantized_model(unquantized_model, LEVELS[i-1], RPU_CONFIG)
             model_i.eval()
 
+            if SELECTED_MODEL == "resnet":
+                # Calibrate input ranges
+                dataloader = Sampler(get_test_loader(), device)
+                calibrate_input_ranges(
+                model=model_i,
+                calibration_type=InputRangeCalibrationType.CACHE_QUANTILE,
+                dataloader=dataloader,
+                )
+
+            if j == 0:
+                pl.generate_moving_hist(model_i, title=f"{model_name} - {SELECTED_NOISE}", path=f"{p_PATH}/{SELECTED_MODEL}/plots/{model_name}_{SELECTED_NOISE}.png")
+
+
             model_accuracy[i,0,j] = evaluate_model(model_i, get_test_loader(), device)
             print(f"Model: {model_name} - Repetition: {j} - Accuracy: {model_accuracy[i,0,j]}")
 
@@ -240,6 +253,15 @@ if __name__ == '__main__':
                 model = get_quantized_model(model, levels, RPU_CONFIG)
                 model.eval()
                 model.program_analog_weights()
+
+                if SELECTED_MODEL == "resnet":
+                    # Calibrate input ranges
+                    dataloader = Sampler(get_test_loader(), device)
+                    calibrate_input_ranges(
+                    model=model,
+                    calibration_type=InputRangeCalibrationType.CACHE_QUANTILE,
+                    dataloader=dataloader,
+                    )
 
                 model_accuracy[i+1,j+1,k] = evaluate_model(model, get_test_loader(), device)
                 #print(f"Model: {levels} levels - Noise: {noise_type} - Repetition: {k} - Accuracy: {model_accuracy[i+1,j+1,k]}")
