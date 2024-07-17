@@ -226,7 +226,7 @@ if __name__ == '__main__':
                 )
 
             if j == 0:
-                pl.generate_moving_hist(model_i, title=f"{model_name} - {SELECTED_NOISE}", path=f"{p_PATH}/{SELECTED_MODEL}/plots/{model_name}_{SELECTED_NOISE}.png")
+                pl.generate_moving_hist(model_i, title=f"{model_name} - {SELECTED_NOISE}", file_name=f"{p_PATH}/{SELECTED_MODEL}/plots/{model_name}_{SELECTED_NOISE}.png",  range = (-.7,.7), top=None, split_by_rows=False)
 
 
             model_accuracy[i,0,j] = evaluate_model(model_i, get_test_loader(), device)
