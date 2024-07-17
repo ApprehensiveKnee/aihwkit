@@ -213,7 +213,7 @@ if __name__ == '__main__':
     p_PATH = os.path.abspath(__file__)
     p_PATH = os.path.dirname(os.path.dirname(p_PATH))
 
-    opts, args = getopt(sys.argv[1:], 'l:n:r:',['level=','noise=', 'reps='])
+    opts, args = getopt(sys.argv[1:], 'l:n:r:d',['level=','noise=', 'reps=', 'debug'])
     
     for opt, arg in opts:
         if opt in ('-l', '--level'):
@@ -229,6 +229,9 @@ if __name__ == '__main__':
         if opt in ('-r', '--reps'):
             N_REPS = int(arg)
             print(f"Number of repetitions: {N_REPS}")
+        if opt in ('-d', '--debug'):
+            DEBUGGING_PLOTS = True
+            print("Debugging plots enabled")
     
     if 'SELECTED_LEVEL' not in locals():
         SELECTED_LEVEL = 9
@@ -239,6 +242,9 @@ if __name__ == '__main__':
     if 'N_REPS' not in locals():
         N_REPS = 10
         print(f"Number of repetitions: {N_REPS}")
+    if 'DEBUGGING_PLOTS' not in locals():
+        DEBUGGING_PLOTS = False
+        print("Debugging plots disabled")
 
     MAP_LEVEL_FILE = {
         3 : "matlab/3bit.mat",
@@ -262,8 +268,6 @@ if __name__ == '__main__':
         17 : [G_RANGE[0] + i * (G_RANGE[1] - G_RANGE[0]) / 16 for i in range(17)],
         33 : [G_RANGE[0] + i * (G_RANGE[1] - G_RANGE[0]) / 32 for i in range(33)]
     }
-
-    DEBUGGING_PLOTS = False
 
      # Extract the data from the .mat file
     path = p_PATH+ f"/data/{MAP_LEVEL_FILE[SELECTED_LEVEL]}"
