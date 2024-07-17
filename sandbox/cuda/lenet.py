@@ -249,8 +249,7 @@ if __name__ == '__main__':
     observed_max = [0] * len(model_names)
     observed_min = [100] * len(model_names)
     for i,model_name in enumerate(model_names):
-        for t_id, t in enumerate(t_inferences):
-            for j in range(1): 
+        for t_id, t in enumerate(t_inferences): 
     # ////////////////////////////////////////////////////////////////////////////////////////////////
     # In this case, differently from resnet.py, both the original model and the quantized ones are
     # "ideal", so NO VARIABILITY will affect the models: as such, a single run to sample the accuracy 
@@ -258,24 +257,24 @@ if __name__ == '__main__':
     # ////////////////////////////////////////////////////////////////////////////////////////////////
             # For each repetition, get a new version of the quantized model and calibrare it
 
-                if model_name == "Unquantized":
-                    model_i = deepcopy(model)
-                else:
-                    model_name = model_name.split(" ")
-                    model_i = get_quantized_model(model, int(model_name[-2]), RPU_CONFIG)
-                model_i.eval()
-                
-                inference_accuracy_values[t_id, j, i] = evaluate_model(
-                    model_i, get_test_loader(), device
-                )
-                print(f"Accuracy on rep:{j}, model:{i} -->" , inference_accuracy_values[t_id, j, i])
-                # tile_weights = next(model_i.analog_tiles()).get_weights()
-                # print(f"Tile weights for model {model_names[i]}: {tile_weights[0][0:5, 0:5]}")
-                
-                del model_i
-                torch.cuda.empty_cache()
-                gc.collect()
-                #torch.cuda.reset_peak_memory_stats()
+            if model_name == "Unquantized":
+                model_i = deepcopy(model)
+            else:
+                model_name_i = model_name.split(" ")
+                model_i = get_quantized_model(model, int(model_name_i[-2]), RPU_CONFIG)
+            model_i.eval()
+            
+            inference_accuracy_values[t_id, 0, i] = evaluate_model(
+                model_i, get_test_loader(), device
+            )
+            print(f"Accuracy on rep:{0}, model:{i} -->" , inference_accuracy_values[t_id, 0, i])
+            # tile_weights = next(model_i.analog_tiles()).get_weights()
+            # print(f"Tile weights for model {model_names[i]}: {tile_weights[0][0:5, 0:5]}")
+            
+            del model_i
+            torch.cuda.empty_cache()
+            gc.collect()
+            #torch.cuda.reset_peak_memory_stats()
 
         print(
                 f"Test set accuracy (%) at t={t}s for {model_names[i]}: mean: {inference_accuracy_values[t_id, :, i].mean()}, std: 0.0"

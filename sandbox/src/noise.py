@@ -65,10 +65,10 @@ class TestNVMNoiseModel(BaseNoiseModel):
 class ExperimentalNoiseModel(BaseNoiseModel):
     """Experimental noise model. """
 
-    def __init__(self, file_path: str, type:str, debug:bool= False, levels : int = None ,**kwargs):
+    def __init__(self, file_path: str, type:str, debug:bool= False, levels : int = None, force_interpolation: bool = False ,**kwargs):
         super().__init__(**kwargs)
         self.chosen_type = type
-        variables = interpolate(levels = levels, file_path = file_path)
+        variables = interpolate(levels = levels, file_path = file_path, force_interpolation = force_interpolation)
         types = variables['str']
         types = [types[0][t][0] for t in range(types.shape[1])]
         ww_mdn = variables['ww_mdn']

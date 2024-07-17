@@ -23,7 +23,7 @@ def import_mat_file(file_path):
             variables[key] = data[key]
     return variables
 
-def interpolate(levels: int, file_path: str):
+def interpolate(levels: int, file_path: str, force_interpolation: bool = False):
     '''
     The function is to be used in pair with the import_mat_file function.
     In addition to importing the data, it interpolates the data to match the number of levels chosen:
@@ -47,11 +47,21 @@ def interpolate(levels: int, file_path: str):
         raise ValueError('The chosen file is not supported')
     
     if levels in NO_INTERPOLATION_NEEDED:
+        if force_interpolation & levels == 17 & file_name == '3bit.mat':
+            print(f'Forcing interpolation from the file {file_name}')
+            print(f'The data for 4 bits will be interpolated from the 3 bit data')
+            data = import_mat_file(file_path)
+            for key in ['ww_mdn', 'ww_std']:
+                temp_data = np.zeros((17, data[key].shape[1]))
+                for i in range(data[key].shape[1]):
+                    temp = np.interp(np.linspace(-40, 40, 17), np.linspace(-40, 40, 9), data[key][:, i])
+                    temp_data[:, i] = temp
+                data[key] = temp_data
         if levels == MAP[file_name]:
             return import_mat_file(file_path)
         else:
             print(f'The number of levels is {levels}, but the file {file_name} has {MAP[file_name]} levels')
-            print('The data will be interpolated to match the number of levels')
+            print('The file chose will be modified to match the number of levels')
             print(f'Switching to {MAP[file_name]} levels source file --> {INVERSE_MAP[levels]}')
             file_path = os.path.split(file_path)[0] + '/' + INVERSE_MAP[levels]
             return import_mat_file(file_path)
