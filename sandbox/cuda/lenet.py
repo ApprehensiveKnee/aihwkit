@@ -13,7 +13,6 @@ import sys
 from getopt import getopt
 from torch import nn, Tensor, device, no_grad, manual_seed
 from torch import nn
-from torchvision.datasets.utils import download_url
 import torch.nn.functional as F
 from torchmetrics.functional import accuracy
 import torchvision
@@ -97,29 +96,6 @@ def get_test_loader(batch_size = 32):
     test_loader = torch.utils.data.DataLoader(test_set, batch_size=batch_size, shuffle=False)
     return test_loader
     
-
-def download_url(url, dest_folder, filename=None):
-    if not os.path.exists(dest_folder):
-        os.makedirs(dest_folder)  # create folder if it does not exist
-
-    if filename is None:
-        filename = url.split("/")[-1]  # assume that the last segment after / is file name
-        filename = unquote(filename)  # unquote 'meaning' convert %20 to space etc.
-
-    file_path = os.path.join(dest_folder, filename)
-
-    r = requests.get(url, stream=True)
-    if r.ok:
-        print("saving to", os.path.abspath(file_path))
-        with open(file_path, 'wb') as f:
-            for chunk in r.iter_content(chunk_size=1024 * 8):
-                if chunk:
-                    f.write(chunk)
-                    f.flush()
-                    os.fsync(f.fileno())
-    else:  # HTTP status code 4XX/5XX
-        print("Download failed: status code {}\n{}".format(r.status_code, r.text))
-
 # ********************************************************************************************************************
 # ------------------------------------------- PLOTTING FUNCTIONS ------------------------------------------------------
 # ********************************************************************************************************************
@@ -465,7 +441,8 @@ if __name__ == '__main__':
                flierprops = dict(marker='o', color='firebrick', markersize=15),
                bootstrap=1000, 
                widths=0.23,)
-    ax.stem(models[:2], accuracies[:2], linefmt ='darkorange', markerfmt ='D', markerfacecolor ='black', basefmt=' ')
+    markerline, stemlines, baseline = ax.stem(models[:2], accuracies[:2], linefmt ='darkorange', markerfmt ='D', basefmt=' ')
+    plt.setp(markerline, 'color', 'black')
     ax.boxplot([fitted_models_accuracy[0, :, i] for i in range(fitted_models_accuracy.shape[2])], 
                patch_artist=True, 
                positions=range(2,fitted_models_accuracy.shape[2]+2), 
@@ -475,7 +452,8 @@ if __name__ == '__main__':
                flierprops = dict(marker='o', color='firebrick', markersize=15),
                bootstrap=1000,
                widths=0.23,)
-    ax.stem(models[2:], accuracies[2:], linefmt ='darkorchid', markerfmt ='D', markerfacecolor ='black', basefmt=' ')
+    markerline, stemlines, baseline = ax.stem(models[2:], accuracies[2:], linefmt ='darkorchid', markerfmt ='D', markerfacecolor ='black', basefmt=' ')
+    plt.setp(markerline, 'color', 'black')
     # Define the points min max
     x = np.arange(len(models))
     # max = np.array(observed_max)

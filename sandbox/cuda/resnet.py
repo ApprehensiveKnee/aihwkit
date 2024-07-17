@@ -244,13 +244,12 @@ if __name__ == '__main__':
 
     # Create the model and load the weights
     model = resnet9s().to(device)
-    cwd = p_PATH
     os.mkdir(p_PATH+"/resnet") if not os.path.exists(p_PATH+"/resnet") else None
     os.mkdir(p_PATH+"/resnet/plots") if not os.path.exists(p_PATH+"/resnet/plots") else None
     if not os.path.exists(p_PATH+"/resnet/resnet9s.th"):
         download_url(
         "https://aihwkit-tutorial.s3.us-east.cloud-object-storage.appdomain.cloud/resnet9s.th",
-        cwd + "/resnet/resnet9s.th",
+        p_PATH + "/resnet/resnet9s.th",
         )
     state_dict = torch.load(p_PATH+"/resnet/resnet9s.th", device)
     # The state dict of the model with hardware-aware trained weights is stored in the
