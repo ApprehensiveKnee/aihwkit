@@ -491,7 +491,7 @@ if __name__ == '__main__':
                 gc.collect()
                 #torch.cuda.reset_peak_memory_stats()
             print(
-                f"Test set accuracy (%) at t={t}s for {fitted_models_names[i]}: mean: {fitted_models_accuracy[t_id, :, i].mean()}, std: {fitted_models_accuracy[t_id, :, i].std()}"
+                f"Test set accuracy (%) at t={t}s for {fitted_models_names[i]}: mean: {fitted_models_accuracy[t_id, :, i].mean()}, std: {fitted_models_accuracy[t_id, :, i].std() if n_reps > 1 else 0.0}"
             )
 
     if DEBUGGING_PLOTS:
@@ -504,7 +504,7 @@ if __name__ == '__main__':
     models = ["Unquantized",f"Quantized - {SELECTED_LEVEL} levels"] + fitted_models_names
     accuracies = [inference_accuracy_values[0, :, model_names.index(models[0])].mean(), inference_accuracy_values[0, :, model_names.index(models[1])].mean()]
     accuracies = accuracies + fitted_models_accuracy.mean(dim=1)[0].tolist()
-    std_accuracy = [.0,.0] + (fitted_models_accuracy.std(dim=1)[0].tolist() if n_reps > 1 else [0.]*len(fitted_models_accuracy[0]))
+    std_accuracy = [.0,.0] + (fitted_models_accuracy.std(dim=1)[0].tolist() if n_reps > 1 else [0.]*fitted_models_accuracy.shape[2])
     observed_max = accuracies[:2] + fitted_observed_max
     observed_min = accuracies[:2] + fitted_observed_min
     ax.stem(models[:2], accuracies[:2], linefmt ='darkorange', markerfmt ='D', basefmt=' ')
