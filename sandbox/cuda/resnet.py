@@ -621,7 +621,7 @@ if __name__ == '__main__':
                 #torch.cuda.reset_peak_memory_stats()
 
         print(
-                f"Test set accuracy (%) at t={t}s for {model_names[i]}: mean: {inference_accuracy_values[t_id, :, i].mean()}, std: {inference_accuracy_values[t_id, :, i].std()}"
+                f"Test set accuracy (%) at t={t}s for {model_names[i]}: mean: {inference_accuracy_values[t_id, :, i].mean()}, std: {inference_accuracy_values[t_id, :, i].std() if n_reps > 1 else 0}"
             )
             
 
@@ -771,7 +771,7 @@ if __name__ == '__main__':
     observed_min = [observed_min[0], observed_min[model_names.index(models[1])]]
 
     accuracies = accuracies + fitted_models_accuracy.mean(dim=1)[0].tolist()
-    std_accuracy = std_accuracy + fitted_models_accuracy.std(dim=1)[0].tolist()
+    std_accuracy = std_accuracy + (fitted_models_accuracy.std(dim=1)[0].tolist() if n_reps > 1 else [0]*fitted_models_accuracy.shape[2])
     observed_max = observed_max + fitted_observed_max
     observed_min = observed_min + fitted_observed_min
     ax.stem(models[:2], accuracies[:2], linefmt ='darkorange', markerfmt ='D', basefmt=' ')
