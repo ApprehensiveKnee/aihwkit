@@ -541,7 +541,7 @@ if __name__ == '__main__':
     # ax.plot(x, min,ls = 'None', color = 'firebrick', label = 'Min observed accuracy', marker = '2', markersize=10)
     ax.set_title(f"Accuracy of the models over {n_reps} repetitions")
     ax.set_ylabel("Accuracy (%)")
-    ax.set_xticks(models)
+    ax.set_xticks(range(len(models)),models)
     ax.set_xlim([-0.5, len(models)- 0.5])
     ax.minorticks_on()
     ax.yaxis.grid(True)
