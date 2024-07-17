@@ -523,7 +523,7 @@ if __name__ == '__main__':
     ax.stem(models[2:], accuracies[2:], linefmt ='darkorchid', markerfmt ='D', basefmt=' ')
     ax.boxplot([fitted_models_accuracy[0, :, i] for i in range(fitted_models_accuracy.shape[2])], 
                patch_artist=True, 
-               positions=range(2,fitted_models_accuracy.shape[2]), 
+               positions=range(2,fitted_models_accuracy.shape[2]+2), 
                boxprops=dict(facecolor="mediumorchid", alpha = 0.7),
                medianprops = dict(linestyle='-.', linewidth=2.5, color='black'), 
                whiskerprops = dict(linewidth=1.5, color='black'),
