@@ -277,7 +277,7 @@ if __name__ == 'main':
 
     # Also plot a heatmap
     fig, ax = plt.subplots(1,1, figsize=(23,23))
-    cax = ax.matshow(accuracies[], cmap='viridis')
+    cax = ax.matshow(accuracies, cmap='viridis')
     fig.colorbar(cax)
     ax.set_xticklabels(['']+types+['Unquantized'])
     ax.set_yticklabels(['']+LEVELS)
