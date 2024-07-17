@@ -47,7 +47,7 @@ def interpolate(levels: int, file_path: str, force_interpolation: bool = False):
         raise ValueError('The chosen file is not supported')
     
     if levels in NO_INTERPOLATION_NEEDED:
-        if force_interpolation & levels == 17 & file_name == '3bit.mat':
+        if force_interpolation and levels == 17 and file_name == '3bit.mat':
             print(f'Forcing interpolation from the file {file_name}')
             print(f'The data for 4 bits will be interpolated from the 3 bit data')
             data = import_mat_file(file_path)
