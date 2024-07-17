@@ -511,24 +511,24 @@ if __name__ == '__main__':
     # observed_max = accuracies[:2] + fitted_observed_max
     # observed_min = accuracies[:2] + fitted_observed_min
     
-    ax.stem(models[:2], accuracies[:2], linefmt ='darkorange', markerfmt ='D', basefmt=' ')
     ax.boxplot([inference_accuracy_values[0,:,model_names.index(models[0])],inference_accuracy_values[0, :, model_names.index(models[1])]], 
                patch_artist=True, 
                positions=[0,1], 
                boxprops=dict(facecolor="darkorange", alpha = 0.7), 
-               medianprops = dict(linestyle='-.', linewidth=2.5, color='black'),
+               medianprops = dict(linewidth=2.5, color='black'),
                whiskerprops = dict(linewidth=1.5, color='black'),
                bootstrap=1000, 
-               widths=0.15,)
-    ax.stem(models[2:], accuracies[2:], linefmt ='darkorchid', markerfmt ='D', basefmt=' ')
+               widths=0.23,)
+    ax.stem(models[:2], accuracies[:2], linefmt ='darkorange', markerfmt ='D', basefmt=' ')
     ax.boxplot([fitted_models_accuracy[0, :, i] for i in range(fitted_models_accuracy.shape[2])], 
                patch_artist=True, 
                positions=range(2,fitted_models_accuracy.shape[2]+2), 
                boxprops=dict(facecolor="mediumorchid", alpha = 0.7),
-               medianprops = dict(linestyle='-.', linewidth=2.5, color='black'), 
+               medianprops = dict(linewidth=2.5, color='black'), 
                whiskerprops = dict(linewidth=1.5, color='black'),
                bootstrap=1000,
-               widths=0.15,)
+               widths=0.23,)
+    ax.stem(models[2:], accuracies[2:], linefmt ='darkorchid', markerfmt ='D', basefmt=' ')
     # Define the points min max
     x = np.arange(len(models))
     # max = np.array(observed_max)
