@@ -510,12 +510,13 @@ if __name__ == '__main__':
     accuracies = accuracies + fitted_models_accuracy.mean(dim=1)[0].tolist()
     observed_max = accuracies[:2] + fitted_observed_max
     observed_min = accuracies[:2] + fitted_observed_min
-    ax.stem(models[:2], accuracies[:2], linefmt ='darkorange', markerfmt ='D', basefmt=' ')
-    ax.boxplot([fitted_models_accuracy[0, :, i] for i in range(2)], patch_artist=True, positions=[0,1], boxprops=dict(facecolor="darkorange"))
-    ax.stem(models[2:], accuracies[2:], linefmt ='darkorchid', markerfmt ='D', basefmt=' ')
-    ax.boxplot([fitted_models_accuracy[0, :, i] for i in range(2, fitted_models_accuracy.shape[2])], positions=range(2, fitted_models_accuracy.shape[2]), boxprops=dict(facecolor="darkorchid"))
-    # Define the points min max
     x = np.arange(len(models))
+    ax.plot(x, accuracies, ls='dashdot', color = 'olivedrab', label = 'Mean observed accuracy', marker='None')
+    ax.stem(models[:2], accuracies[:2], linefmt ='darkorange', markerfmt ='D', basefmt=' ')
+    ax.boxplot([fitted_models_accuracy[0, :, i] for i in range(2)], patch_artist=True, positions=[0,1], patch_artist=True, boxprops=dict(facecolor="darkorange"))
+    ax.stem(models[2:], accuracies[2:], linefmt ='darkorchid', markerfmt ='D', basefmt=' ')
+    ax.boxplot([fitted_models_accuracy[0, :, i] for i in range(2, fitted_models_accuracy.shape[2])], positions=range(2, fitted_models_accuracy.shape[2]), patch_artist = True, boxprops=dict(facecolor="darkorchid"))
+    # Define the points min max
     max = np.array(observed_max)
     min = np.array(observed_min)
     # Interpolating or directly using the points to fill the region
