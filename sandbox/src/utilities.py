@@ -57,6 +57,7 @@ def interpolate(levels: int, file_path: str, force_interpolation: bool = False):
                     temp = np.interp(np.linspace(-40, 40, 17), np.linspace(-40, 40, 9), data[key][:, i])
                     temp_data[:, i] = temp
                 data[key] = temp_data
+            return data
         if levels == MAP[file_name]:
             return import_mat_file(file_path)
         else:

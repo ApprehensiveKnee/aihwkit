@@ -254,6 +254,10 @@ if __name__ == '__main__':
                 model.eval()
                 model.program_analog_weights()
 
+                if k == 0:
+                    tile_weights = next(model.analog_tiles()).get_weights()
+                    pl.plot_tensor_values(tile_weights[0], 141, (-.6,.6), f"Conv1 {SELECTED_MODEL} - levels={levels} - noise_type={noise_type}", p_PATH + f"/{SELECTED_MODEL}/plots/Conv1-levels={levels}-type={noise_type}.png")
+
                 if SELECTED_MODEL == "resnet":
                     # Calibrate input ranges
                     dataloader = Sampler(get_test_loader(), device)
