@@ -511,15 +511,16 @@ if __name__ == '__main__':
     observed_max = accuracies[:2] + fitted_observed_max
     observed_min = accuracies[:2] + fitted_observed_min
     ax.stem(models[:2], accuracies[:2], linefmt ='darkorange', markerfmt ='D', basefmt=' ')
-    ax.boxplot(fitted_models_accuracy[0, :, :2], patch_artist=True, positions=[0,1], boxprops=dict(facecolor="darkorange"))
+    ax.boxplot([fitted_models_accuracy[0, :, i] for i in range(2)], patch_artist=True, positions=[0,1], boxprops=dict(facecolor="darkorange"))
     ax.stem(models[2:], accuracies[2:], linefmt ='darkorchid', markerfmt ='D', basefmt=' ')
+    ax.boxplot([fitted_models_accuracy[0, :, i] for i in range(2, fitted_models_accuracy.shape[2])], positions=range(2, len(fitted_models_names)+2), boxprops=dict(facecolor="darkorchid"))
     # Define the points min max
     x = np.arange(len(models))
     max = np.array(observed_max)
     min = np.array(observed_min)
     # Interpolating or directly using the points to fill the region
-    ax.plot(x, max, color = 'firebrick', label = 'Max observed accuracy', marker = '1', markersize=10)
-    ax.plot(x, min, color = 'firebrick', label = 'Min observed accuracy', marker = '2', markersize=10)
+    ax.plot(x, max, ls = 'None', color = 'firebrick', label = 'Max observed accuracy', marker = '1', markersize=10)
+    ax.plot(x, min,ls = 'None', color = 'firebrick', label = 'Min observed accuracy', marker = '2', markersize=10)
     ax.set_title(f"Accuracy of the models over {n_reps} repetitions")
     ax.set_ylabel("Accuracy (%)")
     ax.set_xlim([-0.5, len(models)- 0.5])
