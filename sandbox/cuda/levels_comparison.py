@@ -282,16 +282,16 @@ if __name__ == '__main__':
 
     fig, ax = plt.subplots(1,1, figsize=(23,7))
     accuracies = np.zeros((len(LEVELS),len(types)+1))
-    accuracy_unquanntized = model_accuracy[0,0,:].mean()
+    accuracy_unquantized = model_accuracy[0,0,:].mean()
     for i in range(1,len(LEVELS)+1):
         for j in range(len(types)+1):
-            accuracies[i,j] = model_accuracy[i,j,:].mean()
+            accuracies[i-1,j] = model_accuracy[i,j,:].mean()
     
     colors = pl.cm.get_cmap('viridis', len(LEVELS))
     x = np.arange(len(types)+1)
     for i in range(1,len(LEVELS)+1):
         ax.plot(x, accuracies[i,:], label=f"{LEVELS[i-1]} levels", color=colors(i-1))
-    ax.plot(x, [accuracy_unquanntized for _ in range(len(types)+1)], label="Unquantized", color="black", linestyle="--")
+    ax.plot(x, [accuracy_unquantized for _ in range(len(types)+1)], label="Unquantized", color="black", linestyle="--")
     # Save the plot
     ax.set_xticks(x)
     ax.set_xticklabels(types)
