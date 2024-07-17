@@ -223,7 +223,6 @@ if __name__ == '__main__':
                                     modifier= WeightModifierParameter(type=WeightModifierType.NONE,), 
                                     drift_compensation=None,
                                     )
-    
     N_CLASSES = 10
 
     # Load the model
@@ -452,7 +451,7 @@ if __name__ == '__main__':
                flierprops = dict(marker='o', color='firebrick', markersize=15),
                bootstrap=1000,
                widths=0.23,)
-    markerline, stemlines, baseline = ax.stem(models[2:], accuracies[2:], linefmt ='darkorchid', markerfmt ='D', markerfacecolor ='black', basefmt=' ')
+    markerline, stemlines, baseline = ax.stem(models[2:], accuracies[2:], linefmt ='darkorchid', markerfmt ='D', basefmt=' ')
     plt.setp(markerline, 'color', 'black')
     # Define the points min max
     x = np.arange(len(models))
