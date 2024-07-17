@@ -66,7 +66,7 @@ from tqdm import tqdm
 sys.path.append(t_PATH + '/sandbox/')
 
 import src.plotting as pl
-from src.utilities import import_mat_file
+from src.utilities import interpolate
 
 from src.noise import NullNoiseModel, ExperimentalNoiseModel, JustMedianNoiseModel, JustStdNoiseModel
 from aihwkit.inference.converter.conductance import SinglePairConductanceConverter
@@ -533,7 +533,7 @@ if __name__ == '__main__':
 
     # Extract the data from the .mat file
     path = p_PATH+ f"/data/{MAP_LEVEL_FILE[SELECTED_LEVEL]}"
-    variables = import_mat_file(path)
+    variables = interpolate(levels=SELECTED_LEVEL, file_path=path)
 
     types = variables['str']
     types = [types[0][t][0] for t in range(types.shape[1])]
