@@ -513,6 +513,7 @@ if __name__ == '__main__':
     x = np.arange(len(models))
     ax.plot(x, accuracies, ls='dashdot', color = 'olivedrab', label = 'Mean observed accuracy', marker='None')
     ax.stem(models[:2], accuracies[:2], linefmt ='darkorange', markerfmt ='D', basefmt=' ')
+    [fitted_models_accuracy[0, :, i] for i in range(2)]
     ax.boxplot([fitted_models_accuracy[0, :, i] for i in range(2)], patch_artist=True, positions=[0,1], boxprops=dict(facecolor="darkorange"))
     ax.stem(models[2:], accuracies[2:], linefmt ='darkorchid', markerfmt ='D', basefmt=' ')
     ax.boxplot([fitted_models_accuracy[0, :, i] for i in range(2, fitted_models_accuracy.shape[2])], patch_artist=True, positions=range(2, fitted_models_accuracy.shape[2]), boxprops=dict(facecolor="darkorchid"))
