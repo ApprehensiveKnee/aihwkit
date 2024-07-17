@@ -437,7 +437,7 @@ if __name__ == '__main__':
                boxprops=dict(facecolor="darkorange", alpha = 0.7), 
                medianprops = dict(linewidth=2.5, color='indigo'),
                whiskerprops = dict(linewidth=1.5, color='black'),
-               flierprops = dict(marker='o', color='firebrick', markersize=15),
+               flierprops = dict(marker='o', markeredgecolor='firebrick', markerfacecolor = 'firebrick', markersize=9),
                bootstrap=1000, 
                widths=0.23,)
     markerline, stemlines, baseline = ax.stem(models[:2], accuracies[:2], linefmt ='darkorange', markerfmt ='D', basefmt=' ')
@@ -448,7 +448,7 @@ if __name__ == '__main__':
                boxprops=dict(facecolor="mediumorchid", alpha = 0.7),
                medianprops = dict(linewidth=2.5, color='darkorange'), 
                whiskerprops = dict(linewidth=1.5, color='black'),
-               flierprops = dict(marker='o', color='firebrick', markersize=15),
+               flierprops = dict(marker='o', markeredgecolor='firebrick', markerfacecolor = 'firebrick', markersize=9),
                bootstrap=1000,
                widths=0.23,)
     markerline, stemlines, baseline = ax.stem(models[2:], accuracies[2:], linefmt ='darkorchid', markerfmt ='D', basefmt=' ')
