@@ -510,27 +510,27 @@ if __name__ == '__main__':
     accuracies = accuracies + fitted_models_accuracy.mean(dim=1)[0].tolist()
     # observed_max = accuracies[:2] + fitted_observed_max
     # observed_min = accuracies[:2] + fitted_observed_min
-    x = np.arange(len(models))
     #ax.plot(x, accuracies, ls='dashdot', color = 'olivedrab', label = 'Mean observed accuracy', marker='None')
     #ax.stem(models[:2], accuracies[:2], linefmt ='darkorange', markerfmt ='D', basefmt=' ')
     ax.boxplot([inference_accuracy_values[0,:,model_names.index(models[0])],inference_accuracy_values[0, :, model_names.index(models[1])]], 
                patch_artist=True, 
                positions=[0,1], 
                boxprops=dict(facecolor="darkorange", alpha = 0.7), 
-               medianprops = dict(edgecolor = 'black', linewidth = 2),
-                whiskerprops = dict(linestyle='--', linewidth=1.5, color='black'), 
-               widths=0.3, 
-               meanline=True)
+               medianprops = dict(linestyle='-.', linewidth=2.5, color='black'),
+               whiskerprops = dict(linewidth=1.5, color='black'),
+               bootstrap=1000, 
+               widths=0.3,)
     #ax.stem(models[2:], accuracies[2:], linefmt ='darkorchid', markerfmt ='D', basefmt=' ')
     ax.boxplot([fitted_models_accuracy[0, :, i] for i in range(fitted_models_accuracy.shape[2])], 
                patch_artist=True, 
                positions=range(fitted_models_accuracy.shape[2]), 
                boxprops=dict(facecolor="mediumorchid", alpha = 0.7),
-               medianprops = dict(edgecolor = 'black', linewidth = 2), 
-               whiskerprops = dict(linestyle='--', linewidth=1.5, color='black'),
-               widths=0.3, 
-               meanline=True)
+               medianprops = dict(linestyle='-.', linewidth=2.5, color='black'), 
+               whiskerprops = dict(linewidth=1.5, color='black'),
+               bootstrap=1000,
+               widths=0.3,)
     # Define the points min max
+    x = np.arange(len(models))
     # max = np.array(observed_max)
     # min = np.array(observed_min)
     # Interpolating or directly using the points to fill the region
