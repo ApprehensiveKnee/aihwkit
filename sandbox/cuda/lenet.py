@@ -508,24 +508,18 @@ if __name__ == '__main__':
     models = ["Unquantized",f"Quantized - {SELECTED_LEVEL} levels"] + fitted_models_names
     accuracies = [inference_accuracy_values[0, :, model_names.index(models[0])].mean(), inference_accuracy_values[0, :, model_names.index(models[1])].mean()]
     accuracies = accuracies + fitted_models_accuracy.mean(dim=1)[0].tolist()
-    std_accuracy = [.0,.0] + (fitted_models_accuracy.std(dim=1)[0].tolist() if n_reps > 1 else [0.]*fitted_models_accuracy.shape[2])
     observed_max = accuracies[:2] + fitted_observed_max
     observed_min = accuracies[:2] + fitted_observed_min
     ax.stem(models[:2], accuracies[:2], linefmt ='darkorange', markerfmt ='D', basefmt=' ')
+    ax.boxplot(fitted_models_accuracy[0, :, :2], patch_artist=True, positions=[0,1], boxprops=dict(facecolor="darkorange"))
     ax.stem(models[2:], accuracies[2:], linefmt ='darkorchid', markerfmt ='D', basefmt=' ')
-    # Define the points for the boundary lines
+    # Define the points min max
     x = np.arange(len(models))
-    y1 = np.array([accuracies[i] - 3*std_accuracy[i] for i in range(len(models))])
-    y2 = np.array([accuracies[i] + 3*std_accuracy[i] if accuracies[i] + 3*std_accuracy[i] < 100. else 100. for i in range(len(models))])
     max = np.array(observed_max)
     min = np.array(observed_min)
     # Interpolating or directly using the points to fill the region
-    ax.fill_between(x, y1, y2, where=(y2 > y1), color='bisque', alpha=0.5, label='Confidence Interval')
-    ax.plot(x, y1, '--', color='firebrick')
-    ax.plot(x, y2, '--', color = 'firebrick')
-    ax.fill_between(x, min, max, where=(max > min), color='lightsalmon', alpha=0.5, label='Observed Accuracy Interval')
-    ax.plot(x, max, ls='dashdot', color = 'olivedrab', label = 'Max observed accuracy', marker = '1', markersize=10)
-    ax.plot(x, min, ls= 'dashdot', color = 'olivedrab', label = 'Min observed accuracy', marker = '2', markersize=10)
+    ax.plot(x, max, color = 'firebrick', label = 'Max observed accuracy', marker = '1', markersize=10)
+    ax.plot(x, min, color = 'firebrick', label = 'Min observed accuracy', marker = '2', markersize=10)
     ax.set_title(f"Accuracy of the models over {n_reps} repetitions")
     ax.set_ylabel("Accuracy (%)")
     ax.set_xlim([-0.5, len(models)- 0.5])
