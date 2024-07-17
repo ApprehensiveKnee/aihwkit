@@ -513,9 +513,9 @@ if __name__ == '__main__':
     x = np.arange(len(models))
     ax.plot(x, accuracies, ls='dashdot', color = 'olivedrab', label = 'Mean observed accuracy', marker='None')
     ax.stem(models[:2], accuracies[:2], linefmt ='darkorange', markerfmt ='D', basefmt=' ')
-    ax.boxplot([inference_accuracy_values[0,:,model_names.index(models[0])],inference_accuracy_values[0, :, model_names.index(models[1])]], patch_artist=True, positions=[0,1], boxprops=dict(facecolor="darkorange"))
+    ax.boxplot([inference_accuracy_values[0,:,model_names.index(models[0])],inference_accuracy_values[0, :, model_names.index(models[1])]], patch_artist=True, positions=[0,1], boxprops=dict(facecolor="darkorange", alpha = 0.5, edgecolor = 'black'))
     ax.stem(models[2:], accuracies[2:], linefmt ='darkorchid', markerfmt ='D', basefmt=' ')
-    ax.boxplot([fitted_models_accuracy[0, :, i] for i in range(fitted_models_accuracy.shape[2])], patch_artist=True, positions=range(2, fitted_models_accuracy.shape[2]), boxprops=dict(facecolor="darkorchid"))
+    ax.boxplot([fitted_models_accuracy[0, :, i] for i in range(fitted_models_accuracy.shape[2])], patch_artist=True, positions=range(fitted_models_accuracy.shape[2]), boxprops=dict(facecolor="mediumorchid", alpha = 0.5, edgecolor = 'black'))
     # Define the points min max
     max = np.array(observed_max)
     min = np.array(observed_min)
