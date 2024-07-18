@@ -313,7 +313,11 @@ if __name__ == '__main__':
     # Also plot a heatmap
     fig, ax = plt.subplots(1,1, figsize=(23,23))
     cax = ax.matshow(accuracies, cmap='viridis', )
-    fig.colorbar(cax)
+    for (i,j), z in np.ndenumerate(accuracies):
+        ax.text(j, i, '{:0.1f}'.format(z), ha='center', va='center', color='white',
+            bbox=dict(boxstyle='round', facecolor='black', edgecolor='black'))
+    im_ratio = accuracies.shape[0]/accuracies.shape[1]
+    plt.colorbar(cax, fraction=0.046*im_ratio, pad=0.04)
     ax.set_xticks(np.arange(len(types)+1))
     ax.set_xticklabels(['No Noise']+types)
     ax.set_yticks(np.arange(len(LEVELS)))
