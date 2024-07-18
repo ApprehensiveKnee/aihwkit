@@ -73,6 +73,11 @@ from aihwkit.inference.calibration import (
 
 import matplotlib.pyplot as plt
 from matplotlib.colors import Normalize
+font = {'family' : 'normal',
+        'weight' : 'bold',
+        'size'   : 22}
+
+plt.rc('font', **font)
 import pandas as pd
 import numpy as np
 from typing import Optional
