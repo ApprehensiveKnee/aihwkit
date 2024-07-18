@@ -298,7 +298,7 @@ if __name__ == '__main__':
     norm = Normalize(0, len(LEVELS))
     x = np.arange(len(types)+1)
     for i in range(1,len(LEVELS)+1):
-        ax.plot(x, accuracies[i,:], label=f"{LEVELS[i-1]} levels", color=colors(i-1))
+        ax.plot(x, accuracies[i-1,:], label=f"{LEVELS[i-1]} levels", color=colors(i-1))
     ax.plot(x, [accuracy_unquantized for _ in range(len(types)+1)], label="Unquantized", color="black", linestyle="--")
     # Save the plot
     ax.set_xticks(x)
