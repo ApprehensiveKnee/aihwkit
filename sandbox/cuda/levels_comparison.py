@@ -296,22 +296,23 @@ if __name__ == '__main__':
     
     colors = plt.get_cmap('inferno')
     norm = Normalize(0, len(LEVELS))
+    markers = ['o','s','^','v','D']
     x = np.arange(len(types)+1)
     for i in range(1,len(LEVELS)+1):
-        ax.plot(x, accuracies[i-1,:], label=f"{LEVELS[i-1]} levels", color=colors(i-1))
+        ax.plot(x, accuracies[i-1,:], label=f"{LEVELS[i-1]} levels", color=colors(norm(i-1)), marker=markers[i-1])
     ax.plot(x, [accuracy_unquantized for _ in range(len(types)+1)], label="Unquantized", color="black", linestyle="--")
     # Save the plot
     ax.set_xticks(x)
     ax.set_xticklabels(['No Noise']+types)
     ax.set_xlabel("Noise type")
     ax.set_ylabel("Accuracy")
-    ax.set_title("Accuracy comparison")
+    ax.set_title("Accuracy comparison between q.levels at different noise types")
     ax.legend()
     plt.savefig(f"{p_PATH}/{SELECTED_MODEL}/plots/accuracy_level_comparison_{SELECTED_NOISE}.png")
 
     # Also plot a heatmap
     fig, ax = plt.subplots(1,1, figsize=(23,23))
-    cax = ax.matshow(accuracies, cmap='viridis')
+    cax = ax.matshow(accuracies, cmap='viridis', )
     fig.colorbar(cax)
     ax.set_xticks(np.arange(len(types)+1))
     ax.set_xticklabels(['No Noise']+types)
@@ -319,7 +320,7 @@ if __name__ == '__main__':
     ax.set_yticklabels(LEVELS)
     ax.set_xlabel("Noise type")
     ax.set_ylabel("Levels")
-    ax.set_title("Accuracy comparison")
+    ax.set_title("Accuracy comparison between q.levels at different noise types")
     plt.savefig(f"{p_PATH}/{SELECTED_MODEL}/plots/heatmap_accuracy_level_comparison_{SELECTED_NOISE}.png")
 
 
