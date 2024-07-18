@@ -207,6 +207,9 @@ if __name__ == '__main__':
     models_ideal = ["Unquantized","Quantized - 3 levels", "Quantized - 5 levels", "Quantized - 9 levels", "Quantized - 17 levels", "Quantized - 33 levels",]
     unquantized_model = sel_model_init(SELECTED_MODEL, RPU_CONFIG_BASE, state_dict)
 
+    if not os.path.exists(f"{p_PATH}/{SELECTED_MODEL}/plots/Weight_Distribution_comparison_plots"):
+        os.mkdir(f"{p_PATH}/{SELECTED_MODEL}/plots/Weight_Distribution_comparison_plots")
+
     for i, model_name in enumerate(models_ideal): 
         RPU_CONFIG = deepcopy(RPU_CONFIG_BASE)
         for j in range(N_REPS):
@@ -226,7 +229,7 @@ if __name__ == '__main__':
                 )
 
             if j == 0:
-                pl.generate_moving_hist(model_i, title=f"{model_name} - {SELECTED_NOISE}", file_name=f"{p_PATH}/{SELECTED_MODEL}/plots/{model_name}_{SELECTED_NOISE}.png",  range = (-.7,.7), top=None, split_by_rows=False)
+                pl.generate_moving_hist(model_i, title=f"{model_name} - {SELECTED_NOISE}", file_name=f"{p_PATH}/{SELECTED_MODEL}/plots/Weight_Distribution_comparison_plots/{model_name}_{SELECTED_NOISE}.gif",  range = (-.7,.7), top=None, split_by_rows=False)
 
 
             model_accuracy[i,0,j] = evaluate_model(model_i, get_test_loader(), device)
@@ -239,6 +242,9 @@ if __name__ == '__main__':
         print(f"Model: {model_name} - Average accuracy: {model_accuracy[i,0,:].mean()}, std: {model_accuracy[i,0,:].std() if N_REPS > 1 else 0}")
     
     # Now execute the rest of the evaluations for the different types of noise
+    if not os.path.exists(f"{p_PATH}/{SELECTED_MODEL}/plots/Conv1_comparison_plots"):
+        os.mkdir(f"{p_PATH}/{SELECTED_MODEL}/plots/Conv1_comparison_plots")
+                    
     for i, levels in enumerate(LEVELS):
         for j, noise_type in enumerate(types):
             RPU_CONFIG = deepcopy(RPU_CONFIG_BASE)
@@ -256,7 +262,7 @@ if __name__ == '__main__':
 
                 if k == 0:
                     tile_weights = next(model.analog_tiles()).get_weights()
-                    pl.plot_tensor_values(tile_weights[0], 141, (-.6,.6), f"Conv1 {SELECTED_MODEL} - levels={levels} - noise_type={noise_type}", p_PATH + f"/{SELECTED_MODEL}/plots/Conv1-levels={levels}-type={noise_type}.png")
+                    pl.plot_tensor_values(tile_weights[0], 141, (-.6,.6), f"Conv1 {SELECTED_MODEL} - levels={levels} - noise_type={noise_type}", p_PATH + f"/{SELECTED_MODEL}/plots/Conv1_comparison_plots/Conv1-levels={levels}-type={noise_type}.png")
 
                 if SELECTED_MODEL == "resnet":
                     # Calibrate input ranges
@@ -287,7 +293,8 @@ if __name__ == '__main__':
         for j in range(len(types)+1):
             accuracies[i-1,j] = model_accuracy[i,j,:].mean()
     
-    colors = pl.cm.get_cmap('viridis', len(LEVELS))
+    colors = pl.get_cmap('inferno')
+    norm = plt.Normalize(0, len(LEVELS))
     x = np.arange(len(types)+1)
     for i in range(1,len(LEVELS)+1):
         ax.plot(x, accuracies[i,:], label=f"{LEVELS[i-1]} levels", color=colors(i-1))
