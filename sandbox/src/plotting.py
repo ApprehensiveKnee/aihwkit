@@ -94,6 +94,7 @@ def plot_tensor_values(tensor: torch.Tensor,bins:int, range: tuple, title: str, 
     # Save the figure
     if name_file:
         plt.savefig(name_file)
+    plt.close()
     # return the figure and axis
     return container, fig
 
@@ -145,7 +146,7 @@ def custom_hist(data: list, colors:list, num_bins:int, RANGE: tuple, alpha: floa
             i += 1
     if file_name:
         plt.savefig(file_name)
-    plt.clf()
+    plt.close() 
     return
 
 def update_hist(num, data, range: tuple, HIST_BINS:int, top: int, title: str):
