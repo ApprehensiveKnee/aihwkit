@@ -371,7 +371,7 @@ if __name__ == '__main__':
                 model_fitted = inference_lenet5(RPU_CONFIG).to(device)
                 model_fitted.load_state_dict(state_dict, strict=True, load_rpu_config=False)
                 model_fitted = convert_to_analog(model_fitted, RPU_CONFIG)
-                model_fitted = get_quantized_model(model_fitted, SELECTED_LEVEL, RPU_CONFIG)
+                model_fitted = get_quantized_model(model_fitted, SELECTED_LEVEL, deepcopy(RPU_CONFIG))
                 model_fitted.eval()
                 model_fitted.program_analog_weights()
                 
