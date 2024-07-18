@@ -73,11 +73,6 @@ from aihwkit.inference.calibration import (
 
 import matplotlib.pyplot as plt
 from matplotlib.colors import Normalize
-font = {'family' : 'normal',
-        'weight' : 'bold',
-        'size'   : 22}
-
-plt.rc('font', **font)
 import pandas as pd
 import numpy as np
 from typing import Optional
@@ -317,6 +312,7 @@ if __name__ == '__main__':
 
     # Also plot a heatmap
     fig, ax = plt.subplots(1,1, figsize=(23,23))
+    plt.rcParams.update({'font.size': 22})
     cax = ax.matshow(accuracies, cmap='viridis', )
     for (i,j), z in np.ndenumerate(accuracies):
         ax.text(j, i, '{:0.1f}'.format(z), ha='center', va='center', color='white',
