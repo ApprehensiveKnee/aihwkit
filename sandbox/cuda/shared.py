@@ -287,7 +287,7 @@ def get_quantized_model(model,level, rpu_config):
         resolution=resolution[level],
         levels=level
     )
-    model_quantized = convert_to_analog(model, rpu_config)
+    model_quantized = convert_to_analog(model, deepcopy(rpu_config))
     return model_quantized
 
 # ********************************************************************************************************************
