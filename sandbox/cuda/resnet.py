@@ -182,7 +182,7 @@ if __name__ == '__main__':
             print(f"Selected level: {SELECTED_LEVEL}")
         if opt in ('-n', '--noise'):
             if arg not in ["whole","std","median"]:
-                raise ValueError("The selected noise must be either 'std' or 'median'")
+                raise ValueError("The selected noise must be either 'whole', 'std' or 'median'")
             SELECTED_NOISE = arg
             print(f"Selected noise: {SELECTED_NOISE}")
         if opt in ('-r', '--reps'):
@@ -370,8 +370,8 @@ if __name__ == '__main__':
     # Estimate the accuracy of the model with the fitted noise with respect to the other 9 levels model
     fitted_models_names = []
     fitted_models_accuracy = torch.zeros((len(t_inferences), n_reps, len(types)))
-    fitted_observed_max = [0] * len(types)
-    fitted_observed_min = [100] * len(types)
+    # fitted_observed_max = [0] * len(types)
+    # fitted_observed_min = [100] * len(types)
 
     if DEBUGGING_PLOTS:
         fig, ax = plt.subplots(figsize=(17,12))
@@ -433,10 +433,10 @@ if __name__ == '__main__':
 
                 # Then evaluate the model
                 fitted_models_accuracy[t_id, j, i] = evaluate_model(model_fitted, get_test_loader(), device)
-                if fitted_observed_max[i] < fitted_models_accuracy[t_id, j, i]:
-                    fitted_observed_max[i] = fitted_models_accuracy[t_id, j, i]
-                if fitted_observed_min[i] > fitted_models_accuracy[t_id, j, i]:
-                    fitted_observed_min[i] = fitted_models_accuracy[t_id, j, i]
+                # if fitted_observed_max[i] < fitted_models_accuracy[t_id, j, i]:
+                #     fitted_observed_max[i] = fitted_models_accuracy[t_id, j, i]
+                # if fitted_observed_min[i] > fitted_models_accuracy[t_id, j, i]:
+                #     fitted_observed_min[i] = fitted_models_accuracy[t_id, j, i]
                 
                 # Delete the model to free CUDA memory
                 del model_fitted
@@ -459,33 +459,44 @@ if __name__ == '__main__':
     models = ["Unquantized",f"Quantized - {SELECTED_LEVEL} levels"] + fitted_models_names
 
     accuracies = [inference_accuracy_values[0, :, model_names.index(models[0])].mean(), inference_accuracy_values[0, :, model_names.index(models[1])].mean()]
-    std_accuracy = [inference_accuracy_values[0, :, model_names.index(models[0])].std(),inference_accuracy_values[0, :, model_names.index(models[1])].std()]
-    observed_max = [observed_max[0], observed_max[model_names.index(models[1])]]
-    observed_min = [observed_min[0], observed_min[model_names.index(models[1])]]
-
     accuracies = accuracies + fitted_models_accuracy.mean(dim=1)[0].tolist()
-    std_accuracy = std_accuracy + (fitted_models_accuracy.std(dim=1)[0].tolist() if n_reps > 1 else [0]*fitted_models_accuracy.shape[2])
-    observed_max = observed_max + fitted_observed_max
-    observed_min = observed_min + fitted_observed_min
-    ax.stem(models[:2], accuracies[:2], linefmt ='darkorange', markerfmt ='D', basefmt=' ')
-    ax.stem(models[2:], accuracies[2:], linefmt ='darkorchid', markerfmt ='D', basefmt=' ')
+    # observed_max = [observed_max[0], observed_max[model_names.index(models[1])]]
+    # observed_min = [observed_min[0], observed_min[model_names.index(models[1])]]
+    # observed_max = accuracies[:2] + fitted_observed_max
+    # observed_min = observed_min + fitted_observed_min
+    ax.boxplot([inference_accuracy_values[0,:,model_names.index(models[0])],inference_accuracy_values[0, :, model_names.index(models[1])]], 
+               patch_artist=True, 
+               positions=[0,1], 
+               boxprops=dict(facecolor="darkorange", alpha = 0.7), 
+               medianprops = dict(linewidth=2.5, color='indigo'),
+               whiskerprops = dict(linewidth=1.5, color='black'),
+               flierprops = dict(marker='o', markeredgecolor='firebrick', markerfacecolor = 'firebrick', markersize=9),
+               bootstrap=1000, 
+               widths=0.23,)
+    markerline, stemlines, baseline = ax.stem(models[:2], accuracies[:2], linefmt ='darkorange', markerfmt ='D', basefmt=' ')
+    plt.setp(markerline, 'color', 'black')
+    ax.boxplot([fitted_models_accuracy[0, :, i] for i in range(fitted_models_accuracy.shape[2])], 
+               patch_artist=True, 
+               positions=range(2,fitted_models_accuracy.shape[2]+2), 
+               boxprops=dict(facecolor="mediumorchid", alpha = 0.7),
+               medianprops = dict(linewidth=2.5, color='darkorange'), 
+               whiskerprops = dict(linewidth=1.5, color='black'),
+               flierprops = dict(marker='o', markeredgecolor='firebrick', markerfacecolor = 'firebrick', markersize=9),
+               bootstrap=1000,
+               widths=0.23,)
+    markerline, stemlines, baseline = ax.stem(models[2:], accuracies[2:], linefmt ='darkorchid', markerfmt ='D', basefmt=' ')
+    plt.setp(markerline, 'color', 'black')
     # Define the points for the boundary lines
     x = np.arange(len(models))
-    y1 = np.array([accuracies[i] - 3*std_accuracy[i] for i in range(len(models))])
-    y2 = np.array([accuracies[i] + 3*std_accuracy[i] if accuracies[i] + 3*std_accuracy[i] < 100. else 100. for i in range(len(models))])
-    max = np.array(observed_max)
-    min = np.array(observed_min)
+    # max = np.array(observed_max)
+    # min = np.array(observed_min)
     # Interpolating or directly using the points to fill the region
-    ax.fill_between(x, y1, y2, where=(y2 > y1), color='bisque', alpha=0.5, label='Confidence Interval')
-    ax.plot(x, y1, '--', color='firebrick')
-    ax.plot(x, y2, '--', color = 'firebrick')
-    ax.fill_between(x, min, max, where=(max > min), color='lightsalmon', alpha=0.5, label='Observed Accuracy Interval')
-    ax.plot(x, max, ls='dashdot', color = 'olivedrab', label = 'Max observed accuracy', marker = '1', markersize=10)
-    ax.plot(x, min, ls= 'dashdot', color = 'olivedrab', label = 'Min observed accuracy', marker = '2', markersize=10)
-
-
+    ax.plot(x, accuracies, ls='dashdot', color = 'black', label = 'Mean observed accuracy', marker='None')
+    # ax.plot(x, max, ls='dashdot', color = 'olivedrab', label = 'Max observed accuracy', marker = '1', markersize=10)
+    # ax.plot(x, min, ls= 'dashdot', color = 'olivedrab', label = 'Min observed accuracy', marker = '2', markersize=10)
     ax.set_title(f"Accuracy of the models over {n_reps} repetitions")
     ax.set_ylabel("Accuracy (%)")
+    ax.set_xticks(range(len(models)),models)
     ax.set_xlim([-0.5, len(models)- 0.5])
     ax.minorticks_on()
     ax.yaxis.grid(True)

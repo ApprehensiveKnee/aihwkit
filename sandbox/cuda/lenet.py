@@ -144,7 +144,7 @@ if __name__ == '__main__':
             print(f"Selected level: {SELECTED_LEVEL}")
         if opt in ('-n', '--noise'):
             if arg not in ["whole","std","median"]:
-                raise ValueError("The selected noise must be either 'std' or 'median'")
+                raise ValueError("The selected noise must be either 'whole', 'std' or 'median'")
             SELECTED_NOISE = arg
             print(f"Selected noise: {SELECTED_NOISE}")
         if opt in ('-r', '--reps'):

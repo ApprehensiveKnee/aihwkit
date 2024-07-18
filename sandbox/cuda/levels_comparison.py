@@ -72,6 +72,7 @@ from aihwkit.inference.calibration import (
 #from aihwkit.simulator.rpu_base import cuda
 
 import matplotlib.pyplot as plt
+from matplotlib.colors import Normalize
 import pandas as pd
 import numpy as np
 from typing import Optional
@@ -293,8 +294,8 @@ if __name__ == '__main__':
         for j in range(len(types)+1):
             accuracies[i-1,j] = model_accuracy[i,j,:].mean()
     
-    colors = pl.get_cmap('inferno')
-    norm = plt.Normalize(0, len(LEVELS))
+    colors = plt.get_cmap('inferno')
+    norm = Normalize(0, len(LEVELS))
     x = np.arange(len(types)+1)
     for i in range(1,len(LEVELS)+1):
         ax.plot(x, accuracies[i,:], label=f"{LEVELS[i-1]} levels", color=colors(i-1))
