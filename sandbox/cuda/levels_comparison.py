@@ -103,7 +103,7 @@ def sel_model_init(model_name:str, RPU_CONFIG, state_dict):
         model.load_state_dict(state_dict, strict=True, load_rpu_config=False)
         model = convert_to_analog(model, RPU_CONFIG) # to apply quantization in case it is defined
     elif model_name == "resnet":
-        model = resnet9s()
+        model = resnet9s().to(device)
         model.load_state_dict(state_dict["model_state_dict"], strict=True)
         model = convert_to_analog(model, RPU_CONFIG)
 

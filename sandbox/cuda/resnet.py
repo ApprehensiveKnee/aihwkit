@@ -107,7 +107,6 @@ class Sampler:
 
     def __init__(self, loader, device):
         self.device = device
-        print(device)
         self.loader = iter(loader)
         self.idx = 0
 
