@@ -1331,7 +1331,7 @@ template void aclip<half_t>(const CudaContextPtr, half_t *, const int, const hal
 
 // w = w_quant(w, res)
 template <typename T> __global__ void kernelQuantize(T *values, int size, T res, int levels) {
-  RPU_CUDA_1D_KERNEL_LOOP(idx, size) { values[idx] = res * round(values[idx] / res); if (levels > 0) { values[idx] = MIN(MAX(values[idx], -res * (T)(levels - 1)/2), res * (T)(levels - 1)/2); } }
+  RPU_CUDA_1D_KERNEL_LOOP(idx, size) { values[idx] = res * round(values[idx] / res); if (levels > 0) { values[idx] = MIN(MAX(values[idx], -res * (T)(levels - 1)), res * (T)(levels - 1)); } }
 }
 
 template <typename T>
