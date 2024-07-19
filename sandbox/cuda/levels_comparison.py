@@ -320,10 +320,11 @@ if __name__ == '__main__':
     plt.colorbar(cax, fraction=0.046*im_ratio, pad=0.04)
     ax.set_xticks(np.arange(len(types)+1), labels=['No Noise']+types)
     ax.set_yticks(np.arange(len(LEVELS)), labels=LEVELS)
-    plt.setp(ax.get_xticklabels(), rotation=45, ha="right", fontsize = 18, rotation_mode="anchor")
+    plt.setp(ax.get_xticklabels(), rotation=40, ha="left", va="bottom",  fontsize = 18, rotation_mode="anchor")
+    plt.setp(ax.get_yticklabels(), fontsize = 18)
     ax.set_xlabel("Noise type", fontsize=22)
     ax.set_ylabel("Levels", fontsize=22)
-    ax.set_title("Accuracy comparison between q.levels at different noise types", pad=20)
+    ax.set_title("Accuracy comparison between q.levels at different noise types", pad=50)
     plt.savefig(f"{p_PATH}/{SELECTED_MODEL}/plots/heatmap_accuracy_level_comparison_{SELECTED_NOISE}.png")
 
 
