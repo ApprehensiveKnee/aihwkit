@@ -324,7 +324,7 @@ if __name__ == '__main__':
     plt.setp(ax.get_yticklabels(), fontsize = 18)
     ax.set_xlabel("Noise type", fontsize=22)
     ax.set_ylabel("Levels", fontsize=22)
-    ax.set_title("Accuracy comparison between q.levels at different noise types", pad=50)
+    ax.set_title("Accuracy comparison between q.levels at different noise types", pad=45)
     plt.savefig(f"{p_PATH}/{SELECTED_MODEL}/plots/heatmap_accuracy_level_comparison_{SELECTED_NOISE}.png")
 
 
