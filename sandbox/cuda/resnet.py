@@ -133,7 +133,7 @@ def accuracy_plot(model_names, inference_accuracy_values, observed_max, observed
     y2= np.array([0.]*len(model_names))
     for i, model_name in enumerate(model_names):
         mean = inference_accuracy_values[0, :, i].mean()
-        std = inference_accuracy_values[0, :, i].std()
+        std = inference_accuracy_values[0, :, i].std() if inference_accuracy_values.shape[1]>0 else 0
         y2[i] = mean + 3 * std
         y1[i] = mean - 3 * std
         ax.stem([model_name], [mean], linefmt="darkorange", markerfmt="D", basefmt=" ")
@@ -390,6 +390,8 @@ if __name__ == '__main__':
             )
         RPU_CONFIG.noise_model=MAP_NOISE_TYPE[SELECTED_NOISE](file_path = path,
                                                         type = CHOSEN_NOISE,
+                                                        debug = DEBUGGING_PLOTS,
+                                                        levels = SELECTED_LEVEL,
                                                         g_converter=SinglePairConductanceConverter(g_max=40.)),
 
         fitted_models_names.append(f"Quantized - {SELECTED_LEVEL} levels \n+ Fitted Noise \n ({CHOSEN_NOISE})")
@@ -445,7 +447,7 @@ if __name__ == '__main__':
                 gc.collect()
                 #torch.cuda.reset_peak_memory_stats()
             print(
-                f"Test set accuracy (%) at t={t}s for {fitted_models_names[i]}: mean: {fitted_models_accuracy[t_id, :, i].mean()}, std: {fitted_models_accuracy[t_id, :, i].std()}"
+                f"Test set accuracy (%) at t={t}s for {fitted_models_names[i]}: mean: {fitted_models_accuracy[t_id, :, i].mean()}, std: {fitted_models_accuracy[t_id, :, i].std() if n_reps > 1 else 0}"
             )
     
     if DEBUGGING_PLOTS:
