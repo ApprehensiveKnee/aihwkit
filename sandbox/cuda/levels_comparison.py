@@ -200,7 +200,7 @@ if __name__ == '__main__':
             )
         state_dict = torch.load(MAP_MODEL_FILE[SELECTED_MODEL], device)
 
-        RPU_CONFIG_BASE = IdealPreset()
+        RPU_CONFIG_BASE = CustomDefinedPreset()
 
     
     # Prepare first the ideal models
