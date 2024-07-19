@@ -386,10 +386,6 @@ if __name__ == '__main__':
     for i in range(len(types)):
         CHOSEN_NOISE = types[i]
         RPU_CONFIG  = IdealPreset()
-        RPU_CONFIG.quantization = WeightQuantizerParameter(
-            resolution=resolution[SELECTED_LEVEL],
-            levels = SELECTED_LEVEL,
-            )
         RPU_CONFIG.noise_model=MAP_NOISE_TYPE[SELECTED_NOISE](file_path = path,
                                                         type = CHOSEN_NOISE,
                                                         debug = DEBUGGING_PLOTS,
@@ -400,7 +396,7 @@ if __name__ == '__main__':
         for t_id, t in enumerate(t_inferences):
             for j in range(n_reps):
                 # For each repetition, get a new version of the quantized model and calibrare it
-                model_fitted = convert_to_analog(original_model, RPU_CONFIG)
+                model_fitted = get_quantized_model(original_model, SELECTED_LEVEL, RPU_CONFIG)
                 model_fitted.eval()
                 model_fitted.program_analog_weights()
 
