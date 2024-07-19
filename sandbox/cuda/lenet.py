@@ -379,6 +379,7 @@ if __name__ == '__main__':
                 # //////////////////////////////////////    DEBUGGING    /////////////////////////////////////////
 
                 if next(model_fitted.analog_tiles()).rpu_config.noise_model[0].debug:
+                    print(f"Plotting bugging weight info for noise: {CHOSEN_NOISE} ...")
                     # Loop over the debugging directory (.debug_dir/id=x/g_target_x) to get the conductance arrays
                     # for each tile, where x is the tile number
                     target = np.array([])
