@@ -282,8 +282,8 @@ if __name__ == '__main__':
                 if model_name == "Unquantized":
                     model_i = deepcopy(model)
                 else:
-                    model_name =model_name.split(" ")
-                    model_i = get_quantized_model(model, int(model_name[-2]), rpu_config)
+                    model_name_i =model_name.split(" ")
+                    model_i = get_quantized_model(model, int(model_name_i[-2]), rpu_config)
                 model_i.eval()
 
                 # Calibrate input ranges
