@@ -341,7 +341,7 @@ if __name__ == '__main__':
     
 
     if DEBUGGING_PLOTS:
-        fig, ax = plt.subplots(figsize=(17,12))
+        fig, ax = plt.subplots(figsize=(17,14))
         ax.set_title("Conductance values of the tiles")
         ax.set_xlabel("Target Conductance (muS)")
         ax.set_ylabel("Real Conductance (muS)")

@@ -237,6 +237,8 @@ if __name__ == '__main__':
             print(f"Model: {model_name} - Repetition: {j} - Accuracy: {model_accuracy[i,0,j]}")
 
             del model_i
+            if SELECTED_MODEL == "resnet":
+                del dataloader
             torch.cuda.empty_cache()
             gc.collect()
 
@@ -278,6 +280,8 @@ if __name__ == '__main__':
                 #print(f"Model: {levels} levels - Noise: {noise_type} - Repetition: {k} - Accuracy: {model_accuracy[i+1,j+1,k]}")
 
                 del model
+                if SELECTED_MODEL == "resnet":
+                    del dataloader
                 torch.cuda.empty_cache()
                 gc.collect()
 
