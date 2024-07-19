@@ -276,7 +276,7 @@ def evaluate_model(model, test_loader, device):
 
 
 def get_quantized_model(model,level, rpu_config):
-    RPU_CONFIG = rpu_config
+    RPU_CONFIG = deepcopy(rpu_config)
     resolution = {
         3 : 0.5,
         5 : 0.3,
