@@ -190,6 +190,8 @@ if __name__ == '__main__':
             print(f"Number of repetitions: {N_REPS}")
         if opt in ('-d', '--debug'):
             DEBUGGING_PLOTS = True
+            if os.path.exists(p_PATH + "/cuda/debugging_plots"):
+                os.system(f"rm -r {p_PATH}/cuda/debugging_plots") # Delete the previous run debugging plots
             print("Debugging plots enabled")
     
     if 'SELECTED_LEVEL' not in locals():
@@ -374,7 +376,7 @@ if __name__ == '__main__':
     # fitted_observed_min = [100] * len(types)
 
     if DEBUGGING_PLOTS:
-        fig, ax = plt.subplots(figsize=(17,12))
+        fig, ax = plt.subplots(figsize=(17,14))
         ax.set_title("Conductance values of the tiles")
         ax.set_xlabel("Target Conductance (muS)")
         ax.set_ylabel("Real Conductance (muS)")

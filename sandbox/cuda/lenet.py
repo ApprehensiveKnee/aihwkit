@@ -152,6 +152,8 @@ if __name__ == '__main__':
             print(f"Number of repetitions: {N_REPS}")
         if opt in ('-d', '--debug'):
             DEBUGGING_PLOTS = True
+            if os.path.exists(p_PATH + "/cuda/debugging_plots"):
+                os.system(f"rm -r {p_PATH}/cuda/debugging_plots") # Delete the previous run debugging plots
             print("Debugging plots enabled")
     
     if 'SELECTED_LEVEL' not in locals():
