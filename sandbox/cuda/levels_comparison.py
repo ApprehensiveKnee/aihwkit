@@ -89,7 +89,7 @@ from src.noise import NullNoiseModel, ExperimentalNoiseModel, JustMedianNoiseMod
 from aihwkit.inference.converter.conductance import SinglePairConductanceConverter
 from shared import inference_lenet5, resnet9s, get_quantized_model, evaluate_model,  IdealPreset, CustomDefinedPreset
 
-device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+device = torch.device("cuda")
 
 
 # /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
