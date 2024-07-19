@@ -302,8 +302,7 @@ if __name__ == '__main__':
         ax.plot(x, accuracies[i-1,:], label=f"{LEVELS[i-1]} levels", color=colors(norm(i-1)), marker=markers[i-1])
     ax.plot(x, [accuracy_unquantized for _ in range(len(types)+1)], label="Unquantized", color="black", linestyle="--")
     # Save the plot
-    ax.set_xticks(x)
-    ax.set_xticklabels(['No Noise']+types)
+    ax.set_xticks(x, labels=['No Noise']+types)
     ax.set_xlabel("Noise type")
     ax.set_ylabel("Accuracy")
     ax.set_title("Accuracy comparison between q.levels at different noise types")
@@ -319,13 +318,12 @@ if __name__ == '__main__':
             bbox=dict(boxstyle='round', facecolor='black', edgecolor='black'))
     im_ratio = accuracies.shape[0]/accuracies.shape[1]
     plt.colorbar(cax, fraction=0.046*im_ratio, pad=0.04)
-    ax.set_xticks(np.arange(len(types)+1))
-    ax.set_xticklabels(['No Noise']+types)
-    ax.set_yticks(np.arange(len(LEVELS)))
-    ax.set_yticklabels(LEVELS)
-    ax.set_xlabel("Noise type")
-    ax.set_ylabel("Levels")
-    ax.set_title("Accuracy comparison between q.levels at different noise types")
+    ax.set_xticks(np.arange(len(types)+1), labels=['No Noise']+types)
+    ax.set_yticks(np.arange(len(LEVELS)), labels=LEVELS)
+    plt.setp(ax.get_xticklabels(), rotation=45, ha="right", fontsize = 18, rotation_mode="anchor")
+    ax.set_xlabel("Noise type", fontsize=22)
+    ax.set_ylabel("Levels", fontsize=22)
+    ax.set_title("Accuracy comparison between q.levels at different noise types", pad=20)
     plt.savefig(f"{p_PATH}/{SELECTED_MODEL}/plots/heatmap_accuracy_level_comparison_{SELECTED_NOISE}.png")
 
 
