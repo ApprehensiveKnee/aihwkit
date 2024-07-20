@@ -84,7 +84,7 @@ class ExperimentalNoiseModel(BaseNoiseModel):
             self.g_real = None
             import matplotlib.pyplot as plt
             import matplotlib.colors as mcolors
-            color_noise_range = plt.cm.Vega20b(np.linspace(0, 1, len(types)))
+            color_noise_range = plt.get_cmap('tab20b')(np.linspace(0, 1, len(types)))
             self.color_noise = color_noise_range[types.index(self.chosen_type)]
             self.debug_dir = f"debugging_plots/noise_type={self.chosen_type}"
 
