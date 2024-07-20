@@ -402,9 +402,10 @@ if __name__ == '__main__':
                         target = np.concatenate((target, conductance['target']))
                         real = np.concatenate((real, conductance['real']))
                     #Check that the target values are within 0.001 from the COUNDUCTANCES values
-                    assert np.all(np.abs(target - TARGET_CONDUCTANCES[SELECTED_LEVEL]) < 0.001)
-                    target_values = TARGET_CONDUCTANCES[SELECTED_LEVEL]
-                    median = np.array([np.median(real[target-t<0.001]) for t in target_values])
+                    corresponding_target = np.array([TARGET_CONDUCTANCES[SELECTED_LEVEL][np.argmin(np.abs(TARGET_CONDUCTANCES[SELECTED_LEVEL] - t))] for t in target])
+                    assert np.all(np.abs(target - corresponding_target) < 0.001)
+                    target_values = np.unique(round(target,3))
+                    median = np.array([np.median(real[target == t]) for t in target_values])
                     std = np.array([np.std(real[target == t]) for t in target_values])
 
                     # Plot the median and std values
