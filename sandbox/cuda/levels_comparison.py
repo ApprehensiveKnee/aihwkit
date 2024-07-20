@@ -321,7 +321,9 @@ if __name__ == '__main__':
         ax.text(j, i, '{:0.1f}'.format(z), ha='center', va='center', color='white',
             bbox=dict(boxstyle='round', facecolor='black', edgecolor='black'))
     im_ratio = accuracies.shape[0]/accuracies.shape[1]
-    plt.colorbar(cax, fraction=0.046*im_ratio, pad=0.04)
+    cbar = plt.colorbar(cax, ax=ax)
+    cbar.ax.set_ylabel("reached accuracy", rotation=-90, va="bottom")
+    ax.spines[:].set_visible(False)
     ax.set_xticks(np.arange(len(types)+1), labels=['No Noise']+types)
     ax.set_yticks(np.arange(len(LEVELS)), labels=LEVELS)
     plt.setp(ax.get_xticklabels(), rotation=40, ha="left", va="bottom",  fontsize = 18, rotation_mode="anchor")
