@@ -404,7 +404,7 @@ if __name__ == '__main__':
                     #Check that the target values are within 0.001 from the COUNDUCTANCES values
                     corresponding_target = np.array([TARGET_CONDUCTANCES[SELECTED_LEVEL][np.argmin(np.abs(TARGET_CONDUCTANCES[SELECTED_LEVEL] - t))] for t in target])
                     assert np.all(np.abs(target - corresponding_target) < 0.001)
-                    target_values = np.unique(round(target,3))
+                    target_values = np.unique(np.round(target,3))
                     median = np.array([np.median(real[target == t]) for t in target_values])
                     std = np.array([np.std(real[target == t]) for t in target_values])
 
