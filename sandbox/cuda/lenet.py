@@ -409,7 +409,7 @@ if __name__ == '__main__':
                     round_target = np.array([TARGET_CONDUCTANCES[SELECTED_LEVEL][np.argmin(np.abs(TARGET_CONDUCTANCES[SELECTED_LEVEL] - t))] for t in target])
                     assert np.all(np.abs(target - round_target) < 0.001)
                     target_values = np.unique(np.round(target,3))
-                    median = np.array([np.mean(real[round_target == t]) for t in target_values])
+                    median = np.array([np.median(real[round_target == t]) for t in target_values])
                     std = np.array([np.std(real[round_target == t]) for t in target_values])
 
                     # Plot the median and std values

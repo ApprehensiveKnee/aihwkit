@@ -316,7 +316,7 @@ if __name__ == '__main__':
     # Also plot a heatmap
     fig, ax = plt.subplots(1,1, figsize=(23,23))
     plt.rcParams.update({'font.size': 22})
-    cax = ax.matshow(accuracies, cmap='viridis', )
+    cax = ax.matshow(accuracies, cmap='viridis',origin='lower' )
     for (i,j), z in np.ndenumerate(accuracies):
         ax.text(j, i, '{:0.1f}'.format(z), ha='center', va='center', color='white',
             bbox=dict(boxstyle='round', facecolor='black', edgecolor='black'))
