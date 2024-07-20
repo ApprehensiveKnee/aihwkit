@@ -354,6 +354,15 @@ if __name__ == '__main__':
         ax[1].set_xlim([-45, 45])
         ax[0].set_ylim([-45, 45])
         ax[1].set_ylim([0, 7])
+        # Increase the text size of the ticks
+        for tick in ax[0].xaxis.get_major_ticks():
+            tick.label.set_fontsize(10)
+        for tick in ax[0].yaxis.get_major_ticks():
+            tick.label.set_fontsize(10)
+        for tick in ax[1].xaxis.get_major_ticks():
+            tick.label.set_fontsize(10)
+        for tick in ax[1].yaxis.get_major_ticks():
+            tick.label.set_fontsize(10)
 
     for i in range(len(types)):
         CHOSEN_NOISE = types[i]
