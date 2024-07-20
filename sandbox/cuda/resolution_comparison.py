@@ -187,6 +187,13 @@ if __name__ == '__main__':
         "none" : NullNoiseModel
     }
 
+    # Extract types of noises from the data
+    path = p_PATH+ f"/data/{MAP_LEVEL_FILE[SELECTED_LEVEL]}"
+    variables = interpolate(levels=SELECTED_LEVEL, file_path=path)
+    types = variables['str']
+    types = [types[0][t][0] for t in range(types.shape[1])]
+
+
     if SELECTED_MODEL == "lenet":
         from lenet import get_test_loader
         # Download the model if it not already present
@@ -261,4 +268,25 @@ if __name__ == '__main__':
                 dataloader=dataloader,
                 )
             
-            model_accuracy
+            model_accuracy[res_idx, rep] = evaluate_model(model, get_test_loader(), device)
+
+            del model
+            if SELECTED_MODEL == "resnet":
+                del dataloader
+            torch.cuda.empty_cache()
+            gc.collect()
+
+        print(
+            f"Model: {SELECTED_MODEL} - Level: {SELECTED_LEVEL} - Noise: {SELECTED_NOISE} - Type: {SELECTED_TYPE} - Resolution: {resolution} >>> Average accuracy {np.mean(model_accuracy[res_idx])}, std: {np.std(model_accuracy[res_idx])}"
+        )
+
+    
+    # Plot the results
+
+    fig, ax = plt.subplots()
+    colors = plt.get_cmap("tab10")(np.linspace(0, 1, len(types)))
+    ax.errorbar(RESOLUTIONS[SELECTED_LEVEL], np.mean(model_accuracy, axis=1), yerr=np.std(model_accuracy, axis=1), fmt="x", color = colors[types.index(SELECTED_TYPE)])
+    ax.set_xlabel("Resolution")
+    ax.set_ylabel("Accuracy")
+    ax.set_title(f"Accuracy vs Resolution - {SELECTED_MODEL} - Level: {SELECTED_LEVEL} - \n Noise: {SELECTED_NOISE} - Type: {SELECTED_TYPE} - {N_REPS} repetitions")
+    plt.savefig(p_PATH + f"/{SELECTED_MODEL}/plots//accuracy_vs_resolution.png")
