@@ -84,9 +84,8 @@ class ExperimentalNoiseModel(BaseNoiseModel):
             self.g_real = None
             import matplotlib.pyplot as plt
             import matplotlib.colors as mcolors
-            color_noise_range = plt.get_cmap('viridis')
-            norm = mcolors.Normalize(vmin=0, vmax=len(types)-1)
-            self.color_noise = color_noise_range(norm(types.index(self.chosen_type)))
+            color_noise_range = plt.cm.Vega20b(np.linspace(0, 1, len(types)))
+            self.color_noise = color_noise_range[types.index(self.chosen_type)]
             self.debug_dir = f"debugging_plots/noise_type={self.chosen_type}"
 
     def current_tile(self, tile: int ):
