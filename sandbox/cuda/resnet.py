@@ -377,16 +377,16 @@ if __name__ == '__main__':
 
     if DEBUGGING_PLOTS:
         fig, ax = plt.subplots(figsize=(20,14), nrows=1, ncols=2)
-        ax[0].set_title(r" $W_{median} distribution$", fontsize=18)
-        ax[1].set_title(r" $W_{std} distribution$", fontsize=18)
+        ax[0].set_title(r" $W_{median}$ distribution", fontsize=18)
+        ax[1].set_title(r" $W_{std}$ distribution", fontsize=18)
         ax[0].set_xlabel(r" $W_{target}$ ($\mu$S)", fontsize=14, loc = 'right')
         ax[1].set_xlabel(r" $W_{target}$ ($\mu$S)", fontsize=14, loc = 'right')
         ax[0].set_ylabel(r" $W$ ($\mu$S)", fontsize=14, loc = 'top')
         ax[1].set_ylabel(r" $\sigma W$ ($\mu$S)", fontsize=14, loc = 'top')
         ax[0].set_xlim([-45, 45])
         ax[1].set_xlim([-45, 45])
-        ax[0].set_ylim([-65, 65])
-        ax[1].set_ylim([-65, 65])
+        ax[0].set_ylim([-45, 45])
+        ax[1].set_ylim([0, 7])
 
     for i in range(len(types)):
         CHOSEN_NOISE = types[i]
