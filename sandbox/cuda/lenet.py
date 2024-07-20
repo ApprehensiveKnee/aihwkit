@@ -401,10 +401,10 @@ if __name__ == '__main__':
                         conductance = np.load(tile_dir + "/conductances.npz")
                         target = np.concatenate((target, conductance['target']))
                         real = np.concatenate((real, conductance['real']))
-                    # After having retrived all the conductance values, plot their median
-                    # and std values for each target value
-                    target_values = np.unique(target)
-                    median = np.array([np.median(real[target == t]) for t in target_values])
+                    #Check that the target values are within 0.001 from the COUNDUCTANCES values
+                    assert np.all(np.abs(target - TARGET_CONDUCTANCES[SELECTED_LEVEL]) < 0.001)
+                    target_values = TARGET_CONDUCTANCES[SELECTED_LEVEL]
+                    median = np.array([np.median(real[target-t<0.001]) for t in target_values])
                     std = np.array([np.std(real[target == t]) for t in target_values])
 
                     # Plot the median and std values
