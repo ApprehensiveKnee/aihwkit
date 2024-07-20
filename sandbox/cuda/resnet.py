@@ -326,7 +326,6 @@ if __name__ == '__main__':
     # -**-**-**-**-**-**-**-**-**-**-**-**-**-**-**- SECOND EVALUATION: FITTED DATA -**-**-**-**-**-**-**-**-**-**-**-**-**-**-**-
     print('\n-**-**-**-**-**-**-**-**-**-**-**-**-**-**-**- SECOND EVALUATION: FITTED DATA -**-**-**-**-**-**-**-**-**-**-**-**-**-**-**-')
     print("\n\nAvailable experimental noises are: ", types)
-    print("Available experimental noises are: ", types)
     CHOSEN_NOISE = types[0]
     print(f"Chosen noise: {CHOSEN_NOISE}" )
     path = p_PATH + f"/data/{MAP_LEVEL_FILE[SELECTED_LEVEL]}"
@@ -438,8 +437,11 @@ if __name__ == '__main__':
                     corresponding_target = np.array([TARGET_CONDUCTANCES[SELECTED_LEVEL][np.argmin(np.abs(TARGET_CONDUCTANCES[SELECTED_LEVEL] - t))] for t in target])
                     assert np.all(np.abs(target - corresponding_target) < 0.001)
                     target_values = np.unique(np.round(target,3))
+                    print(f"Target values: {target_values}")
                     median = np.array([np.mean(real[target == t]) for t in target_values])
+                    print(f"Median values: {median}")
                     std = np.array([np.std(real[target == t]) for t in target_values])
+                    print(f"Std values: {std}")
 
                     # Plot the median and std values
                     ax[0].plot(target_values, median, label=f"Noise: {CHOSEN_NOISE}", color = next(model_fitted.analog_tiles()).rpu_config.noise_model[0].color_noise, linestyle='dashdot', marker='x')
