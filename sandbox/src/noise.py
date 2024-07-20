@@ -109,7 +109,7 @@ class ExperimentalNoiseModel(BaseNoiseModel):
                 SAVE_PATH = os.path.join(os.getcwd(), 'debugging_plots/noise_type={}/id={}'.format(self.chosen_type, self.current_t))
                 if not os.path.exists(SAVE_PATH):
                     os.makedirs(SAVE_PATH)
-                np.savez(os.path.join(SAVE_PATH, 'conductances.npz'), g_real = self.g_real, g_target = self.g_target)
+                np.savez(os.path.join(SAVE_PATH, 'conductances.npz'), real = self.g_real, target = self.g_target)
         
     def apply_programming_noise_to_conductance(self, g_target: torch.Tensor, neg: bool) -> torch.Tensor:
         """Apply programming noise to a target conductance Tensor. """
