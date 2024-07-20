@@ -343,12 +343,17 @@ if __name__ == '__main__':
     
 
     if DEBUGGING_PLOTS:
-        fig, ax = plt.subplots(figsize=(17,14))
-        ax.set_title("Conductance values of the tiles")
-        ax.set_xlabel("Target Conductance (muS)")
-        ax.set_ylabel("Real Conductance (muS)")
-        ax.set_xlim([-45, 45])
-        ax.set_ylim([-65, 65])
+        fig, ax = plt.subplots(figsize=(20,14), nrows=1, ncols=2)
+        ax[0].set_title(r" $W_{median} distribution$", fontsize=18)
+        ax[1].set_title(r" $W_{std} distribution$", fontsize=18)
+        ax[0].set_xlabel(r" $W_{target}$ ($\mu$S)", fontsize=14, loc = 'right')
+        ax[1].set_xlabel(r" $W_{target}$ ($\mu$S)", fontsize=14, loc = 'right')
+        ax[0].set_ylabel(r" $W$ ($\mu$S)", fontsize=14, loc = 'top')
+        ax[1].set_ylabel(r" $\sigma W$ ($\mu$S)", fontsize=14, loc = 'top')
+        ax[0].set_xlim([-45, 45])
+        ax[1].set_xlim([-45, 45])
+        ax[0].set_ylim([-65, 65])
+        ax[1].set_ylim([-65, 65])
 
     for i in range(len(types)):
         CHOSEN_NOISE = types[i]
@@ -392,13 +397,19 @@ if __name__ == '__main__':
                         tile_id = tile_dir.split("=")[1]
                         # Get inside the tile directory
                         tile_dir = debug_dir + "/" + tile_dir
-                        # Get the target and real conductance arrays and append them to the global arrays
-                        target = np.append(target, np.load(tile_dir + f"/g_target_{tile_id}.npy"))
-                        real = np.append(real, np.load(tile_dir + f"/g_real_{tile_id}.npy"))
-                    
-                    # Add the contribution of the current model to the plot
-                    ax.scatter(target, real, label=f"Noise: {CHOSEN_NOISE}", alpha=0.7*(len(types)- i*0.5)/len(types), color = next(model_fitted.analog_tiles()).rpu_config.noise_model[0].color_noise, marker = "x")   
-                        
+                        # Get the target and real conductance arrays stored in the conductnce.npz file
+                        conductance = np.load(tile_dir + "/conductances.npz")
+                        target = np.concatenate((target, conductance['target']))
+                        real = np.concatenate((real, conductance['real']))
+                    # After having retrived all the conductance values, plot their median
+                    # and std values for each target value
+                    target_values = np.unique(target)
+                    median = np.array([np.median(real[target == t]) for t in target_values])
+                    std = np.array([np.std(real[target == t]) for t in target_values])
+
+                    # Plot the median and std values
+                    ax[0].plot(target_values, median, label=f"Noise: {CHOSEN_NOISE}", color = next(model_fitted.analog_tiles()).rpu_config.noise_model[0].color_noise, linestyle='dashdot', marker='x')
+                    ax[1].plot(target_values, std, label=f"Noise: {CHOSEN_NOISE}", color = next(model_fitted.analog_tiles()).rpu_config.noise_model[0].color_noise, linestyle='dashdot', marker='x')  
                 # ////////////////////////////////////////////////////////////////////////////////////////////////
 
                 # Then evaluate the model
@@ -419,7 +430,8 @@ if __name__ == '__main__':
 
     if DEBUGGING_PLOTS:
         # Move the legend outside the plot
-        ax.legend(loc='center left', bbox_to_anchor=(1, 0.5))
+        ax[0].legend()
+        ax[1].legend()
         plt.savefig(p_PATH + f"/cuda/debugging_plots/Conductance_values.png")
 
     # Plot the accuracy of the models in a stem plot
