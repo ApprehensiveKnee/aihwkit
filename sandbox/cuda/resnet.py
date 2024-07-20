@@ -434,13 +434,13 @@ if __name__ == '__main__':
                         real = np.concatenate((real, conductance['real']))
                     # After having retrived all the conductance values, plot their median
                     # and std values for each target value
-                    corresponding_target = np.array([TARGET_CONDUCTANCES[SELECTED_LEVEL][np.argmin(np.abs(TARGET_CONDUCTANCES[SELECTED_LEVEL] - t))] for t in target])
-                    assert np.all(np.abs(target - corresponding_target) < 0.001)
+                    round_target = np.array([TARGET_CONDUCTANCES[SELECTED_LEVEL][np.argmin(np.abs(TARGET_CONDUCTANCES[SELECTED_LEVEL] - t))] for t in target])
+                    assert np.all(np.abs(target - round_target) < 0.001)
                     target_values = np.unique(np.round(target,3))
                     print(f"Target values: {target_values}")
-                    median = np.array([np.mean(real[target == t]) for t in target_values])
+                    median = np.array([np.mean(real[round_target == t]) for t in target_values])
                     print(f"Median values: {median}")
-                    std = np.array([np.std(real[target == t]) for t in target_values])
+                    std = np.array([np.std(real[round_target == t]) for t in target_values])
                     print(f"Std values: {std}")
 
                     # Plot the median and std values

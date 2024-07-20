@@ -406,11 +406,11 @@ if __name__ == '__main__':
                         target = np.concatenate((target, conductance['target']))
                         real = np.concatenate((real, conductance['real']))
                     #Check that the target values are within 0.001 from the COUNDUCTANCES values
-                    corresponding_target = np.array([TARGET_CONDUCTANCES[SELECTED_LEVEL][np.argmin(np.abs(TARGET_CONDUCTANCES[SELECTED_LEVEL] - t))] for t in target])
-                    assert np.all(np.abs(target - corresponding_target) < 0.001)
+                    round_target = np.array([TARGET_CONDUCTANCES[SELECTED_LEVEL][np.argmin(np.abs(TARGET_CONDUCTANCES[SELECTED_LEVEL] - t))] for t in target])
+                    assert np.all(np.abs(target - round_target) < 0.001)
                     target_values = np.unique(np.round(target,3))
-                    median = np.array([np.mean(real[target == t]) for t in target_values])
-                    std = np.array([np.std(real[target == t]) for t in target_values])
+                    median = np.array([np.mean(real[round_target == t]) for t in target_values])
+                    std = np.array([np.std(real[round_target == t]) for t in target_values])
 
                     # Plot the median and std values
                     ax[0].plot(target_values, median, label=f"Noise: {CHOSEN_NOISE}", color = next(model_fitted.analog_tiles()).rpu_config.noise_model[0].color_noise, linestyle='dashdot', marker='x')
