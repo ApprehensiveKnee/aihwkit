@@ -375,7 +375,7 @@ if __name__ == '__main__':
     # fitted_observed_min = [100] * len(types)
 
     if DEBUGGING_PLOTS:
-        fig, ax = plt.subplots(figsize=(20,14), nrows=1, ncols=2)
+        fig, ax = plt.subplots(figsize=(20,10), nrows=1, ncols=2)
         ax[0].set_title(r" $W_{median}$ distribution", fontsize=18)
         ax[1].set_title(r" $W_{std}$ distribution", fontsize=18)
         ax[0].set_xlabel(r" $W_{target}$ ($\mu$S)", fontsize=14, loc = 'right')
