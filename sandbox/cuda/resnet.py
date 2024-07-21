@@ -257,7 +257,7 @@ if __name__ == '__main__':
     # The state dict of the model with hardware-aware trained weights is stored in the
     # model_state_dict key of the external checkpoint.
     model.load_state_dict(state_dict["model_state_dict"], strict=True)
-    rpu_config = CustomDefinedPreset()
+    rpu_config = IdealPreset()
     model = convert_to_analog(model, rpu_config)
     model.eval()
     pl.generate_moving_hist(model,title="Distribution of Weight Values over the tiles - RESNET", file_name=p_PATH+"/resnet/plots/hist_resnet_UNQUATIZED.gif", range = (-.5,.5), top=None, split_by_rows=False, HIST_BINS = 171)
@@ -290,12 +290,11 @@ if __name__ == '__main__':
 
                 # Calibrate input ranges
                 dataloader=Sampler(get_test_loader(), device)
-
-                calibrate_input_ranges(
-                model=model_i,
-                calibration_type=InputRangeCalibrationType.CACHE_QUANTILE,
-                dataloader=dataloader,
-                )
+                # calibrate_input_ranges(
+                # model=model_i,
+                # calibration_type=InputRangeCalibrationType.CACHE_QUANTILE,
+                # dataloader=dataloader,
+                # )
                 
                 # Compute the accuracies
                 inference_accuracy_values[t_id, j, i] = evaluate_model(
@@ -331,7 +330,7 @@ if __name__ == '__main__':
     path = p_PATH + f"/data/{MAP_LEVEL_FILE[SELECTED_LEVEL]}"
     print(f"Selected level: {SELECTED_LEVEL}")
 
-    RPU_CONFIG  = CustomDefinedPreset()
+    RPU_CONFIG  = IdealPreset()
     RPU_CONFIG.noise_model= MAP_NOISE_TYPE[SELECTED_NOISE](file_path = path,
                                                             type = CHOSEN_NOISE,
                                                             levels = SELECTED_LEVEL,
@@ -391,7 +390,7 @@ if __name__ == '__main__':
 
     for i in range(len(types)):
         CHOSEN_NOISE = types[i]
-        RPU_CONFIG  = CustomDefinedPreset()
+        RPU_CONFIG  = IdealPreset()
         RPU_CONFIG.noise_model=MAP_NOISE_TYPE[SELECTED_NOISE](file_path = path,
                                                         type = CHOSEN_NOISE,
                                                         debug = DEBUGGING_PLOTS,
@@ -408,11 +407,11 @@ if __name__ == '__main__':
 
                 # Calibrate input ranges
                 dataloader = Sampler(get_test_loader(), device)
-                calibrate_input_ranges(
-                model=model_fitted,
-                calibration_type=InputRangeCalibrationType.CACHE_QUANTILE,
-                dataloader=dataloader,
-                )
+                # calibrate_input_ranges(
+                # model=model_fitted,
+                # calibration_type=InputRangeCalibrationType.CACHE_QUANTILE,
+                # dataloader=dataloader,
+                # )
 
 
                 # //////////////////////////////////////    DEBUGGING    /////////////////////////////////////////
