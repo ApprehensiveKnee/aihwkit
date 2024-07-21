@@ -280,12 +280,26 @@ if __name__ == '__main__':
             f"Model: {SELECTED_MODEL} - Level: {SELECTED_LEVEL} - Noise: {SELECTED_NOISE} - Type: {SELECTED_TYPE} - Resolution: {resolution} >>> Average accuracy {np.mean(model_accuracy[res_idx])}, std: {np.std(model_accuracy[res_idx])}"
         )
 
+    # Get the accuracy of the unquantized model
+    model = sel_model_init(SELECTED_MODEL, RPU_CONFIG_BASE, state_dict)
+    model.eval()
+    if SELECTED_MODEL == "resnet":
+        # Calibrate input ranges
+        dataloader = Sampler(get_test_loader(), device)
+        calibrate_input_ranges(
+        model=model,
+        calibration_type=InputRangeCalibrationType.CACHE_QUANTILE,
+        dataloader=dataloader,
+        )
+    model_accuracy_unquantized = evaluate_model(model, get_test_loader(), device)
+
     
     # Plot the results
 
     fig, ax = plt.subplots()
     colors = plt.get_cmap("tab10")(np.linspace(0, 1, len(types)))
     ax.errorbar(RESOLUTIONS[SELECTED_LEVEL], np.mean(model_accuracy, axis=1), yerr=np.std(model_accuracy, axis=1), fmt="x", color = colors[types.index(SELECTED_TYPE)], linestyle = '-.')
+    ax.axhline(y=model_accuracy_unquantized, color = 'black', linestyle = '--')
     ax.set_xlabel("Resolution")
     ax.set_ylabel("Accuracy")
     ax.set_title(f"Accuracy vs Resolution - {SELECTED_MODEL} - Level: {SELECTED_LEVEL} - \n Noise: {SELECTED_NOISE} - Type: {SELECTED_TYPE} - {N_REPS} repetitions")
