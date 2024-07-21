@@ -193,7 +193,7 @@ def generate_moving_hist(model: torch.nn.Module,title:str, file_name:str,split_b
 
 # -------*-------- GENERAL PLOTTING FUNCTIONS --------*--------
 
-def accuracy_plot(model_names, inference_accuracy_values, ylim = [50,100] ,path):
+def accuracy_plot(model_names, inference_accuracy_values, path, ylim = [50,100]):
     # Plot the accuracy of the models in a stem plot
     fig, ax = plt.subplots(figsize=(14,10))
     n_reps = inference_accuracy_values.shape[1]
