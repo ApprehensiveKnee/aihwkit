@@ -178,8 +178,17 @@ class TileWithPeriphery(BaseTile, SimulatorTileWrapper):
                     wqpar, data_type
                 )
             self.tile.quantize_weights(new_wqpar)
-            # Print the stack trace
-            #print(inspect.stack())
+            # If the weight quantizer has NOT produced the right amoung of 
+            # levels in the current tile, alert the user
+            if new_wqpar.debug:
+                quant_weights = self.tile.get_weights()
+                import numpy as np
+                quant_weights = np.round(quant_weights.reshape(-1), 4)
+                if np.unique(quant_weights).size != new_wqpar.levels:
+                    print(f"WARNING: in {self.tile.__class__.__name__} tile:")
+                    alert = f"Weight quantizer produced {np.unique(quant_weights).size} levels, but {new_wqpar.levels} were requested."
+                    print(alert)
+
 
         if realistic:
             self.program_weights()

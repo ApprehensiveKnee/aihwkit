@@ -186,6 +186,9 @@ class WeightQuantizerParameter(_PrintableMixin):
     quantization levels.
     """
 
+    debug: bool = True
+    """Whether to print debug information during quantization."""
+
 # -- MODIFIED: added quantize parameter
 
 
