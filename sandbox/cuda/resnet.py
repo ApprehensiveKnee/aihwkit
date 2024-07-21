@@ -242,7 +242,8 @@ if __name__ == '__main__':
     t_inferences = [0.0]  # Times to perform infernece.
     n_reps = N_REPS  # Number of inference repetitions.
 
-    model_names = ["Unquantized","Quantized - 3 levels", "Quantized - 5 levels", "Quantized - 9 levels", "Quantized - 17 levels", "Quantized - 33 levels",]
+    #model_names = ["Unquantized","Quantized - 3 levels", "Quantized - 5 levels", "Quantized - 9 levels", "Quantized - 17 levels", "Quantized - 33 levels",]
+    model_names = ["Unquantized","Quantized - 9 levels"]
     inference_accuracy_values = torch.zeros((len(t_inferences), n_reps, len(model_names)))
     for i,model_name in enumerate(model_names):
         for t_id, t in enumerate(t_inferences):
