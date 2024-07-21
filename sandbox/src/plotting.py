@@ -201,20 +201,20 @@ def accuracy_plot(model_names, inference_accuracy_values, path, ylim = [50,100])
         range(len(model_names)),
         inference_accuracy_values.mean(dim=1)[0],
         yerr=inference_accuracy_values.std(dim=1)[0] if n_reps > 1 else 0,
-        marker="x",
-        capsize=5,
+        marker="D",
+        capsize=7,
         linestyle="dashdot",
         color="indigo",
         markerfacecolor = 'black',
         markeredgecolor = 'black',
         ecolor = "darkorange",
-        elinewidth = 1.5
+        elinewidth = 2
     ) 
-    ax.set_title(f"Accuracy of the models - n = {n_reps} repeated measurements")
-    ax.set_ylabel("Accuracy (%)", loc="top")
-    ax.set_xlabel("Model", loc="right")
+    ax.set_title(f"Accuracy of the models - n = {n_reps} repeated measurements", fontsize=14)
+    ax.set_ylabel("Accuracy (%)", loc="top", fontsize=12)
+    ax.set_xlabel("Model", loc="right", fontsize=12)
     ax.set_xlim([-0.5, len(model_names) - 0.5])
-    ax.set_xticks(range(len(model_names)), model_names)
+    ax.set_xticks(range(len(model_names)), model_names, fontsize=10)
     ax.tick_params(axis='x', which='minor', bottom=False)
     ax.minorticks_on()
     ax.yaxis.grid(True)

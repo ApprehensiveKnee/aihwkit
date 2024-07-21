@@ -34,6 +34,7 @@ struct WeightQuantizerParameter{
   WeightQuantizerType quantizer_type = WeightQuantizerType::Uniform;
   std::vector<T> quant_values = {};
   bool stochastic_round = false;
+  bool debug = true;
 
   inline std::string getTypeName() const {
     switch (quantizer_type) {

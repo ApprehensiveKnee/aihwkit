@@ -69,6 +69,7 @@ void declare_rpu_tiles(py::module &m, std::string type_name_add) {
       .def_readwrite("quantizer_type", &RPU::WeightQuantizerParameter<T>::quantizer_type)
       .def_readwrite("quant_values", &RPU::WeightQuantizerParameter<T>::quant_values)
       .def_readwrite("stochastic_round", &RPU::WeightQuantizerParameter<T>::stochastic_round);
+      .def_readwrite("debug", &RPU::WeightQuantizerParameter<T>::debug);
   // -- MODIFIED: added quantization parameter
 
 
