@@ -258,11 +258,11 @@ if __name__ == '__main__':
 
                 # Calibrate input ranges
                 dataloader=Sampler(get_test_loader(), device)
-                # calibrate_input_ranges(
-                # model=model_i,
-                # calibration_type=InputRangeCalibrationType.CACHE_QUANTILE,
-                # dataloader=dataloader,
-                # )
+                calibrate_input_ranges(
+                model=model_i,
+                calibration_type=InputRangeCalibrationType.CACHE_QUANTILE,
+                dataloader=dataloader,
+                )
                 
                 # Compute the accuracies
                 inference_accuracy_values[t_id, j, i] = evaluate_model(
@@ -369,11 +369,11 @@ if __name__ == '__main__':
 
                 # Calibrate input ranges
                 dataloader = Sampler(get_test_loader(), device)
-                # calibrate_input_ranges(
-                # model=model_fitted,
-                # calibration_type=InputRangeCalibrationType.CACHE_QUANTILE,
-                # dataloader=dataloader,
-                # )
+                calibrate_input_ranges(
+                model=model_fitted,
+                calibration_type=InputRangeCalibrationType.CACHE_QUANTILE,
+                dataloader=dataloader,
+                )
 
 
                 # //////////////////////////////////////    DEBUGGING    /////////////////////////////////////////
