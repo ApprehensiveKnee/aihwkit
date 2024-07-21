@@ -180,7 +180,7 @@ class TileWithPeriphery(BaseTile, SimulatorTileWrapper):
             self.tile.quantize_weights(new_wqpar)
             # If the weight quantizer has NOT produced the right amoung of 
             # levels in the current tile, alert the user
-            if new_wqpar.debug:
+            if new_wqpar.debug and new_wqpar.levels > 0:
                 quant_weights = self.tile.get_weights()
                 import numpy as np
                 quant_weights = np.round(quant_weights.reshape(-1), 4)
