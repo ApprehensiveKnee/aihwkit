@@ -285,7 +285,7 @@ if __name__ == '__main__':
 
     fig, ax = plt.subplots()
     colors = plt.get_cmap("tab10")(np.linspace(0, 1, len(types)))
-    ax.errorbar(RESOLUTIONS[SELECTED_LEVEL], np.mean(model_accuracy, axis=1), yerr=np.std(model_accuracy, axis=1), fmt="x", color = colors[types.index(SELECTED_TYPE)], linestype = '-.')
+    ax.errorbar(RESOLUTIONS[SELECTED_LEVEL], np.mean(model_accuracy, axis=1), yerr=np.std(model_accuracy, axis=1), fmt="x", color = colors[types.index(SELECTED_TYPE)], linestyle = '-.')
     ax.set_xlabel("Resolution")
     ax.set_ylabel("Accuracy")
     ax.set_title(f"Accuracy vs Resolution - {SELECTED_MODEL} - Level: {SELECTED_LEVEL} - \n Noise: {SELECTED_NOISE} - Type: {SELECTED_TYPE} - {N_REPS} repetitions")
