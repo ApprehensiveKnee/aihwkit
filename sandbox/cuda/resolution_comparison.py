@@ -226,14 +226,14 @@ if __name__ == '__main__':
 
         RPU_CONFIG_BASE = CustomDefinedPreset()
 
-    
-    model_accuracy = np.zeros((len(RESOLUTIONS[SELECTED_LEVEL]), N_REPS))
 
     if not os.path.exists(p_PATH + f"/{SELECTED_MODEL}/plots/Conv1_comparison_resolution_plots"):
         os.makedirs(p_PATH + f"/{SELECTED_MODEL}/plots/Conv1_comparison_resolution_plots")
     else:
         os.system(f"rm -r {p_PATH}/{SELECTED_MODEL}/plots/Conv1_comparison_resolution_plots")
         os.makedirs(p_PATH + f"/{SELECTED_MODEL}/plots/Conv1_comparison_resolution_plots")
+                                 
+    model_accuracy = np.zeros((len(RESOLUTIONS[SELECTED_LEVEL]), N_REPS))
 
     for res_idx, resolution in enumerate(RESOLUTIONS[SELECTED_LEVEL]):
         RPU_CONFIG = deepcopy(RPU_CONFIG_BASE)
@@ -280,7 +280,7 @@ if __name__ == '__main__':
             f"Model: {SELECTED_MODEL} - Level: {SELECTED_LEVEL} - Noise: {SELECTED_NOISE} - Type: {SELECTED_TYPE} - Resolution: {resolution} >>> Average accuracy {np.mean(model_accuracy[res_idx])}, std: {np.std(model_accuracy[res_idx])}"
         )
 
-    # Get the accuracy of the unquantized model
+        # Get the accuracy of the unquantized model
     model = sel_model_init(SELECTED_MODEL, RPU_CONFIG_BASE, state_dict)
     model.eval()
     if SELECTED_MODEL == "resnet":
@@ -295,7 +295,6 @@ if __name__ == '__main__':
 
     
     # Plot the results
-
     fig, ax = plt.subplots()
     colors = plt.get_cmap("tab10")(np.linspace(0, 1, len(types)))
     ax.errorbar(RESOLUTIONS[SELECTED_LEVEL], np.mean(model_accuracy, axis=1), yerr=np.std(model_accuracy, axis=1), fmt="x", color = colors[types.index(SELECTED_TYPE)], linestyle = '-.')

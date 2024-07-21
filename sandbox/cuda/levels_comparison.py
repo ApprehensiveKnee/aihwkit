@@ -210,11 +210,14 @@ if __name__ == '__main__':
 
     if not os.path.exists(f"{p_PATH}/{SELECTED_MODEL}/plots/Weight_Distribution_comparison_plots"):
         os.mkdir(f"{p_PATH}/{SELECTED_MODEL}/plots/Weight_Distribution_comparison_plots")
+    else:
+        os.system(f"rm -r {p_PATH}/{SELECTED_MODEL}/plots/Weight_Distribution_comparison_plots")
+        os.mkdir(f"{p_PATH}/{SELECTED_MODEL}/plots/Weight_Distribution_comparison_plots")
 
     for i, model_name in enumerate(models_ideal): 
         RPU_CONFIG = deepcopy(RPU_CONFIG_BASE)
         for j in range(N_REPS):
-            if i == 0:
+            if model_name == "Unquantized":
                 model_i = deepcopy(unquantized_model)
             else:
                 model_i = get_quantized_model(unquantized_model, LEVELS[i-1], RPU_CONFIG)
@@ -319,12 +322,13 @@ if __name__ == '__main__':
     # Also plot a heatmap
     fig, ax = plt.subplots(1,1, figsize=(23,23))
     plt.rcParams.update({'font.size': 22})
-    cax = ax.matshow(accuracies, cmap='viridis',origin='lower' )
+    im = ax.matshow(accuracies, cmap='viridis',origin='lower' )
     for (i,j), z in np.ndenumerate(accuracies):
         ax.text(j, i, '{:0.1f}'.format(z), ha='center', va='center', color='white',
             bbox=dict(boxstyle='round', facecolor='black', edgecolor='black'))
     im_ratio = accuracies.shape[0]/accuracies.shape[1]
-    cbar = plt.colorbar(cax, ax=ax)
+    cax = fig.add_axes([ax.get_position().x1+0.01,ax.get_position().y0,0.02,ax.get_position().height])
+    cbar = plt.colorbar(im, cax=cax)
     cbar.ax.set_ylabel("reached accuracy", rotation=-90, va="bottom")
     ax.spines[:].set_visible(False)
     ax.set_xticks(np.arange(len(types)+1), labels=['No Noise']+types)
