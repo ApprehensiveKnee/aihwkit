@@ -257,7 +257,7 @@ if __name__ == '__main__':
 
             if rep == 0:
                 tile_weights = next(model.analog_tiles()).get_weights()
-                pl.plot_tensor_values(tile_weights, 161, (-.6, .6), f"Conv1 {SELECTED_MODEL} - levels: {SELECTED_LEVEL} - type: {SELECTED_TYPE} -resolution: {resolution}", p_PATH + f"/{SELECTED_MODEL}/plots/Conv1_comparison_resolution_plots/conv1_{SELECTED_LEVEL}_{SELECTED_TYPE}_{resolution}.png")
+                pl.plot_tensor_values(tile_weights[0], 161, (-.6, .6), f"Conv1 {SELECTED_MODEL} - levels: {SELECTED_LEVEL} - type: {SELECTED_TYPE} -resolution: {resolution}", p_PATH + f"/{SELECTED_MODEL}/plots/Conv1_comparison_resolution_plots/conv1_{SELECTED_LEVEL}_{SELECTED_TYPE}_{resolution}.png")
 
             if SELECTED_MODEL == "resnet":
                 # Calibrate input ranges
