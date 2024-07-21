@@ -193,6 +193,37 @@ def generate_moving_hist(model: torch.nn.Module,title:str, file_name:str,split_b
 
 # -------*-------- GENERAL PLOTTING FUNCTIONS --------*--------
 
+def accuracy_plot(model_names, inference_accuracy_values, ylim = [50,100] ,path):
+    # Plot the accuracy of the models in a stem plot
+    fig, ax = plt.subplots(figsize=(14,10))
+    n_reps = inference_accuracy_values.shape[1]
+    ax.errorbar(
+        range(len(model_names)),
+        inference_accuracy_values.mean(dim=1)[0],
+        yerr=inference_accuracy_values.std(dim=1)[0] if n_reps > 1 else 0,
+        marker="x",
+        capsize=5,
+        linestyle="dashdot",
+        color="indigo",
+        markerfacecolor = 'black',
+        markeredgecolor = 'black',
+        ecolor = "darkorange",
+        elinewidth = 1.5
+    ) 
+    ax.set_title(f"Accuracy of the models - n = {n_reps} repeated measurements")
+    ax.set_ylabel("Accuracy (%)", loc="top")
+    ax.set_xlabel("Model", loc="right")
+    ax.set_xlim([-0.5, len(model_names) - 0.5])
+    ax.set_xticks(range(len(model_names)), model_names)
+    ax.tick_params(axis='x', which='minor', bottom=False)
+    ax.minorticks_on()
+    ax.yaxis.grid(True)
+    ax.yaxis.grid(which="minor", linestyle=":", linewidth="0.5", color="gray")
+    ax.set_ylim(ylim)
+
+    # Save the plot to file
+    plt.savefig(path)
+
 ''' The following have been taken from the matplotlib documentation'''
 
 def heatmap(data, row_labels, col_labels, ax=None,

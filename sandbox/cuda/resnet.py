@@ -126,37 +126,7 @@ class Sampler:
 # ------------------------------------------- PLOTTING FUNCTIONS ------------------------------------------------------
 # ********************************************************************************************************************
 
-def accuracy_plot(model_names, inference_accuracy_values, observed_max, observed_min, r_number ,path):
-    # Plot the accuracy of the models in a stem plot
-    fig, ax = plt.subplots()
-    y1= np.array([0.]*len(model_names))
-    y2= np.array([0.]*len(model_names))
-    for i, model_name in enumerate(model_names):
-        mean = inference_accuracy_values[0, :, i].mean()
-        std = inference_accuracy_values[0, :, i].std() if inference_accuracy_values.shape[1]>0 else 0
-        y2[i] = mean + 3 * std
-        y1[i] = mean - 3 * std
-        ax.stem([model_name], [mean], linefmt="darkorange", markerfmt="D", basefmt=" ")
-    ax.set_title(f"Accuracy of the models - n = {r_number} repeated measurements")
-    ax.set_ylabel("Accuracy (%)")
-    ax.set_xlim([-0.5, len(model_names) - 0.5])
-    ax.minorticks_on()
-    ax.yaxis.grid(True)
-    ax.yaxis.grid(which="minor", linestyle=":", linewidth="0.5", color="gray")
-    max = np.array(observed_max)
-    min = np.array(observed_min)
-    x = np.arange(len(model_names))
-    ax.fill_between(x, y1, y2, where=(y2 > y1), color='bisque', alpha=0.5, label='Confidence Interval')
-    ax.plot(x, y1, '--', color='firebrick')
-    ax.plot(x, y2, '--', color = 'firebrick')
-    ax.fill_between(x, min, max, where=(max > min), color='lightsalmon', alpha=0.5, label='Observed Accuracy Interval')
-    ax.plot(x, max, ls='dashdot', color = 'olivedrab', label = 'Max observed accuracy', marker = '1', markersize=10)
-    ax.plot(x, min, ls= 'dashdot', color = 'olivedrab', label = 'Min observed accuracy', marker = '2', markersize=10)
-    ax.set_ylim([30, 100])
-    ax.legend()
-
-    # Save the plot to file
-    plt.savefig(path)
+from src.plotting import accuracy_plot
 
 
 # ********************************************************************************************************************
@@ -274,8 +244,6 @@ if __name__ == '__main__':
 
     model_names = ["Unquantized","Quantized - 3 levels", "Quantized - 5 levels", "Quantized - 9 levels", "Quantized - 17 levels", "Quantized - 33 levels",]
     inference_accuracy_values = torch.zeros((len(t_inferences), n_reps, len(model_names)))
-    observed_max = [0] * len(model_names)
-    observed_min = [100] * len(model_names)
     for i,model_name in enumerate(model_names):
         for t_id, t in enumerate(t_inferences):
             for j in range(n_reps):
@@ -300,10 +268,6 @@ if __name__ == '__main__':
                 inference_accuracy_values[t_id, j, i] = evaluate_model(
                     model_i, get_test_loader(), device
                 )
-                if observed_max[i] < inference_accuracy_values[t_id, j, i]:
-                    observed_max[i] = inference_accuracy_values[t_id, j, i]
-                if observed_min[i] > inference_accuracy_values[t_id, j, i]:
-                    observed_min[i] = inference_accuracy_values[t_id, j, i]
                 print(f"Accuracy on rep:{j}, model:{i} -->" , inference_accuracy_values[t_id, j, i])
                 # tile_weights = next(model_i.analog_tiles()).get_weights()
                 # print(f"Tile weights for model {model_names[i]}: {tile_weights[0][0:5, 0:5]}")
@@ -319,7 +283,7 @@ if __name__ == '__main__':
             )
             
 
-    accuracy_plot(model_names, inference_accuracy_values, observed_max, observed_min, n_reps ,path=p_PATH + "/resnet/plots/accuracy_resnet.png")
+    accuracy_plot(model_names, inference_accuracy_values, ylim=[10,100],path=p_PATH + "/resnet/plots/accuracy_resnet.png")
 
 
     # -**-**-**-**-**-**-**-**-**-**-**-**-**-**-**- SECOND EVALUATION: FITTED DATA -**-**-**-**-**-**-**-**-**-**-**-**-**-**-**-
@@ -370,8 +334,6 @@ if __name__ == '__main__':
     # Estimate the accuracy of the model with the fitted noise with respect to the other 9 levels model
     fitted_models_names = []
     fitted_models_accuracy = torch.zeros((len(t_inferences), n_reps, len(types)))
-    # fitted_observed_max = [0] * len(types)
-    # fitted_observed_min = [100] * len(types)
 
     if DEBUGGING_PLOTS:
         fig, ax = plt.subplots(figsize=(20,10), nrows=1, ncols=2)
@@ -446,10 +408,6 @@ if __name__ == '__main__':
 
                 # Then evaluate the model
                 fitted_models_accuracy[t_id, j, i] = evaluate_model(model_fitted, get_test_loader(), device)
-                # if fitted_observed_max[i] < fitted_models_accuracy[t_id, j, i]:
-                #     fitted_observed_max[i] = fitted_models_accuracy[t_id, j, i]
-                # if fitted_observed_min[i] > fitted_models_accuracy[t_id, j, i]:
-                #     fitted_observed_min[i] = fitted_models_accuracy[t_id, j, i]
                 
                 # Delete the model to free CUDA memory
                 del model_fitted
@@ -474,10 +432,6 @@ if __name__ == '__main__':
 
     accuracies = [inference_accuracy_values[0, :, model_names.index(models[0])].mean(), inference_accuracy_values[0, :, model_names.index(models[1])].mean()]
     accuracies = accuracies + fitted_models_accuracy.mean(dim=1)[0].tolist()
-    # observed_max = [observed_max[0], observed_max[model_names.index(models[1])]]
-    # observed_min = [observed_min[0], observed_min[model_names.index(models[1])]]
-    # observed_max = accuracies[:2] + fitted_observed_max
-    # observed_min = observed_min + fitted_observed_min
     ax.boxplot([inference_accuracy_values[0,:,model_names.index(models[0])],inference_accuracy_values[0, :, model_names.index(models[1])]], 
                patch_artist=True, 
                positions=[0,1], 
@@ -502,12 +456,8 @@ if __name__ == '__main__':
     plt.setp(markerline, 'color', 'black')
     # Define the points for the boundary lines
     x = np.arange(len(models))
-    # max = np.array(observed_max)
-    # min = np.array(observed_min)
     # Interpolating or directly using the points to fill the region
     ax.plot(x, accuracies, ls='dashdot', color = 'black', label = 'Mean observed accuracy', marker='None')
-    # ax.plot(x, max, ls='dashdot', color = 'olivedrab', label = 'Max observed accuracy', marker = '1', markersize=10)
-    # ax.plot(x, min, ls= 'dashdot', color = 'olivedrab', label = 'Min observed accuracy', marker = '2', markersize=10)
     ax.set_title(f"Accuracy of the models over {n_reps} repetitions")
     ax.set_ylabel("Accuracy (%)")
     ax.set_xticks(range(len(models)),models)

@@ -100,27 +100,7 @@ def get_test_loader(batch_size = 32):
 # ------------------------------------------- PLOTTING FUNCTIONS ------------------------------------------------------
 # ********************************************************************************************************************
 
-def accuracy_plot(model_names, inference_accuracy_values, r_number ,path):
-    # Plot the accuracy of the models in a stem plot
-    fig, ax = plt.subplots()
-    trace = np.array([0.]*len(model_names))
-    for i, model_name in enumerate(model_names):
-        mean = inference_accuracy_values[0, 0, i] 
-        trace[i] = mean
-        ax.stem([model_name], [mean], linefmt="darkorange", markerfmt="D", basefmt=" ")
-    ax.set_title(f"Accuracy of the models - n = {r_number} repeated measurements")
-    ax.set_ylabel("Accuracy (%)")
-    ax.set_xlim([-0.5, len(model_names) - 0.5])
-    ax.minorticks_on()
-    ax.yaxis.grid(True)
-    ax.yaxis.grid(which="minor", linestyle=":", linewidth="0.5", color="gray")
-    x = np.arange(len(model_names))
-    ax.plot(x, trace, ls='dashdot', color = 'firebrick', label = 'Max observed accuracy', marker = '1', markersize=10)
-    ax.set_ylim([90, 100])
-    ax.legend()
-
-    # Save the plot to file
-    plt.savefig(path)
+from src.plotting import accuracy_plot
 
 # ********************************************************************************************************************
 # ---------------------------------------------------- MAIN ----------------------------------------------------------
@@ -283,7 +263,7 @@ if __name__ == '__main__':
             )
             
 
-    accuracy_plot(model_names, inference_accuracy_values, n_reps ,path= p_PATH + "/lenet/plots/accuracy_lenet.png")
+    accuracy_plot(model_names, inference_accuracy_values, ylim = [90,100], path= p_PATH + "/lenet/plots/accuracy_lenet.png")
 
     # -**-**-**-**-**-**-**-**-**-**-**-**-**-**-**- SECOND EVALUATION: FITTED DATA -**-**-**-**-**-**-**-**-**-**-**-**-**-**-**-
     print('\n-**-**-**-**-**-**-**-**-**-**-**-**-**-**-**- SECOND EVALUATION: FITTED DATA -**-**-**-**-**-**-**-**-**-**-**-**-**-**-**-')
