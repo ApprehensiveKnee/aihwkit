@@ -89,7 +89,7 @@ void WeightQuantizerCuda<T>::apply(T *weights, const WeightQuantizerParameter<T>
     // For now, only the implementation for the uniform quantization is provided (no stochastic rounding)
     switch (wqpar.quantizer_type) {
         case WeightQuantizerType::Uniform: {
-            if (wqpar.resolution > 0){
+            if (wqpar.resolution >0 || (wqpar.resolution == 0 && wqpar.eps > 0)){
                 // First, rescale the weights based on the maximum absolute value:
                 // 1. Find the maximum absolute value of the weights
                 if (amaximizer_ == nullptr){
