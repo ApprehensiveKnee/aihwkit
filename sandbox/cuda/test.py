@@ -121,7 +121,7 @@ def test():
     else:
         os.system("rm -r plots")
         os.mkdir("plots")
-        
+
     RANGE = (-1.2, 1.2)
     # Prepare the datasets (input and expected output).
     x = Tensor([[0.1, 0.2, 0.4, 0.3], [0.2, 0.1, 0.1, 0.3]])
@@ -137,8 +137,8 @@ def test():
 
     rpu_config.quantization = WeightQuantizerParameter(
         resolution = 0.0,
-        eps = 0.03,
-        levels = 9
+        eps = 0.5,
+        levels = 3
     )
     model = AnalogLinear(4, 2, bias=True, rpu_config=rpu_config)
 
