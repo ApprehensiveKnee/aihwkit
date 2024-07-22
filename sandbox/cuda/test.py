@@ -115,6 +115,13 @@ def perform_test():
         print(f"Error: {str(e)}")
 
 def test():
+
+    if os.path.exists("plots") == False:
+        os.mkdir("plots")
+    else:
+        os.system("rm -r plots")
+        os.mkdir("plots")
+        
     RANGE = (-1.2, 1.2)
     # Prepare the datasets (input and expected output).
     x = Tensor([[0.1, 0.2, 0.4, 0.3], [0.2, 0.1, 0.1, 0.3]])
