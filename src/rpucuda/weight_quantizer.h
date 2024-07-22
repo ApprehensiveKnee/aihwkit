@@ -27,7 +27,7 @@ struct WeightQuantizerParameter{
 
   T resolution = (T)0.0;
   T bound =(T) 1.0;
-  T relat_bound = (T)0.0;
+  T eps = (T)0.; // Percentage of values included in the FSR
   unsigned short levels = 0;
   bool rel_to_actual_bound = true;
   bool quantize_last_column = true;
@@ -56,8 +56,8 @@ struct WeightQuantizerParameter{
   void printToStream(std::stringstream &ss) const {
     ss << "\t resolution:\t" << resolution << std::endl;
     ss << "\t levels: \t" << levels << std::endl;
+    ss << "\t eps: \t" << eps << std::endl;
     //ss << "\t bound: \t" << bound << std::endl;
-    //ss << "\t relat_bound: \t" << relat_bound << std::endl;
     //ss << "\t rel_to_actual_bound: \t" << rel_to_actual_bound << std::endl;
     ss << "\t quantize_last_column: \t" << quantize_last_column << std::endl;
     ss << "\t stochastic_round: \t" << stochastic_round << std::endl;
@@ -94,7 +94,7 @@ public:
 
     // Apply in-place quantization
     void apply(T *weights, const WeightQuantizerParameter<T> &wqpar ,RNG<T> &rng);
-    void fit(const T *weights, WeightQuantizerParameter<T> &wqpar);
+    T fit(const T *weights, const WeightQuantizerParameter<T> &wqpar, const T bound);
 
     void dumpExtra(RPU::state_t &extra, const std::string prefix);
     void loadExtra(const RPU::state_t &extra, const std::string prefix, bool strict);

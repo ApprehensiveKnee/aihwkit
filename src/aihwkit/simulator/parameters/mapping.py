@@ -141,10 +141,10 @@ class WeightQuantizerParameter(_PrintableMixin):
     bindings_class: ClassVar[Optional[Union[str, Type]]] = "WeightQuantizerParameter"
     bindings_module: ClassVar[str] = "tiles"
 
-    resolution: float = 0
+    resolution: float = 0.
     """Whether to quantize the weights to the tile's precision.
 
-    If set to a integer value, the original weights will be quantized to
+    If set to a gloat value, the original weights will be quantized to
     this number of quantization levels.
     """
 
@@ -153,6 +153,14 @@ class WeightQuantizerParameter(_PrintableMixin):
 
     If set to 0, the quantization levels will be ignored and the quantization
     will just be based on the quantize (resolution) parameter.
+    """
+
+    eps: float = 0.
+    """The percentage value used to fine tune the resolution value
+
+    If set to a float value different from 0 and resolution is set to 0,
+    the resolution used during the quantization will be fitted to include in the
+    FSR all the values up to a minimum of eps% of the weight population on the tile
     """
 
     quantize_last_column: bool = True
@@ -174,8 +182,8 @@ class WeightQuantizerParameter(_PrintableMixin):
     """
 
     quant_values: List[float] = field(
-        default_factory=lambda: [-1.0, 1.0],
-        metadata={"hide_if": [-1.0, 1.0]},
+        default_factory=lambda: [-1.0, 0.0,  1.0],
+        metadata={"hide_if": [-1.0, 0.0, 1.0]},
     )
 
     stochastic_round: bool = False

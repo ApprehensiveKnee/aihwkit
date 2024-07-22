@@ -20,6 +20,7 @@ public:
   WeightQuantizerCuda(){};
 
   void apply(T *weights, const WeightQuantizerParameter<T> &wqpar);
+  T fit(const T *weights, const WeightQuantizerParameter<T> &wqpar, const T bound);
 
   void dumpExtra(RPU::state_t &extra, const std::string prefix){};
   void loadExtra(const RPU::state_t &extra, const std::string prefix, bool strict){};

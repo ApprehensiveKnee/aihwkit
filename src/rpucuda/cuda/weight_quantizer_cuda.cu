@@ -28,12 +28,62 @@ WeightQuantizerCuda<T>::WeightQuantizerCuda(CudaContextPtr context, int x_size, 
 //   dev_temp_storage_ = RPU::make_unique<CudaArray<char>>(context, temp_storage_bytes_);
 }
 
+template <typename T>
+__global__ T WeightQuantizerCuda<T>::fit(const T *weights, const WeightQuantizerParameter<T> &wqpar, const T bound) {
+
+    // The fit function is used to fine tune the redolution of the quantizer, so that up to a minimum
+    // of (1 - eps) fraction of the weights are included in the FSR.
+
+    if (wqpar.resolution != 0 || wqpar.eps == 0){
+        return wqpar.resolution;
+    }
+
+    int total_weights = size_;
+    T percentage = (float)wqpar.eps;
+    int max_count = (int)(total_weights * percentage/2.);
+
+    std::vector<T> sorted_weights(size_);
+    PRAGMA_SIMD
+    for (int i = 0; i < size_; i++) {
+        sorted_weights[i] =  weights[i];
+    }
+
+    std::sort(sorted_weights.begin(), sorted_weights.end(), std::greater<T>());
+    T max_bound = sorted_weights[0];
+    T min_bound = sorted_weights[total_weights - 1];
+    int max_index = 0;
+    int min_index = total_weights - 1;
+
+
+    // Loop thought the sorted weights until we reach the count value
+    for (int i = 0; i < max_count; i++) {
+        // For each iteration, move to the next element starting from the ends
+        // of the sorted weights array
+        max_index++;
+        min_index--;
+        max_bound = sorted_weights[max_index];
+        min_bound = sorted_weights[min_index];
+    }
+
+    // Check which bound is closer to the zero value
+    T limit = (fabs(min_bound) < fabs(max_bound)) ? max_bound : min_bound;
+    int limit_index = (fabs(min_bound) < fabs(max_bound)) ? max_index : total_weights - min_index - 1;
+    limit = fabs(limit);
+    std::cout << "Limit value: " << limit << std::endl;
+    std::cout << "Cutout percentage: " << (float)(total_weights - 2*limit_index)/(float)total_weights << std::endl;
+
+    // Set the resolution value, so that the limit value is included in the FSR
+    T levels = (T)wqpar.levels;
+    return (T) (2/(levels-1))*(limit/bound);
+}
+
+
 
 template <typename T>
-void WeightQuantizerCuda<T>::apply(T *weights, const WeightQuantizerParameter<T> &wqpar) {
+__global__ void WeightQuantizerCuda<T>::apply(T *weights, const WeightQuantizerParameter<T> &wqpar) {
   
-    int nthreads = context_->getNThreads();
-    int nblocks = context_->getNBlocks(size_, nthreads);
+    // int nthreads = context_->getNThreads();
+    // int nblocks = context_->getNBlocks(size_, nthreads);
     auto s = context_->getStream();
 
     // For now, only the implementation for the uniform quantization is provided (no stochastic rounding)
@@ -51,8 +101,9 @@ void WeightQuantizerCuda<T>::apply(T *weights, const WeightQuantizerParameter<T>
                 // 2. Rescale the weights
                 RPU::math::elemscale(context_, weights, size_, (T)1.0 / bound_value_);
 
+                (T) resolution = fit(weights, wqpar, bound_value_);
                 // Quantize the weights
-                RPU::math::uquantize(context_, weights, size_, (T)wqpar.resolution, wqpar.levels);
+                RPU::math::uquantize(context_, weights, size_, resolution, wqpar.levels);
 
                 // Rescale back the weights
                 RPU::math::elemscale(context_, weights, size_, bound_value_);

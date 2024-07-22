@@ -19,51 +19,62 @@ WeightQuantizer<T>::WeightQuantizer(int x_size, int d_size)
 
 
 template <typename T>
-void WeightQuantizer<T>::fit(const T *weights, WeightQuantizerParameter<T> &wqpar) {
-    // The function is used to determine the best value for the relat_bound parameter
-    // based on the weights values, to allow for at last quantization levels to be used
+T WeightQuantizer<T>::fit(const T *weights, const WeightQuantizerParameter<T> &wqpar, const T bound) {
+    // The function is used to determine the best value for the resolution parameter
+    // based on the weights values, to allow for at least 1-eps fraction of the weights
+    // to be included in the full scale range (FSR)
 
-    // First we determine the maximum value in the weights array
-    T amax = 0.0;
-    for (int i = 0; i < size_; i++) {
-        T a = (T)fabsf(weights[i]);
-        amax = a > amax ? a : amax;
+    if (wqpar.resolution != 0.0 || wqpar.eps == 0.0) {
+        return (T) wqpar.resolution;
     }
-    amax = amax > (T)0.0 ? amax : (T)1.0;
-
-    // We want the last quantization levels to be used by, at least, 3% of the weights
+    // The resolution parameter will be used on the normalized weights, so bound knowledge will 
+    // be required
 
     int total_weights = size_;
-    float percentage = 0.03;
-    int count = (int)(total_weights * percentage);
+    T percentage = (float)wqpar.eps;
+    int max_count = (int)(total_weights * percentage/2.);
 
     // Order the weights in a descending order
-    std::vector<T> sorted_weights(weights, weights + size_);
-    std::sort(sorted_weights.begin(), sorted_weights.end(), std::greater<T>());
-    T max_bound = sorted_weights[0];
-    T min_bound = sorted_weights[0];
-
-    // Loop thought the sorted weights until we reach the count value
-    for (int i = 0; i < count; i++) {
-        T a = sorted_weights[i];
-        max_bound = a > max_bound ? a : max_bound;
-        min_bound = a < min_bound ? a : min_bound;
+    std::vector<T> sorted_weights(size_);
+    PRAGMA_SIMD
+    for (int i = 0; i < size_; i++) {
+        sorted_weights[i] =  weights[i];
     }
 
-    T bound = (max_bound < fabsf(min_bound)) ? max_bound : fabsf(min_bound);
-    T levels = (T)wqpar.levels;
-    T resolution = (T)wqpar.resolution;
+    std::sort(sorted_weights.begin(), sorted_weights.end(), std::greater<T>());
+    T max_bound = sorted_weights[0];
+    T min_bound = sorted_weights[total_weights - 1];
+    int max_index = 0;
+    int min_index = total_weights - 1;
 
-    // Determine the relat_bound value
-    T relat_bound = bound / ((levels - 1.0) * resolution);
-    wqpar.relat_bound = relat_bound< 0.9 ? relat_bound : 0.9;
+
+    // Loop thought the sorted weights until we reach the count value
+    for (int i = 0; i < max_count; i++) {
+        // For each iteration, move to the next element starting from the ends
+        // of the sorted weights array
+        max_index++;
+        min_index--;
+        max_bound = sorted_weights[max_index];
+        min_bound = sorted_weights[min_index];
+    }
+
+    // Check which bound is closer to the zero value
+    T limit = (fabs(min_bound) < fabs(max_bound)) ? max_bound : min_bound;
+    //int limit_index = (fabs(min_bound) < fabs(max_bound)) ? max_index : total_weights - min_index - 1;
+    limit = fabs(limit);
+    //std::cout << "Limit value: " << limit << std::endl;
+    //std::cout << "Cutout percentage: " << (float)(total_weights - 2*limit_index)/(float)total_weights << std::endl;
+
+    // Set the resolution value, so that the limit value is included in the FSR
+    T levels = (T)wqpar.levels;
+    return (T) (2/(levels-1))*(limit/bound);
 
 };
 
 template <typename T>
 void WeightQuantizer<T>::apply(T *weights, const WeightQuantizerParameter<T> &wqpar,RNG<T> &rng) {
 
-    if (wqpar.resolution == 0.0 && wqpar.quantizer_type == WeightQuantizerType::Uniform) {
+    if (wqpar.resolution == 0.0 && wqpar.quantizer_type == WeightQuantizerType::Uniform && wqpar.eps == 0.0) {
         return;
     }
     if (wqpar.resolution > wqpar.bound){
@@ -84,7 +95,7 @@ void WeightQuantizer<T>::apply(T *weights, const WeightQuantizerParameter<T> &wq
     }
 
     T bound = (T)wqpar.bound;
-    if (wqpar.rel_to_actual_bound || (wqpar.relat_bound > 0.0)) {
+    if (wqpar.rel_to_actual_bound) {
         T amax = 0.0;
         PRAGMA_SIMD
         for (int i = 0; i < size_; i++) {
@@ -96,9 +107,6 @@ void WeightQuantizer<T>::apply(T *weights, const WeightQuantizerParameter<T> &wq
         }
         amax = amax > (T)0.0 ? amax : (T)1.0;
         bound = amax;
-        if (wqpar.relat_bound > 0.0) {
-            bound *= (T)wqpar.relat_bound;
-        }
     }
 
     // Check for the quantizer_type 
@@ -121,8 +129,10 @@ void WeightQuantizer<T>::apply(T *weights, const WeightQuantizerParameter<T> &wq
     }
     else if(wqpar.quantizer_type == WeightQuantizerType::Uniform){
         const bool stochastic_round = wqpar.stochastic_round;
-        const T resolution = wqpar.resolution;
         const T levels = (T) wqpar.levels;
+        // Fit the resolution value
+        const T resolution = WeightQuantizer::fit(weights, wqpar, bound);
+
         // Run the uniform quantization function from the utility_functions.h file
         // based on the bound value and the stochastic_round flag
         if (levels == 0){

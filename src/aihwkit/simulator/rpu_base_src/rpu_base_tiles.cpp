@@ -62,6 +62,7 @@ void declare_rpu_tiles(py::module &m, std::string type_name_add) {
       .def(py::init<>())
       .def_readwrite("resolution", &RPU::WeightQuantizerParameter<T>::resolution)
       .def_readwrite("levels", &RPU::WeightQuantizerParameter<T>::levels)
+      .def_readwrite("eps", &RPU::WeightQuantizerParameter<T>::eps)
       //.def_readwrite("bound", &RPU::WeightQuantizerParameter<T>::bound)
       //.def_readwrite("relat_bound", &RPU::WeightQuantizerParameter<T>::relat_bound)
       //.def_readwrite("rel_to_actual_bound", &RPU::WeightQuantizerParameter<T>::rel_to_actual_bound)
