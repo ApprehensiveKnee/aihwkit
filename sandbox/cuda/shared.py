@@ -281,7 +281,7 @@ def get_quantized_model(model ,level: int, rpu_config, resolution: float = None)
         RESOLUTION = {
             3 : 0.5,
             5 : 0.3,
-            9 : 0.2,
+            9 : 0.18,
             17 : 0.12,
             33 : 0.05
         }
