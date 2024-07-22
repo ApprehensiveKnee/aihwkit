@@ -1,6 +1,10 @@
 
 import os
 import torch
+import gc
+from copy import deepcopy
+import sys
+from getopt import getopt
 from torch import nn, Tensor, device, no_grad, manual_seed
 from torch import nn
 from torchvision.datasets.utils import download_url
@@ -10,16 +14,10 @@ import torchvision
 from torchvision import datasets, transforms
 from torch.nn.functional import mse_loss
 
-
-
-# print the position of python
-import sys
-# get the path of the current file
-file = os.path.abspath('')
-path = os.path.join(file, '../src')
-sys.path.append(path)
-print(path)
-# Print the list of modules imported
+# Import functions defined in a specific path
+t_PATH = os.path.abspath(__file__)
+t_PATH = os.path.dirname(os.path.dirname(os.path.dirname(t_PATH)))
+sys.path.append(t_PATH + '/src/')
 
 from aihwkit.simulator.configs import ConstantStepDevice, SingleRPUConfig, FloatingPointDevice, FloatingPointRPUConfig
 from aihwkit.optim import AnalogSGD
@@ -62,10 +60,21 @@ from aihwkit.inference.calibration import (
 import matplotlib.pyplot as plt
 import pandas as pd
 import numpy as np
-from dataclasses import dataclass, field
 from typing import Optional
+from dataclasses import dataclass, field
+from tqdm import tqdm
+import requests
+import gdown
+from urllib.parse import unquote
+sys.path.append(t_PATH + '/sandbox/')
 
 import src.plotting as pl
+from src.utilities import interpolate
+
+from src.noise import NullNoiseModel, ExperimentalNoiseModel, JustMedianNoiseModel, JustStdNoiseModel
+from aihwkit.inference.converter.conductance import SinglePairConductanceConverter
+
+
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
