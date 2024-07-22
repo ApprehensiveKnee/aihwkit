@@ -29,7 +29,7 @@ WeightQuantizerCuda<T>::WeightQuantizerCuda(CudaContextPtr context, int x_size, 
 }
 
 template <typename T>
-__global__ T WeightQuantizerCuda<T>::fit(const T *weights, const WeightQuantizerParameter<T> &wqpar, const T bound) {
+T WeightQuantizerCuda<T>::fit(const T *weights, const WeightQuantizerParameter<T> &wqpar, const T bound) {
 
     // The fit function is used to fine tune the redolution of the quantizer, so that up to a minimum
     // of (1 - eps) fraction of the weights are included in the FSR.
@@ -80,7 +80,7 @@ __global__ T WeightQuantizerCuda<T>::fit(const T *weights, const WeightQuantizer
 
 
 template <typename T>
-__global__ void WeightQuantizerCuda<T>::apply(T *weights, const WeightQuantizerParameter<T> &wqpar) {
+void WeightQuantizerCuda<T>::apply(T *weights, const WeightQuantizerParameter<T> &wqpar) {
   
     // int nthreads = context_->getNThreads();
     // int nblocks = context_->getNBlocks(size_, nthreads);
