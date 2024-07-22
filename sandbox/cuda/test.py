@@ -1,4 +1,4 @@
-%matplotlib inline
+
 import os
 import torch
 from torch import nn, Tensor, device, no_grad, manual_seed
