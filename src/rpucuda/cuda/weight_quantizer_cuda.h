@@ -30,8 +30,11 @@ private:
     int x_size_ = 0;
     int d_size_ = 0;
     int size_ = 0;
+    size_t temp_storage_bytes_ = 0;
 
     std::unique_ptr<Maximizer<T>> amaximizer_ = nullptr;
+    // std::unique_ptr<CudaArray<T>> temp_weights_ = nullptr;
+    // std::unique_ptr<CudaArray<char>> dev_temp_storage_ = nullptr;
 };
 
 } // namespace RPU

@@ -19,13 +19,8 @@ template <typename T>
 WeightQuantizerCuda<T>::WeightQuantizerCuda(CudaContextPtr context, int x_size, int d_size)
     : context_(context), x_size_(x_size), d_size_(d_size), size_(x_size * d_size) {
 
-//   T *tmp = nullptr;
-//   StdFunctor<T> std_functor((T)x_size_, tmp);
-//   RPU_CUB_NS_QUALIFIER TransformInputIterator<T, StdFunctor<T>, T *> std_input(tmp, std_functor);
+    //temp_weights_ = RPU::make_unique<CudaArray<T>>(context_, size_);
 
-//   RPU_CUB_NS_QUALIFIER DeviceReduce::Sum(
-//       nullptr, temp_storage_bytes_, std_input, tmp, size_, context_->getStream());
-//   dev_temp_storage_ = RPU::make_unique<CudaArray<char>>(context, temp_storage_bytes_);
 }
 
 template <typename T>
@@ -41,13 +36,12 @@ T WeightQuantizerCuda<T>::fit(const T *weights, const WeightQuantizerParameter<T
     int total_weights = size_;
     T percentage = (float)wqpar.eps;
     int max_count = (int)(total_weights * percentage/2.);
+    std::cout << "Fino a qui tutto bene" << std::endl;
 
-    std::vector<T> sorted_weights(size_);
-    PRAGMA_SIMD
-    for (int i = 0; i < size_; i++) {
-        sorted_weights[i] =  weights[i];
-    }
-
+    // Move the weights to the host
+    std::vector<T> sorted_weights(total_weights);
+    std::cout << "Total weights: " << total_weights << std::endl;
+    
     std::sort(sorted_weights.begin(), sorted_weights.end(), std::greater<T>());
     T max_bound = sorted_weights[0];
     T min_bound = sorted_weights[total_weights - 1];
