@@ -227,7 +227,7 @@ if __name__ == '__main__':
     # The state dict of the model with hardware-aware trained weights is stored in the
     # model_state_dict key of the external checkpoint.
     model.load_state_dict(state_dict["model_state_dict"], strict=True)
-    rpu_config = IdealPreset()
+    rpu_config = CustomDefinedPreset()
     model = convert_to_analog(model, rpu_config)
     model.eval()
     pl.generate_moving_hist(model,title="Distribution of Weight Values over the tiles - RESNET", file_name=p_PATH+"/resnet/plots/hist_resnet_UNQUATIZED.gif", range = (-.5,.5), top=None, split_by_rows=False, HIST_BINS = 171)
@@ -242,8 +242,7 @@ if __name__ == '__main__':
     t_inferences = [0.0]  # Times to perform infernece.
     n_reps = N_REPS  # Number of inference repetitions.
 
-    #model_names = ["Unquantized","Quantized - 3 levels", "Quantized - 5 levels", "Quantized - 9 levels", "Quantized - 17 levels", "Quantized - 33 levels",]
-    model_names = ["Unquantized","Quantized - 9 levels"]
+    model_names = ["Unquantized","Quantized - 3 levels", "Quantized - 5 levels", "Quantized - 9 levels", "Quantized - 17 levels", "Quantized - 33 levels",]
     inference_accuracy_values = torch.zeros((len(t_inferences), n_reps, len(model_names)))
     for i,model_name in enumerate(model_names):
         for t_id, t in enumerate(t_inferences):
@@ -295,7 +294,7 @@ if __name__ == '__main__':
     path = p_PATH + f"/data/{MAP_LEVEL_FILE[SELECTED_LEVEL]}"
     print(f"Selected level: {SELECTED_LEVEL}")
 
-    RPU_CONFIG  = IdealPreset()
+    RPU_CONFIG  = CustomDefinedPreset()
     RPU_CONFIG.noise_model= MAP_NOISE_TYPE[SELECTED_NOISE](file_path = path,
                                                             type = CHOSEN_NOISE,
                                                             levels = SELECTED_LEVEL,
@@ -309,7 +308,7 @@ if __name__ == '__main__':
     resolution = {
         3 : 0.5,
         5 : 0.3,
-        9 : 0.18,
+        9 : 0.2,
         17 : 0.12,
         33 : 0.09
     }
@@ -353,7 +352,7 @@ if __name__ == '__main__':
 
     for i in range(len(types)):
         CHOSEN_NOISE = types[i]
-        RPU_CONFIG  = IdealPreset()
+        RPU_CONFIG  = CustomDefinedPreset()
         RPU_CONFIG.noise_model=MAP_NOISE_TYPE[SELECTED_NOISE](file_path = path,
                                                         type = CHOSEN_NOISE,
                                                         debug = DEBUGGING_PLOTS,
