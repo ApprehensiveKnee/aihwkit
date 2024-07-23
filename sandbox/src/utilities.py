@@ -57,11 +57,7 @@ def interpolate(levels: int, file_path: str, force_interpolation: bool = False, 
                 for key in ['ww_mdn', 'ww_std']:
                     temp_data = np.zeros((17, data[key].shape[1]))
                     for i in range(data[key].shape[1]):
-                        if key == 'ww_mdn':
-                            temp = np.interp(np.linspace(-gmax, gmax, 17), np.linspace(-gmax, gmax, 9), data['ww_mdn'][:, i])
-                        else:
-                            f_std = spi.interp1d(np.linspace(-gmax, gmax, 9), data['ww_std'][:, i], kind='linear')
-                            temp = f_std(np.linspace(-gmax, gmax, 17))
+                        temp = np.interp(np.linspace(-gmax, gmax, 17), np.linspace(-gmax, gmax, 9), data['ww_mdn'][:, i])
                         temp_data[:, i] = temp
                     data['ww_mdn'] = temp_data
             else:
@@ -90,11 +86,7 @@ def interpolate(levels: int, file_path: str, force_interpolation: bool = False, 
             for key in ['ww_mdn', 'ww_std']:
                 temp_data = np.zeros((33, data[key].shape[1]))
                 for i in range(data[key].shape[1]):
-                    if key == 'ww_mdn':
-                        temp = np.interp(np.linspace(-gmax, gmax, 33), np.linspace(-gmax, gmax, MAP[file_name]), data[key][:, i])
-                    else:
-                        f_std = spi.interp1d(np.linspace(-gmax, gmax, MAP[file_name]), data[key][:, i], kind='linear')
-                        temp = f_std(np.linspace(-gmax, gmax, 33))
+                    temp = np.interp(np.linspace(-gmax, gmax, 33), np.linspace(-gmax, gmax, MAP[file_name]), data[key][:, i])
                     # Reshape data[key] array to store the interpolated data
                     temp_data[:, i] = temp
                 data[key] = temp_data
