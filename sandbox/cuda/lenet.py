@@ -243,7 +243,7 @@ if __name__ == '__main__':
                 model_i = deepcopy(model)
             else:
                 model_name_i = model_name.split(" ")
-                model_i = get_quantized_model(model, int(model_name_i[-2]), RPU_CONFIG)
+                model_i = get_quantized_model(model, int(model_name_i[-2]), RPU_CONFIG, eps = 0.03)
             model_i.eval()
             
             inference_accuracy_values[t_id, 0, i] = evaluate_model(
@@ -298,6 +298,7 @@ if __name__ == '__main__':
     RPU_CONFIG.quantization = WeightQuantizerParameter(
         resolution=resolution[SELECTED_LEVEL],
         levels = SELECTED_LEVEL,
+        eps = 0.03
     )
     model_fitted = convert_to_analog(original_model, RPU_CONFIG)
     model_fitted.eval()
@@ -362,7 +363,7 @@ if __name__ == '__main__':
                 model_fitted = inference_lenet5(RPU_CONFIG).to(device)
                 model_fitted.load_state_dict(state_dict, strict=True, load_rpu_config=False)
                 model_fitted = convert_to_analog(model_fitted, RPU_CONFIG)
-                model_fitted = get_quantized_model(model_fitted, SELECTED_LEVEL, RPU_CONFIG)
+                model_fitted = get_quantized_model(model_fitted, SELECTED_LEVEL, RPU_CONFIG, eps = 0.03)
                 model_fitted.eval()
                 model_fitted.program_analog_weights()
                 

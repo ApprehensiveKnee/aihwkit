@@ -203,7 +203,6 @@ class WeightQuantizerParameter(_PrintableMixin):
         Args:
         weights: list of weights to be quantized
         """
-        print("Weights:", weights)
 
         if (self.eps == 0):
             return
@@ -231,16 +230,6 @@ class WeightQuantizerParameter(_PrintableMixin):
             else:
                 limit = abs(w[tot_size - 1 - r_idx])
                 r_idx +=1
-            print(f"Limit({i}):{limit}")
-        
-        
-        count = (tot_size - r_idx - l_idx)/tot_size
-        print(f"Total size: {tot_size}")
-        print(f"Max element: {max_elem}")
-        print(f"Limit: {limit}")
-        print(f"Percentage of the population covered by the FSR: {count}")
-
-        print(f"Resolution before fitting: {self.resolution}")
 
         self.resolution = (2/(self.levels - 1)) * (limit/max_elem)
         return

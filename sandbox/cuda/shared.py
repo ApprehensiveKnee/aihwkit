@@ -275,7 +275,7 @@ def evaluate_model(model, test_loader, device):
         return 100.0 * correct / total
 
 
-def get_quantized_model(model ,level: int, rpu_config, resolution: float = None):
+def get_quantized_model(model ,level: int, rpu_config, resolution: float = None, eps: float = None):
     RPU_CONFIG = deepcopy(rpu_config)
     if resolution is None:
         RESOLUTION = {
@@ -288,7 +288,8 @@ def get_quantized_model(model ,level: int, rpu_config, resolution: float = None)
         resolution = RESOLUTION[level]
     RPU_CONFIG.quantization = WeightQuantizerParameter(
         resolution=resolution,
-        levels=level
+        levels=level,
+        eps = eps
     )
     model_quantized = convert_to_analog(model, RPU_CONFIG)
     return model_quantized
