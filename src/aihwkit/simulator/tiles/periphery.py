@@ -179,6 +179,10 @@ class TileWithPeriphery(BaseTile, SimulatorTileWrapper):
                     wqpar, data_type
                 )
             
+            print("WEIGHTS=", self.tile.get_weights())
+            print(f"Levels: {new_wqpar.levels}")
+            print(f"Resolution: {new_wqpar.resolution}")
+            print(f"eps: {new_wqpar.eps}")
             self.tile.quantize_weights(new_wqpar)
             # If the weight quantizer has NOT produced the right amoung of 
             # levels in the current tile, alert the user

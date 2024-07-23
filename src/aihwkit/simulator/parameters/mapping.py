@@ -216,8 +216,8 @@ class WeightQuantizerParameter(_PrintableMixin):
         # Sort the weights
         w = w.reshape(-1).tolist()
         w.sort()
+        max_elem = abs(max(w, key=abs))
         tot_size = len(w)
-        max_elem = max(w)
         max_count = int(tot_size * (1 - self.eps))
 
         # starting from the ends, move towards the center to find the min and max elements
@@ -241,7 +241,6 @@ class WeightQuantizerParameter(_PrintableMixin):
         print(f"Percentage of the population covered by the FSR: {count}")
 
         print(f"Resolution before fitting: {self.resolution}")
-        print(f"Resolution after:", (2/(self.levels - 1)) * (limit/max_elem))
 
         self.resolution = (2/(self.levels - 1)) * (limit/max_elem)
         return
