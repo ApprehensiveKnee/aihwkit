@@ -217,7 +217,7 @@ class WeightQuantizerParameter(_PrintableMixin):
         w.sort()
         max_elem = abs(max(w, key=abs))
         tot_size = len(w)
-        max_count = int(tot_size * (1 - self.eps))
+        max_count = int(tot_size * self.eps)
 
         # starting from the ends, move towards the center to find the min and max elements
         # delimiting the (1 - eps)% of the population
