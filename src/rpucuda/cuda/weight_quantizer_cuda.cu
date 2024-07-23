@@ -40,6 +40,11 @@ T WeightQuantizerCuda<T>::fit(const T *weights, const WeightQuantizerParameter<T
     // Move the weights to the host
     std::vector<T> sorted_weights(total_weights);
     cudaMemcpy(sorted_weights.data(), weights, total_weights*sizeof(T), cudaMemcpyDeviceToHost);
+    std::cout << "sorted_weights" << std::endl;
+    for (int i = 0; i < total_weights; i++){
+        std::cout << sorted_weights[i] << " ";
+    }
+    std::cout << std::endl;
 
     // Sort the weights
     std::sort(sorted_weights.begin(), sorted_weights.end(), std::greater<T>());
@@ -61,10 +66,9 @@ T WeightQuantizerCuda<T>::fit(const T *weights, const WeightQuantizerParameter<T
 
     // Check which bound is closer to the zero value
     T limit = (fabs(min_bound) < fabs(max_bound)) ? max_bound : min_bound;
-    int limit_index = (fabs(min_bound) < fabs(max_bound)) ? max_index : total_weights - min_index - 1;
     limit = fabs(limit);
     std::cout << "Limit value: " << limit << std::endl;
-    std::cout << "Cutout percentage: " << (float)(total_weights - 2*limit_index)/(float)total_weights << std::endl;
+    std::cout << "Cutout percentage: " << (float)(total_weights - 2*)/(float)total_weights << std::endl;
 
     // Set the resolution value, so that the limit value is included in the FSR
     T levels = (T)wqpar.levels;
