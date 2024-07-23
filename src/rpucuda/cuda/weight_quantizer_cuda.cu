@@ -39,7 +39,15 @@ T WeightQuantizerCuda<T>::fit(const T *weights, const WeightQuantizerParameter<T
 
     // Move the weights to the host
     std::vector<T> sorted_weights(total_weights);
-    cudaMemcpy(sorted_weights.data(), weights, total_weights*sizeof(T), cudaMemcpyDeviceToHost);
+    int sz = size_ * sizeof(T);
+    if (size_ > 0) {
+        context_->enforceDeviceId();
+        CUDA_CALL(cudaMemcpy2DAsync(
+            host_array, sz, values_, pitch_, this->getWidthBytes(), height_, cudaMemcpyDeviceToHost,
+            context_->getStream()));
+
+        context_->synchronizeStream();
+    }
     std::cout << "sorted_weights" << std::endl;
     for (int i = 0; i < total_weights; i++){
         std::cout << sorted_weights[i] << " ";
@@ -100,7 +108,7 @@ void WeightQuantizerCuda<T>::apply(T *weights, const WeightQuantizerParameter<T>
   
     // int nthreads = context_->getNThreads();
     // int nblocks = context_->getNBlocks(size_, nthreads);
-    auto s = context_->getStream();
+    //auto s = context_->getStream();
 
     // For now, only the implementation for the uniform quantization is provided (no stochastic rounding)
     switch (wqpar.quantizer_type) {

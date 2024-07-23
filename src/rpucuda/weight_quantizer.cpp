@@ -40,6 +40,11 @@ T WeightQuantizer<T>::fit(const T *weights, const WeightQuantizerParameter<T> &w
     for (int i = 0; i < size_; i++) {
         sorted_weights[i] =  weights[i];
     }
+    std::cout << "sorted_weights: " ;
+    for (int i = 0; i < size_; i++) {
+        std::cout << sorted_weights[i] << " ";
+    }
+    std::cout << std::endl;
 
     std::sort(sorted_weights.begin(), sorted_weights.end(), std::greater<T>());
     T max_bound = sorted_weights[0];
