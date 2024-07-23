@@ -34,7 +34,12 @@ void WeightQuantizerCuda<T>::apply(T *weights, const WeightQuantizerParameter<T>
             if (wqpar.resolution >0){
                 // First, rescale the weights based on the maximum absolute value:
                 // 1. Find the maximum absolute value of the weights
-                T bound_value = bound_;
+                if (amaximizer_ == nullptr){
+                    amaximizer_ = RPU::make_unique<Maximizer<T>>(context_, size_);
+                }
+                amaximizer_->compute(weights, 1, true);
+                T bound_value;
+                amaximizer_->copyMaxValuesToHost(&bound_value);
                 // 2. Rescale the weights
                 RPU::math::elemscale(context_, weights, size_, (T)1.0 / bound_value);
 
