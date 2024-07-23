@@ -145,6 +145,8 @@ if __name__ == '__main__':
 
     LEVELS = [3, 5, 9, 17, 33]
 
+    EPS = 0.03
+
     MAP_MODEL_FILE = {
         "lenet" : p_PATH + '/lenet/lenet5.th',
         "resnet" : p_PATH + '/resnet/resnet9s.th'
@@ -220,7 +222,7 @@ if __name__ == '__main__':
             if model_name == "Unquantized":
                 model_i = deepcopy(unquantized_model)
             else:
-                model_i = get_quantized_model(unquantized_model, LEVELS[i-1], RPU_CONFIG)
+                model_i = get_quantized_model(unquantized_model, LEVELS[i-1], RPU_CONFIG, eps=EPS)
             model_i.eval()
 
             if SELECTED_MODEL == "resnet":
@@ -265,7 +267,7 @@ if __name__ == '__main__':
             
             for k in range(N_REPS):
                 model = sel_model_init(SELECTED_MODEL, RPU_CONFIG, state_dict)
-                model = get_quantized_model(model, levels, RPU_CONFIG)
+                model = get_quantized_model(model, levels, RPU_CONFIG, eps=EPS)
                 model.eval()
                 model.program_analog_weights()
 

@@ -149,8 +149,8 @@ class WeightQuantizerParameter(_PrintableMixin):
     this number of quantization levels.
     """
 
-    eps: float = 0
-    """If set to a value in (0,0.99], it allows to fine tun the resolution parameter
+    eps: float = 0.
+    """If set to a value in (0,0.9], it allows to fine tun the resolution parameter
     to include up to a fraction (1-eps) of the weight population inside the FSR derived
     """
 
