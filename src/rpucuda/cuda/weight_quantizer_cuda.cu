@@ -19,12 +19,16 @@ template <typename T>
 WeightQuantizerCuda<T>::WeightQuantizerCuda(CudaContextPtr context, int x_size, int d_size)
     : context_(context), x_size_(x_size), d_size_(d_size), size_(x_size * d_size) {
 
-    //temp_weights_ = RPU::make_unique<CudaArray<T>>(context_, size_);
+    if (amaximizer_ == nullptr){
+        amaximizer_ = RPU::make_unique<Maximizer<T>>(context_, size_);
+    }
+    amaximizer_->compute(weights, 1, true);
+    amaximizer_->copyMaxValuesToHost(&bound_);
 
 }
 
 template <typename T>
-T WeightQuantizerCuda<T>::fit(const T *weights, const WeightQuantizerParameter<T> &wqpar, const T bound) {
+T WeightQuantizerCuda<T>::fit(const CudaArray<T> &dev_weights, const WeightQuantizerParameter<T> &wqpar) {
 
     // The fit function is used to fine tune the redolution of the quantizer, so that up to a minimum
     // of (1 - eps) fraction of the weights are included in the FSR.
@@ -33,16 +37,17 @@ T WeightQuantizerCuda<T>::fit(const T *weights, const WeightQuantizerParameter<T
         return wqpar.resolution;
     }
 
+    //const T weights =dev_weights->getData();
+
+    T bound = bound_;
+
     int total_weights = size_;
     T percentage = (float)wqpar.eps;
     int max_count = (int)(total_weights * percentage/2.);
 
     // Move the weights to the host
     std::vector<T> sorted_weights(total_weights);
-    int sz = size_ * sizeof(T);
-    if (size_ > 0) {
-        weights->copyTo(sorted_weights.data());
-    }
+    dev_weights->copyTo(sorted_weights.data());
  
     std::cout << "sorted_weights" << std::endl;
     for (int i = 0; i < total_weights; i++){
@@ -100,7 +105,7 @@ T WeightQuantizerCuda<T>::fit(const T *weights, const WeightQuantizerParameter<T
 
 
 template <typename T>
-void WeightQuantizerCuda<T>::apply(T *weights, const WeightQuantizerParameter<T> &wqpar) {
+void WeightQuantizerCuda<T>::apply(T *weights, const WeightQuantizerParameter<T> &wqpar, const T &resolution) {
   
     // int nthreads = context_->getNThreads();
     // int nblocks = context_->getNBlocks(size_, nthreads);
@@ -112,21 +117,15 @@ void WeightQuantizerCuda<T>::apply(T *weights, const WeightQuantizerParameter<T>
             if (wqpar.resolution >0 || (wqpar.resolution == 0 && wqpar.eps > 0)){
                 // First, rescale the weights based on the maximum absolute value:
                 // 1. Find the maximum absolute value of the weights
-                if (amaximizer_ == nullptr){
-                    amaximizer_ = RPU::make_unique<Maximizer<T>>(context_, size_);
-                }
-                amaximizer_->compute(weights, 1, true);
-                T bound_value_;
-                amaximizer_->copyMaxValuesToHost(&bound_value_);
+                T bound_value = bound_;
                 // 2. Rescale the weights
-                RPU::math::elemscale(context_, weights, size_, (T)1.0 / bound_value_);
+                RPU::math::elemscale(context_, weights, size_, (T)1.0 / bound_value);
 
-                T resolution = WeightQuantizerCuda<T>::fit(weights, wqpar, bound_value_);
                 // Quantize the weights
                 RPU::math::uquantize(context_, weights, size_, resolution, wqpar.levels);
 
                 // Rescale back the weights
-                RPU::math::elemscale(context_, weights, size_, bound_value_);
+                RPU::math::elemscale(context_, weights, size_, bound_value);
 
             }
             break;
