@@ -36,12 +36,12 @@ T WeightQuantizerCuda<T>::fit(const T *weights, const WeightQuantizerParameter<T
     int total_weights = size_;
     T percentage = (float)wqpar.eps;
     int max_count = (int)(total_weights * percentage/2.);
-    std::cout << "Fino a qui tutto bene" << std::endl;
 
     // Move the weights to the host
     std::vector<T> sorted_weights(total_weights);
-    std::cout << "Total weights: " << total_weights << std::endl;
-    
+    cudaMemcpy(sorted_weights.data(), weights, total_weights*sizeof(T), cudaMemcpyDeviceToHost);
+
+    // Sort the weights
     std::sort(sorted_weights.begin(), sorted_weights.end(), std::greater<T>());
     T max_bound = sorted_weights[0];
     T min_bound = sorted_weights[total_weights - 1];
