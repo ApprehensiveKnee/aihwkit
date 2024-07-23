@@ -40,6 +40,7 @@ T WeightQuantizerCuda<T>::fit(const T *weights, const WeightQuantizerParameter<T
 
     // Move the weights to the host
     std::vector<T> sorted_weights(total_weights);
+    context_->copyToHost(weights, sorted_weights.data(), total_weights);
     std::cout << "Total weights: " << total_weights << std::endl;
     
     std::sort(sorted_weights.begin(), sorted_weights.end(), std::greater<T>());
