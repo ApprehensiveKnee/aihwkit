@@ -236,8 +236,12 @@ class WeightQuantizerParameter(_PrintableMixin):
         
         count = (tot_size - r_idx - l_idx)/tot_size
         print(f"Total size: {tot_size}")
+        print(f"Max element: {max_elem}")
         print(f"Limit: {limit}")
         print(f"Percentage of the population covered by the FSR: {count}")
+
+        print(f"Resolution before fitting: {self.resolution}")
+        print(f"Resolution after:", (2/(self.levels - 1)) * (limit/max_elem))
 
         self.resolution = (2/(self.levels - 1)) * (limit/max_elem)
         return
