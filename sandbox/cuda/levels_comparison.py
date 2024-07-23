@@ -145,7 +145,7 @@ if __name__ == '__main__':
 
     LEVELS = [3, 5, 9, 17, 33]
 
-    EPS = 0.03
+    EPS = 0.08
 
     MAP_MODEL_FILE = {
         "lenet" : p_PATH + '/lenet/lenet5.th',
@@ -153,11 +153,11 @@ if __name__ == '__main__':
     }
 
     MAP_LEVEL_FILE = {
-        3 : "matlab/3bit.mat",
-        5 : "matlab/3bit.mat",
-        9 : "matlab/3bit.mat",
-        17 : "matlab/3bit.mat",
-        33 : "matlab/3bit.mat"
+        3 : "matlab/4bit.mat",
+        5 : "matlab/4bit.mat",
+        9 : "matlab/4bit.mat",
+        17 : "matlab/4bit.mat",
+        33 : "matlab/4bit.mat"
     }
 
     MAP_NOISE_TYPE = {
