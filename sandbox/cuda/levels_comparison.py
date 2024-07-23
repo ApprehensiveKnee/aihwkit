@@ -153,11 +153,11 @@ if __name__ == '__main__':
     }
 
     MAP_LEVEL_FILE = {
-        3 : "matlab/4bit.mat",
-        5 : "matlab/4bit.mat",
-        9 : "matlab/4bit.mat",
-        17 : "matlab/4bit.mat",
-        33 : "matlab/4bit.mat"
+        3 : "matlab/3bit.mat",
+        5 : "matlab/3bit.mat",
+        9 : "matlab/3bit.mat",
+        17 : "matlab/3bit.mat",
+        33 : "matlab/3bit.mat"
     }
 
     MAP_NOISE_TYPE = {
