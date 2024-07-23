@@ -14,6 +14,7 @@
 
 """Mapping parameters for resistive processing units."""
 
+from torch import Tensor
 from typing import Type, Optional, ClassVar, Union, List
 from dataclasses import dataclass, fields, field
 
@@ -148,6 +149,11 @@ class WeightQuantizerParameter(_PrintableMixin):
     this number of quantization levels.
     """
 
+    eps: float = 0
+    """If set to a value in (0,0.99], it allows to fine tun the resolution parameter
+    to include up to a fraction (1-eps) of the weight population inside the FSR derived
+    """
+
     levels: int = 0
     """The number of quantization levels.
 
@@ -188,6 +194,54 @@ class WeightQuantizerParameter(_PrintableMixin):
 
     debug: bool = True
     """Whether to print debug information during quantization."""
+
+    def fit(self, weights: Tensor) -> None:
+        """The function is used to fit the resolution parameter for the current weights
+        considered, so that up to (1-eps)% of the weghts population (at least) is covered
+        by the FSR
+
+        Args:
+        weights: list of weights to be quantized
+        """
+        print("Weights:", weights)
+
+        if (self.eps == 0):
+            return
+        if (self.eps >0.99):
+            raise ValueError("The eps parameter must be less than 0.99")
+            return
+        # Create a deepcopy of the weights tensor
+        w = weights.detach().clone()
+
+        # Sort the weights
+        w = w.reshape(-1).tolist()
+        w.sort()
+        tot_size = len(w)
+        max_elem = max(w)
+        max_count = int(tot_size * (1 - self.eps))
+
+        # starting from the ends, move towards the center to find the min and max elements
+        # delimiting the (1 - eps)% of the population
+        r_idx, l_idx = 0, 0
+        max_bound, min_bound = w[0], w[tot_size -1]
+        for i in range(max_count):
+            if abs(w[l_idx]) > abs(w[tot_size - 1 - r_idx]):
+                limit = abs(w[l_idx])
+                l_idx +=1
+            else:
+                limit = abs(w[tot_size - 1 - r_idx])
+                r_idx +=1
+            print(f"Limit({i}):{limit}")
+        
+        
+        count = (tot_size - r_idx - l_idx)/tot_size
+        print(f"Total size: {tot_size}")
+        print(f"Limit: {limit}")
+        print(f"Percentage of the population covered by the FSR: {count}")
+
+        self.resolution = (2/(self.levels - 1)) * (limit/max_elem)
+        return
+        
 
 # -- MODIFIED: added quantize parameter
 
