@@ -115,7 +115,7 @@ if __name__ == '__main__':
     p_PATH = os.path.abspath(__file__)
     p_PATH = os.path.dirname(os.path.dirname(p_PATH))
 
-    opts, args = getopt(sys.argv[1:], 'm:l:n:t:r:',['model=','levels=','noise=', 'type=', 'reps='])
+    opts, args = getopt(sys.argv[1:], 'm:l:n:t:r:',['model=','levels=','noise=', 'reps='])
     
     
     for opt, arg in opts:
@@ -134,10 +134,6 @@ if __name__ == '__main__':
                 raise ValueError("The selected noise must be either 'std' or 'median'")
             SELECTED_NOISE = arg
             print(f"Selected noise: {SELECTED_NOISE}")
-        if opt in ('-t', '--type'): 
-            # No check on the type of noise
-            SELECTED_TYPE = arg
-            print(f"Selected type: {SELECTED_TYPE}")
         if opt in ('-r', '--reps'):
             N_REPS = int(arg)
             print(f"Number of repetitions: {N_REPS}")
@@ -151,9 +147,6 @@ if __name__ == '__main__':
     if 'SELECTED_NOISE' not in locals():
         SELECTED_NOISE = "whole"
         print(f"Selected noise: {SELECTED_NOISE}")
-    if 'SELECTED_TYPE' not in locals():
-        SELECTED_TYPE = "Prog"
-        print(f"Selected type: {SELECTED_TYPE}")
     if 'N_REPS' not in locals():
         N_REPS = 10
         print(f"Number of repetitions: {N_REPS}")
