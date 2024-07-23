@@ -6,6 +6,7 @@
 # -*- coding: utf-8 -*-
 
 
+import scipy.interpolate as spi
 import scipy.io
 import numpy as np
 import os
@@ -51,14 +52,20 @@ def interpolate(levels: int, file_path: str, force_interpolation: bool = False, 
         if force_interpolation and ((levels == 17 and file_name == '3bit.mat') or (levels == 9 and file_name == '4bit.mat')):
             print(f'The data for {levels} will be interpolated/extrapolated from {file_name}')
             data = import_mat_file(file_path)
-            for key in ['ww_mdn', 'ww_std']:
-                if file_name == '3bit.mat':
+            #for key in ['ww_mdn', 'ww_std']:
+            if file_name == '3bit.mat':
+                for key in ['ww_mdn', 'ww_std']:
                     temp_data = np.zeros((17, data[key].shape[1]))
                     for i in range(data[key].shape[1]):
-                        temp = np.interp(np.linspace(-gmax, gmax, 17), np.linspace(-gmax, gmax, 9), data[key][:, i])
+                        if key == 'ww_mdn':
+                            temp = np.interp(np.linspace(-gmax, gmax, 17), np.linspace(-gmax, gmax, 9), data['ww_mdn'][:, i])
+                        else:
+                            f_std = spi.interp1d(np.linspace(-gmax, gmax, 9), data['ww_std'][:, i], kind='linear')
+                            temp = f_std(np.linspace(-gmax, gmax, 17))
                         temp_data[:, i] = temp
-                    data[key] = temp_data
-                else:
+                    data['ww_mdn'] = temp_data
+            else:
+                for key in ['ww_mdn', 'ww_std']:
                     data[key] = data[key][::2, :]
         elif levels == levels_file_name:
             data =  import_mat_file(file_path)
@@ -83,7 +90,11 @@ def interpolate(levels: int, file_path: str, force_interpolation: bool = False, 
             for key in ['ww_mdn', 'ww_std']:
                 temp_data = np.zeros((33, data[key].shape[1]))
                 for i in range(data[key].shape[1]):
-                    temp = np.interp(np.linspace(-gmax, gmax, 33), np.linspace(-gmax, gmax, MAP[file_name]), data[key][:, i])
+                    if key == 'ww_mdn':
+                        temp = np.interp(np.linspace(-gmax, gmax, 33), np.linspace(-gmax, gmax, MAP[file_name]), data[key][:, i])
+                    else:
+                        f_std = spi.interp1d(np.linspace(-gmax, gmax, MAP[file_name]), data[key][:, i], kind='linear')
+                        temp = f_std(np.linspace(-gmax, gmax, 33))
                     # Reshape data[key] array to store the interpolated data
                     temp_data[:, i] = temp
                 data[key] = temp_data
@@ -96,8 +107,8 @@ def interpolate(levels: int, file_path: str, force_interpolation: bool = False, 
         x = np.linspace(-gmax, gmax, levels)
         noise_types = data['str']
         for i in range(data['ww_mdn'].shape[1]):
-            ax[0].plot(x, data['ww_mdn'][:, i], label=f'{noise_types[0][i]} ')
-            ax[1].plot(x, data['ww_std'][:, i], label=f'{noise_types[0][i]} ')
+            ax[0].plot(x, data['ww_mdn'][:, i], label=f'{noise_types[0][i]} ', marker = "D")
+            ax[1].plot(x, data['ww_std'][:, i], label=f'{noise_types[0][i]} ', merker = "D")
         ax[0].set_ylabel(r" $W$ ($\mu$S)", fontsize=14, loc = 'top')
         ax[1].set_ylabel(r" $\sigma W$ ($\mu$S)", fontsize=14, loc = 'top')
         ax[0].set_xlabel(r" $W_{target}$ ($\mu$S)", fontsize=14, loc = 'right')
