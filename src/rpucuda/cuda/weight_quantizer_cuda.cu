@@ -66,9 +66,27 @@ T WeightQuantizerCuda<T>::fit(const T *weights, const WeightQuantizerParameter<T
 
     // Check which bound is closer to the zero value
     T limit = (fabs(min_bound) < fabs(max_bound)) ? max_bound : min_bound;
+    int limit_index_0 = max_index;
+    int limit_index_1 = 0;
+    if (fabs(min_bound) < fabs(max_bound)){
+        for (int i = min_index; i < total_weights; i++){
+            limit_index_1 = i;
+            if (fabs(sorted_weights[i]) < fabs(limit)){
+                break;
+            }
+        }
+        limit_index_1 = total_weights - limit_index_1 - 1;
+    } else {
+        for (int i = max_index; i >= 0; i--){
+            limit_index_1 = i;
+            if (fabs(sorted_weights[i]) < fabs(limit)){
+                break;
+            }
+        }
+    }
     limit = fabs(limit);
     std::cout << "Limit value: " << limit << std::endl;
-    std::cout << "Cutout percentage: " << (float)(total_weights - 2*)/(float)total_weights << std::endl;
+    std::cout << "Cutout percentage: " << (float)(total_weights - limit_index_0 - limit_index_1)/(float)total_weights << std::endl;
 
     // Set the resolution value, so that the limit value is included in the FSR
     T levels = (T)wqpar.levels;
