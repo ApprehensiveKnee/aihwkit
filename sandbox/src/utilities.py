@@ -96,8 +96,8 @@ def interpolate(levels: int, file_path: str, force_interpolation: bool = False, 
         x = np.linspace(-gmax, gmax, levels)
         noise_types = data['str']
         for i in range(data['ww_mdn'].shape[1]):
-            ax[0].plot(x, data['ww_mdn'][:, i], label=f'{noise_types[i]} ')
-            ax[1].plot(x, data['ww_std'][:, i], label=f'{noise_types[i]} ')
+            ax[0].plot(x, data['ww_mdn'][:, i], label=f'{noise_types[0][i]} ')
+            ax[1].plot(x, data['ww_std'][:, i], label=f'{noise_types[0][i]} ')
         ax[0].set_ylabel(r" $W$ ($\mu$S)", fontsize=14, loc = 'top')
         ax[1].set_ylabel(r" $\sigma W$ ($\mu$S)", fontsize=14, loc = 'top')
         ax[0].set_xlabel(r" $W_{target}$ ($\mu$S)", fontsize=14, loc = 'right')
