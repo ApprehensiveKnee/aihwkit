@@ -1,4 +1,5 @@
 
+
 import os
 import torch
 import gc
@@ -203,9 +204,7 @@ def test():
     # Plot the initial weights
     pl.plot_tensor_values(analog_tile.get_weights()[0], 21,RANGE,"Distribution of quantized weights (after transfer)", "plots/hist3.png")
 
-
 if __name__ == '__main__':
     check_gpu_status()
     perform_test()
     test()
-
