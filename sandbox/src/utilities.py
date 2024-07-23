@@ -74,7 +74,7 @@ def interpolate(levels: int, file_path: str, force_interpolation: bool = False, 
         data = import_mat_file(file_path)
         # If the number fo levels is 5 or 3, we can just get rid of the redundant levels
         if levels in [5, 3]:
-            hops = (levels_file_name - 1) / (levels - 1)
+            hops = (levels_file_name - 1) // (levels - 1)
             for key in ['ww_mdn', 'ww_std']:
                 data[key] = data[key][::hops, :]
         # If the number of levels is 33, we need to interpolate the data
