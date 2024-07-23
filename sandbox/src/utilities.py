@@ -57,7 +57,7 @@ def interpolate(levels: int, file_path: str, force_interpolation: bool = False, 
                 for key in ['ww_mdn', 'ww_std']:
                     temp_data = np.zeros((17, data[key].shape[1]))
                     for i in range(data[key].shape[1]):
-                        temp = np.interp(np.linspace(-gmax, gmax, 17), np.linspace(-gmax, gmax, 9), data['ww_mdn'][:, i])
+                        temp = np.interp(np.linspace(-gmax, gmax, 17), np.linspace(-gmax, gmax, 9), data[key][:, i])
                         temp_data[:, i] = temp
                     data['ww_mdn'] = temp_data
             else:
