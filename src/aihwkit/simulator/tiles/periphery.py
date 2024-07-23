@@ -178,8 +178,6 @@ class TileWithPeriphery(BaseTile, SimulatorTileWrapper):
             new_wqpar = parameters_to_bindings(
                     wqpar, data_type
                 )
-            print("RESOLUTION:",new_wqpar.resolution)
-            
             self.tile.quantize_weights(new_wqpar)
             # If the weight quantizer has NOT produced the right amoung of 
             # levels in the current tile, alert the user
