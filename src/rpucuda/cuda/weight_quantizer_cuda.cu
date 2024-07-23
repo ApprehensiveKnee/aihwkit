@@ -32,7 +32,7 @@ void getBound(T *weights) {
 }
 
 template <typename T>
-T WeightQuantizerCuda<T>::fit(const *CudaArray<T> &dev_weights, const WeightQuantizerParameter<T> &wqpar) {
+T WeightQuantizerCuda<T>::fit(CudaArray<T> *dev_weights, const WeightQuantizerParameter<T> &wqpar) {
 
     // The fit function is used to fine tune the redolution of the quantizer, so that up to a minimum
     // of (1 - eps) fraction of the weights are included in the FSR.

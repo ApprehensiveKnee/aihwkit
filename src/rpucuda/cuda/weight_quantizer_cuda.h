@@ -21,7 +21,7 @@ public:
 
   void apply(T *weights, const WeightQuantizerParameter<T> &wqpar, const T &resolution);
   void getBound(T *weights);
-  T fit(const *CudaArray<T> dev_weights, const WeightQuantizerParameter<T> &wqpar);
+  T fit(CudaArray<T> *dev_weights, const WeightQuantizerParameter<T> &wqpar);
 
   void dumpExtra(RPU::state_t &extra, const std::string prefix){};
   void loadExtra(const RPU::state_t &extra, const std::string prefix, bool strict){};
