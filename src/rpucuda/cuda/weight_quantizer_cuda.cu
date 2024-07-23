@@ -42,12 +42,11 @@ T WeightQuantizerCuda<T>::fit(const T *weights, const WeightQuantizerParameter<T
     int sz = size_ * sizeof(T);
     if (size_ > 0) {
         context_->enforceDeviceId();
-        CUDA_CALL(cudaMemcpy2DAsync(
-            host_array, sz, values_, pitch_, this->getWidthBytes(), height_, cudaMemcpyDeviceToHost,
-            context_->getStream()));
-
+        CUDA_CALL(cudaMemcpyAsync(sorted_weights.data(), weights, sz, cudaMemcpyDeviceToHost, context_->getStream()));
         context_->synchronizeStream();
     }
+ 
+    
     std::cout << "sorted_weights" << std::endl;
     for (int i = 0; i < total_weights; i++){
         std::cout << sorted_weights[i] << " ";
