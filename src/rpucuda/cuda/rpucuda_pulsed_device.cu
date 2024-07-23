@@ -306,7 +306,9 @@ template <typename T> void PulsedRPUDeviceCuda<T>::quantizeWeights(T *weights, c
   
     if (wqp.resolution) {
       auto wq = RPU::make_unique<WeightQuantizerCuda<T>>(this->context_, this->x_size_, this->d_size_);
-      wq->apply(weights, wqp);
+      wq->getBound(weights);
+      T res(wq->fit(weights, wqp));
+      wq->apply(weights, wqp, res);
     }
     applyUpdateWriteNoise(weights);
   

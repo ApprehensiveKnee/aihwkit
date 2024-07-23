@@ -19,16 +19,20 @@ template <typename T>
 WeightQuantizerCuda<T>::WeightQuantizerCuda(CudaContextPtr context, int x_size, int d_size)
     : context_(context), x_size_(x_size), d_size_(d_size), size_(x_size * d_size) {
 
-    if (amaximizer_ == nullptr){
-        amaximizer_ = RPU::make_unique<Maximizer<T>>(context_, size_);
-    }
-    amaximizer_->compute(weights, 1, true);
-    amaximizer_->copyMaxValuesToHost(&bound_);
-
 }
 
 template <typename T>
-T WeightQuantizerCuda<T>::fit(const CudaArray<T> &dev_weights, const WeightQuantizerParameter<T> &wqpar) {
+void getBound(T *weights) {
+    // Get the maximum absolute value of the weights
+    if (amaximizer_ == nullptr){
+        amaximizer_ = RPU::make_unique<Maximizer<T>>(context_, size_);
+    }
+    amaximizer_->compute(dev_weights->getData(), 1, true);
+    amaximizer_->copyMaxValuesToHost(&bound_);
+}
+
+template <typename T>
+T WeightQuantizerCuda<T>::fit(const *CudaArray<T> &dev_weights, const WeightQuantizerParameter<T> &wqpar) {
 
     // The fit function is used to fine tune the redolution of the quantizer, so that up to a minimum
     // of (1 - eps) fraction of the weights are included in the FSR.
@@ -36,8 +40,6 @@ T WeightQuantizerCuda<T>::fit(const CudaArray<T> &dev_weights, const WeightQuant
     if (wqpar.resolution != 0 || wqpar.eps == 0){
         return wqpar.resolution;
     }
-
-    //const T weights =dev_weights->getData();
 
     T bound = bound_;
 
