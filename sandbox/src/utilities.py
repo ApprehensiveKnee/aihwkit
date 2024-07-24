@@ -6,12 +6,12 @@
 # -*- coding: utf-8 -*-
 
 
-import scipy.interpolate as spi
+from scipy import stats
 import scipy.io
 import numpy as np
 import os
 
-def import_mat_file(file_path):
+def import_mat_file(file_path: str):
     '''
     The function takes as input a path to a .mat file and extracts the data for later use.
     This function is used to import the experimental data to then superimpose it on the weight/conductance
@@ -113,4 +113,26 @@ def interpolate(levels: int, file_path: str, force_interpolation: bool = False, 
         plt.savefig(f'debugging_plots/interpolation_visual_{levels}_FROM-{file_name}.png')
 
     return data
-        
+
+
+def correct(x: list , y_old: list):
+
+    """ The function is used to implement weight/conductance correction
+    on the median values shift due to drift/program noise.
+
+    Args:
+    x: list of x values(target weights/conductances)
+    y_old: list of y values (old weights/conductances medians, influenced by drift and program noise)
+    
+    Returns:
+    y_new: list of y values (new weights/conductances median, corrected values)
+    
+    """
+
+    # Fit a linear regression model to the data
+    slope, intercept, _, _, _ = stats.linregress(x, y_old)
+    y_new = y_old
+    # Correct the y values
+    for i in range(len(x)):
+        y_new[i] = (y_old[i] - intercept)/slope
+    return y_new

@@ -145,7 +145,7 @@ if __name__ == '__main__':
 
     LEVELS = [3, 5, 9, 17, 33]
 
-    EPS = 0.08
+    EPS = 0.03
 
     MAP_MODEL_FILE = {
         "lenet" : p_PATH + '/lenet/lenet5.th',
