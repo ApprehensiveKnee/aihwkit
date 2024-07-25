@@ -130,6 +130,12 @@ def interpolate(levels: int, file_path: str, force_interpolation: bool = False, 
 
         if not os.path.exists('debugging_plots'):
             os.mkdir('debugging_plots')
+        else:
+            files = os.listdir('debugging_plots')
+            files = [file for file in files if file.startswith(f"interpolation_visual_{levels}")]
+            for file in files:
+                os.remove(file)
+
         plt.savefig(f'debugging_plots/interpolation_visual_{levels}_FROM-{file_name}.png')
 
     return data
