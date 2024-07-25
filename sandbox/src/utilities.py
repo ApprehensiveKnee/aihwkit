@@ -24,15 +24,14 @@ def import_mat_file(file_path: str, type: str = None):
     for key in INCLUDE:
         variables[key] = data[key]
         if key == 'str':
-            print(variables[key].shape)
             variables[key] = [str(variables[key][0][i][0]) for i in range(variables[key].shape[1])]
         elif key == 'ww_mdn' or key == 'ww_std':
             variables[key] = torch.tensor(variables[key][:,:])
 
     if type is not None:
         mask = [True if type == variables['str'][i] else False for i in range(len(variables['str']))]
-        variables['ww_mdn'] = variables['ww_mdn'][:, mask]
-        variables['ww_std'] = variables['ww_std'][:, mask]
+        variables['ww_mdn'] = variables['ww_mdn'][:, mask].squeeze()
+        variables['ww_std'] = variables['ww_std'][:, mask].squeeze()
         variables['str'] = [type]
     
     return variables

@@ -179,8 +179,8 @@ if __name__ == '__main__':
     variables = interpolate(levels=SELECTED_LEVEL, file_path=path)
 
     types = variables['str']
-    ww_mdn = variables['ww_mdn'].tolist() * 1e6
-    ww_std = variables['ww_std'].tolist() * 1e6
+    ww_mdn = variables['ww_mdn']* 1e6
+    ww_std = variables['ww_std']* 1e6
     ww_mdn = pd.DataFrame(ww_mdn, columns=types).astype("float")
     ww_std = pd.DataFrame(ww_std, columns=types).astype("float")
     
