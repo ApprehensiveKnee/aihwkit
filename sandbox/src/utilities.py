@@ -109,7 +109,7 @@ def interpolate(levels: int, file_path: str, force_interpolation: bool = False, 
         # Correct the data
         for key in ['ww_mdn']:
             for i in range(data[key].shape[1]):
-                data[key][:, i] = correct(np.linspace(-gmax, gmax, levels), data[key][:, i])
+                data[key][:, i] = correct(np.linspace(-gmax, gmax, levels)*1e-6, data[key][:, i])
 
     if debug:
         # Plot the interpolated data
