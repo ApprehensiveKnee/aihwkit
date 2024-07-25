@@ -24,7 +24,7 @@ def import_mat_file(file_path: str):
             variables[key] = data[key]
     return variables
 
-def interpolate(levels: int, file_path: str, force_interpolation: bool = False, compensation: bool = True, gmax:float = 40.0, debug: bool = True):
+def interpolate(levels: int, file_path: str, force_interpolation: bool = False, compensation: bool = True, gmax:float = 40.0, debug: bool = False):
     '''
     The function is to be used in pair with the import_mat_file function.
     In addition to importing the data, it interpolates the data to match the number of levels chosen:
