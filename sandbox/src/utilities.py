@@ -89,7 +89,7 @@ def interpolate(levels: int, file_path: str, type: str = None, force_interpolati
                 for key in ['ww_mdn', 'ww_std']:
                     data[key] = data[key][::2, :]
         elif levels == levels_file_name:
-            data =  import_mat_file
+            data =  import_mat_file(file_path, type)
         else:
             print(f'The number of levels is {levels}, but the file {file_name} has {levels_file_name} levels')
             print('The file chosen will be modified to match the number of levels')
