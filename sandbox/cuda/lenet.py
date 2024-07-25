@@ -172,6 +172,8 @@ if __name__ == '__main__':
         33 : [G_RANGE[0] + i * (G_RANGE[1] - G_RANGE[0]) / 32 for i in range(33)]
     }
 
+    EPS = 0.03
+
      # Extract the data from the .mat file
     path = p_PATH+ f"/data/{MAP_LEVEL_FILE[SELECTED_LEVEL]}"
     variables = interpolate(levels=SELECTED_LEVEL, file_path=path)
@@ -216,7 +218,7 @@ if __name__ == '__main__':
 
     model_i = []
     for level in MAP_LEVEL_FILE.keys():
-        model_i.append(get_quantized_model(model, level, RPU_CONFIG))
+        model_i.append(get_quantized_model(model, level, RPU_CONFIG, eps=EPS))
         model_i[-1].eval()
         pl.generate_moving_hist(model_i[-1],title=f"Distribution of Quantized Weight\n Values over the tiles - LENET{level}", file_name= p_PATH + f"/lenet/plots/hist_lenet_QUANTIZED_{level}.gif", range = (-.7,.7), top=None, split_by_rows=False)
 
@@ -298,7 +300,7 @@ if __name__ == '__main__':
     RPU_CONFIG.quantization = WeightQuantizerParameter(
         resolution=resolution[SELECTED_LEVEL],
         levels = SELECTED_LEVEL,
-        eps = 0.03
+        eps = EPS
     )
     model_fitted = convert_to_analog(original_model, RPU_CONFIG)
     model_fitted.eval()
@@ -363,7 +365,7 @@ if __name__ == '__main__':
                 model_fitted = inference_lenet5(RPU_CONFIG).to(device)
                 model_fitted.load_state_dict(state_dict, strict=True, load_rpu_config=False)
                 model_fitted = convert_to_analog(model_fitted, RPU_CONFIG)
-                model_fitted = get_quantized_model(model_fitted, SELECTED_LEVEL, RPU_CONFIG, eps = 0.03)
+                model_fitted = get_quantized_model(model_fitted, SELECTED_LEVEL, RPU_CONFIG, eps = EPS)
                 model_fitted.eval()
                 model_fitted.program_analog_weights()
                 

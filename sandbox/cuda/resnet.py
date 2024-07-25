@@ -197,6 +197,8 @@ if __name__ == '__main__':
         33 : [G_RANGE[0] + i * (G_RANGE[1] - G_RANGE[0]) / 32 for i in range(33)]
     }
 
+    EPS = 0.03
+
     # Extract the data from the .mat file
     path = p_PATH+ f"/data/{MAP_LEVEL_FILE[SELECTED_LEVEL]}"
     variables = interpolate(levels=SELECTED_LEVEL, file_path=path)
@@ -234,7 +236,7 @@ if __name__ == '__main__':
 
     model_i = []
     for level in MAP_LEVEL_FILE.keys():
-        model_i.append(get_quantized_model(model, level, rpu_config))
+        model_i.append(get_quantized_model(model, level, rpu_config, eps=EPS))
         model_i[-1].eval()
         pl.generate_moving_hist(model_i[-1],title=f"Distribution of Quantized Weight Values - RESNET{level}", file_name=p_PATH+f"/resnet/plots/hist_resnet_QUANTIZED_{level}.gif", range = (-.5,.5), top=None, split_by_rows=False, HIST_BINS = 171)
     # -**-**-**-**-**-**-**-**-**-**-**-**-**-**-**- FIRST EVALUATION: 5 MODELS -**-**-**-**-**-**-**-**-**-**-**-**-**-**-**-
@@ -254,7 +256,7 @@ if __name__ == '__main__':
                     model_i = deepcopy(model)
                 else:
                     model_name_i =model_name.split(" ")
-                    model_i = get_quantized_model(model, int(model_name_i[-2]), rpu_config)
+                    model_i = get_quantized_model(model, int(model_name_i[-2]), rpu_config, eps=EPS)
                 model_i.eval()
 
                 # Calibrate input ranges
@@ -316,6 +318,7 @@ if __name__ == '__main__':
     RPU_CONFIG.quantization = WeightQuantizerParameter(
         resolution=resolution[SELECTED_LEVEL],
         levels = SELECTED_LEVEL,
+        eps=EPS
     )
     model_fitted = convert_to_analog(original_model, RPU_CONFIG)
     model_fitted.eval()
@@ -364,7 +367,7 @@ if __name__ == '__main__':
         for t_id, t in enumerate(t_inferences):
             for j in range(n_reps):
                 # For each repetition, get a new version of the quantized model and calibrare it
-                model_fitted = get_quantized_model(original_model, SELECTED_LEVEL, RPU_CONFIG)
+                model_fitted = get_quantized_model(original_model, SELECTED_LEVEL, RPU_CONFIG, eps = EPS)
                 model_fitted.eval()
                 model_fitted.program_analog_weights()
 
