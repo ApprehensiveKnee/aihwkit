@@ -133,6 +133,7 @@ def interpolate(levels: int, file_path: str, force_interpolation: bool = False, 
         else:
             files = os.listdir('debugging_plots')
             files = [file for file in files if file.startswith(f"interpolation_visual_{levels}")]
+            print(files)
             for file in files:
                 os.remove('debugging_plots/'+file)
 
