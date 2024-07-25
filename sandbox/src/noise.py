@@ -70,8 +70,8 @@ class ExperimentalNoiseModel(BaseNoiseModel):
         self.chosen_type = type
         variables = interpolate(levels = levels, type = type, file_path = file_path, force_interpolation = force_interpolation, compensation=compensation)
         types = variables['str']
-        ww_mdn = variables['ww_mdn']
-        ww_std = variables['ww_std']
+        ww_mdn = variables['ww_mdn'].tolist()
+        ww_std = variables['ww_std'].tolist()
         self.ww_mdn = ww_mdn * 1e6 # handle conversion from muS
         print('MEADIAN VALUES:', self.ww_mdn)
         self.ww_std = ww_std * 1e6 # handle conversion from muS
