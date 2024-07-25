@@ -30,8 +30,8 @@ def import_mat_file(file_path: str, type: str = None):
 
     if type is not None:
         mask = [True if type == variables['str'][i] else False for i in range(len(variables['str']))]
-        variables['ww_mdn'] = variables['ww_mdn'][:, mask].squeeze()
-        variables['ww_std'] = variables['ww_std'][:, mask].squeeze()
+        variables['ww_mdn'] = variables['ww_mdn'][:, mask]
+        variables['ww_std'] = variables['ww_std'][:, mask]
         variables['str'] = [type]
     
     return variables
@@ -147,6 +147,11 @@ def interpolate(levels: int, file_path: str, type: str = None, force_interpolati
             os.remove('debugging_plots/'+file)
 
         plt.savefig(f'debugging_plots/interpolation_visual_{levels}_FROM-{file_name}.png')
+
+
+    if type is not None:
+        for key in ['ww_mdn', 'ww_std']:
+            data[key] = data[key][:, 0].squeeze()
 
     return data
 
