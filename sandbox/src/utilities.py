@@ -25,7 +25,7 @@ def import_mat_file(file_path: str, type: str = None):
         variables[key] = data[key]
         if key == 'str':
             print(variables[key].shape)
-            variables[key] = [str(variables[key][0][i][0]) for i in variables[key].shape[1]]
+            variables[key] = [str(variables[key][0][i]) for i in variables[key].shape[1]]
         elif key == 'ww_mdn' or key == 'ww_std':
             variables[key] = torch.tensor(variables[key][:,:])
 
