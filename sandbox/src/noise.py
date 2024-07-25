@@ -65,17 +65,16 @@ class TestNVMNoiseModel(BaseNoiseModel):
 class ExperimentalNoiseModel(BaseNoiseModel):
     """Experimental noise model. """
 
-    def __init__(self, file_path: str, type:str, debug:bool= False, levels : int = None, force_interpolation: bool = False ,**kwargs):
+    def __init__(self, file_path: str, type:str, debug:bool= False, levels : int = None, force_interpolation: bool = False, compensation: bool = False ,**kwargs):
         super().__init__(**kwargs)
         self.chosen_type = type
-        variables = interpolate(levels = levels, file_path = file_path, force_interpolation = force_interpolation)
+        variables = interpolate(levels = levels, type = type, file_path = file_path, force_interpolation = force_interpolation, compensation=compensation)
         types = variables['str']
-        types = [types[0][t][0] for t in range(types.shape[1])]
         ww_mdn = variables['ww_mdn']
         ww_std = variables['ww_std']
-        self.ww_mdn = torch.tensor(ww_mdn[:,types.index(self.chosen_type)]) * 1e6 # handle conversion from muS
+        self.ww_mdn = ww_mdn * 1e6 # handle conversion from muS
         print('MEADIAN VALUES:', self.ww_mdn)
-        self.ww_std = torch.tensor(ww_std[:,types.index(self.chosen_type)]) * 1e6 # handle conversion from muS
+        self.ww_std = ww_std * 1e6 # handle conversion from muS
         print('STD VALUES:', self.ww_std)
         self.debug = debug
         if debug:

@@ -7,24 +7,36 @@
 
 
 from scipy import stats
+import torch
 import scipy.io
 import numpy as np
 import os
 
-def import_mat_file(file_path: str):
+def import_mat_file(file_path: str, type: str = None):
     '''
     The function takes as input a path to a .mat file and extracts the data for later use.
     This function is used to import the experimental data to then superimpose it on the weight/conductance
     distribution.
     '''
     data = scipy.io.loadmat(file_path)
+    INCLUDE = ['ww_mdn', 'ww_std', 'str']
     variables = {}
-    for key in data:
-        if not key.startswith('__'):
-            variables[key] = data[key]
+    for key in INCLUDE:
+        variables[key] = data[key]
+        if key == 'str':
+            variables[key] = [str(variables[key][0][i][0]) for i in variables[key].shape[1]]
+        elif key == 'ww_mdn' or key == 'ww_std':
+            variables[key] = torch.tensor(variables[key][:,:])
+
+    if type is not None:
+        mask = [True if type == variables['str'][i] else False for i in range(len(variables['str']))]
+        variables['ww_mdn'] = variables['ww_mdn'][:, mask]
+        variables['ww_std'] = variables['ww_std'][:, mask]
+        variables['str'] = [type]
+    
     return variables
 
-def interpolate(levels: int, file_path: str, force_interpolation: bool = False, compensation: bool = True, gmax:float = 40.0, debug: bool = False):
+def interpolate(levels: int, file_path: str, type: str = None, force_interpolation: bool = False, compensation: bool = False, gmax:float = 40.0, debug: bool = False):
     '''
     The function is to be used in pair with the import_mat_file function.
     In addition to importing the data, it interpolates the data to match the number of levels chosen:
@@ -46,7 +58,7 @@ def interpolate(levels: int, file_path: str, force_interpolation: bool = False, 
     -  data: dict, a dictionary containing the interpolated data
     '''
     if levels is None:
-        return import_mat_file(file_path)
+        return import_mat_file(file_path, type)
 
     MAP = {
         "3bit.mat": 9,
@@ -65,30 +77,29 @@ def interpolate(levels: int, file_path: str, force_interpolation: bool = False, 
     if levels in NO_INTERPOLATION_NEEDED:
         if force_interpolation and ((levels == 17 and file_name == '3bit.mat') or (levels == 9 and file_name == '4bit.mat')):
             print(f'The data for {levels} will be interpolated/extrapolated from {file_name}')
-            data = import_mat_file(file_path)
-            #for key in ['ww_mdn', 'ww_std']:
+            data = import_mat_file(file_path, type)
             if file_name == '3bit.mat':
                 for key in ['ww_mdn', 'ww_std']:
                     temp_data = np.zeros((17, data[key].shape[1]))
                     for i in range(data[key].shape[1]):
                         temp = np.interp(np.linspace(-gmax, gmax, 17), np.linspace(-gmax, gmax, 9), data[key][:, i])
                         temp_data[:, i] = temp
-                    data['ww_mdn'] = temp_data
+                    data[key] = temp_data
             else:
                 for key in ['ww_mdn', 'ww_std']:
                     data[key] = data[key][::2, :]
         elif levels == levels_file_name:
-            data =  import_mat_file(file_path)
+            data =  import_mat_file
         else:
             print(f'The number of levels is {levels}, but the file {file_name} has {levels_file_name} levels')
             print('The file chosen will be modified to match the number of levels')
             file_name = INVERSE_MAP[levels]
             print(f'Switching to {levels} levels source file --> {file_name}')
             file_path = os.path.split(file_path)[0] + '/' + file_name
-            data =  import_mat_file(file_path)
+            data =  import_mat_file(file_path, type)
     else:
         # Take the data from the specified file
-        data = import_mat_file(file_path)
+        data = import_mat_file(file_path, type)
         # If the number fo levels is 5 or 3, we can just get rid of the redundant levels
         if levels in [5, 3]:
             hops = (levels_file_name - 1) // (levels - 1)

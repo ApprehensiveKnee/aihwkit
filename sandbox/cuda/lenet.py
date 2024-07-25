@@ -179,11 +179,10 @@ if __name__ == '__main__':
     variables = interpolate(levels=SELECTED_LEVEL, file_path=path)
 
     types = variables['str']
-    types = [types[0][t][0] for t in range(types.shape[1])]
     ww_mdn = variables['ww_mdn'] * 1e6
     ww_std = variables['ww_std'] * 1e6
-    ww_mdn = pd.DataFrame(ww_mdn, columns=types)
-    ww_std = pd.DataFrame(ww_std, columns=types)
+    ww_mdn = pd.DataFrame(ww_mdn, columns=types).astype("float")
+    ww_std = pd.DataFrame(ww_std, columns=types).astype("float")
     
     if MAP_LEVEL_FILE[SELECTED_LEVEL] == "matlab/4bit.mat":
         # Delete the noise type '1d,RT' for faulty measurement

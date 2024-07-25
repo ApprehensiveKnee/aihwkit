@@ -115,7 +115,7 @@ if __name__ == '__main__':
     p_PATH = os.path.abspath(__file__)
     p_PATH = os.path.dirname(os.path.dirname(p_PATH))
 
-    opts, args = getopt(sys.argv[1:], 'm:n:r:',['model=','noise=', 'reps='])
+    opts, args = getopt(sys.argv[1:], 'm:n:r:c',['model=','noise=', 'reps=', 'comp'])
     
     for opt, arg in opts:
         if opt in ('-m', '--model'):
@@ -131,6 +131,9 @@ if __name__ == '__main__':
         if opt in ('-r', '--reps'):
             N_REPS = int(arg)
             print(f"Number of repetitions: {N_REPS}")
+        if opt in ('-c', '--comp'):
+            COMPENSATION = True
+            print("Compensation is enabled")
     
     if 'SELECTED_MODEL' not in locals():
         SELECTED_MODEL = "lenet"
@@ -141,6 +144,9 @@ if __name__ == '__main__':
     if 'N_REPS' not in locals():
         N_REPS = 10
         print(f"Number of repetitions: {N_REPS}")
+    if 'COMPENSATION' not in locals():
+        COMPENSATION = False
+        print("Compensation is disabled")
 
 
     LEVELS = [3, 5, 9, 17, 33]
@@ -170,7 +176,6 @@ if __name__ == '__main__':
     path = p_PATH+ f"/data/{MAP_LEVEL_FILE[9]}"
     variables = interpolate(levels=9, file_path=path, force_interpolation=True)
     types = variables['str']
-    types = [types[0][t][0] for t in range(types.shape[1])]
 
     if SELECTED_MODEL == "lenet":
         from lenet import get_test_loader
