@@ -24,12 +24,26 @@ def import_mat_file(file_path: str):
             variables[key] = data[key]
     return variables
 
-def interpolate(levels: int, file_path: str, force_interpolation: bool = False, debug: bool = False, gmax:float = 40.0):
+def interpolate(levels: int, file_path: str, force_interpolation: bool = False, compensation: bool = True, gmax:float = 40.0, debug: bool = True):
     '''
     The function is to be used in pair with the import_mat_file function.
     In addition to importing the data, it interpolates the data to match the number of levels chosen:
     up to 5 bits -> 32 + 1 levels
-    down to 1 bits -> 4 + 1 levels
+    down to 1 bits -> 2 + 1 levels
+
+
+    Args:
+    -  levels: int, the number of levels to interpolate the data to 
+    -  file_path: str, the path to the .mat file containing the orginal data, on which to perform the interpolation
+       OSS: in general, if levels = 9,17, no interpolation is needed, the data is just imported, in all other cases, the data is interpolated from the chosen file
+    -  force_interpolation: bool, a flag used to force interpolation/extrapolation from the chosen file, in case the level selected is 9 or 17
+    -  compensation: bool, a flag used to apply the compensation on the median of the noise
+    -  gmax: float, the maximum value of the conductance/weight
+    -  debug: bool, a flag used to plot the interpolated data
+    
+
+    Returns:
+    -  data: dict, a dictionary containing the interpolated data
     '''
     if levels is None:
         return import_mat_file(file_path)
@@ -90,6 +104,12 @@ def interpolate(levels: int, file_path: str, force_interpolation: bool = False, 
                     # Reshape data[key] array to store the interpolated data
                     temp_data[:, i] = temp
                 data[key] = temp_data
+
+    if compensation:
+        # Correct the data
+        for key in ['ww_mdn']:
+            for i in range(data[key].shape[1]):
+                data[key][:, i] = correct(np.linspace(-gmax, gmax, levels), data[key][:, i])
 
     if debug:
         # Plot the interpolated data
