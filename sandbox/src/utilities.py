@@ -36,12 +36,34 @@ def import_mat_file(file_path: str, type: str = None):
     
     return variables
 
+def correct(x: list , y_old: list):
+
+    """ The function is used to implement weight/conductance correction
+    on the median values shift due to drift/program noise.
+
+    Args:
+    x: list of x values(target weights/conductances)
+    y_old: list of y values (old weights/conductances medians, influenced by drift and program noise)
+    
+    Returns:
+    y_new: list of y values (new weights/conductances median, corrected values)
+    
+    """
+
+    # Fit a linear regression model to the data
+    slope, intercept, _, _, _ = stats.linregress(x, y_old)
+    y_new = y_old
+    # Correct the y values
+    for i in range(len(x)):
+        y_new[i] = (y_old[i] - intercept)/slope
+    return y_new
+
 def interpolate(levels: int, file_path: str, type: str = None, force_interpolation: bool = False, compensation: bool = False, gmax:float = 40.0, debug: bool = False):
     '''
-    The function is to be used in pair with the import_mat_file function.
+    The function makes consistent use of the import_mat_file function.
     In addition to importing the data, it interpolates the data to match the number of levels chosen:
     up to 5 bits -> 32 + 1 levels
-    down to 1 bits -> 2 + 1 levels
+    down to 1 bit -> 2 + 1 levels
 
 
     Args:
@@ -72,7 +94,7 @@ def interpolate(levels: int, file_path: str, type: str = None, force_interpolati
     file_name = os.path.basename(file_path)
     levels_file_name = MAP[file_name]
     if file_name not in MAP:
-        raise ValueError('The chosen file is not supported')
+        raise ValueError('The chosen file cannot be found')
     
     if levels in NO_INTERPOLATION_NEEDED:
         if force_interpolation and ((levels == 17 and file_name == '3bit.mat') or (levels == 9 and file_name == '4bit.mat')):
@@ -92,7 +114,7 @@ def interpolate(levels: int, file_path: str, type: str = None, force_interpolati
             data =  import_mat_file(file_path, type)
         else:
             print(f'The number of levels is {levels}, but the file {file_name} has {levels_file_name} levels')
-            print('The file chosen will be modified to match the number of levels')
+            print('Overriding the file choce to respect the number of levels chosen...')
             file_name = INVERSE_MAP[levels]
             print(f'Switching to {levels} levels source file --> {file_name}')
             file_path = os.path.split(file_path)[0] + '/' + file_name
@@ -155,25 +177,3 @@ def interpolate(levels: int, file_path: str, type: str = None, force_interpolati
 
     return data
 
-
-def correct(x: list , y_old: list):
-
-    """ The function is used to implement weight/conductance correction
-    on the median values shift due to drift/program noise.
-
-    Args:
-    x: list of x values(target weights/conductances)
-    y_old: list of y values (old weights/conductances medians, influenced by drift and program noise)
-    
-    Returns:
-    y_new: list of y values (new weights/conductances median, corrected values)
-    
-    """
-
-    # Fit a linear regression model to the data
-    slope, intercept, _, _, _ = stats.linregress(x, y_old)
-    y_new = y_old
-    # Correct the y values
-    for i in range(len(x)):
-        y_new[i] = (y_old[i] - intercept)/slope
-    return y_new

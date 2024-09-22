@@ -206,9 +206,8 @@ class WeightQuantizerParameter(_PrintableMixin):
 
         if (self.eps == 0):
             return
-        if (self.eps >0.99):
-            raise ValueError("The eps parameter must be less than 0.99")
-            return
+        if (self.eps >0.999):
+            raise ValueError("The eps parameter must be less than 0.999")
         # Create a deepcopy of the weights tensor
         w = weights.detach().clone()
 

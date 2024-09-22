@@ -96,7 +96,7 @@ device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
 def sel_model_init(model_name:str, RPU_CONFIG, state_dict):
     '''
-    The function takes as input the name of the model and returns the model
+    The function takes as input the name of the model and returns the initialized model with weights
     '''
     if model_name == "lenet":
         model = inference_lenet5(RPU_CONFIG).to(device)
@@ -158,9 +158,9 @@ if __name__ == '__main__':
     }
 
     MAP_LEVEL_FILE = {
-        3 : "matlab/3bit.mat",
-        5 : "matlab/3bit.mat",
-        9 : "matlab/3bit.mat",
+        3 : "matlab/4bit.mat",
+        5 : "matlab/4bit.mat",
+        9 : "matlab/4bit.mat",
         17 : "matlab/4bit.mat",
         33 : "matlab/4bit.mat"
     }

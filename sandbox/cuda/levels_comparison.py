@@ -96,7 +96,7 @@ device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
 def sel_model_init(model_name:str, RPU_CONFIG, state_dict):
     '''
-    The function takes as input the name of the model and returns the model
+    The function takes as input the name of the model and returns the initialized model with weights
     '''
     if model_name == "lenet":
         model = inference_lenet5(RPU_CONFIG).to(device)
@@ -172,7 +172,7 @@ if __name__ == '__main__':
         "median" : JustMedianNoiseModel
     }
 
-    # Extract types of noises from the data
+    # Extract types of noises from the data for the 9 level models
     path = p_PATH+ f"/data/{MAP_LEVEL_FILE[9]}"
     variables = interpolate(levels=9, file_path=path, force_interpolation=True)
     types = variables['str']

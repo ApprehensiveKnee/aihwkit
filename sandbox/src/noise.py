@@ -73,7 +73,9 @@ class ExperimentalNoiseModel(BaseNoiseModel):
         ww_mdn = variables['ww_mdn']
         ww_std = variables['ww_std']
         self.ww_mdn = ww_mdn * 1e6 # handle conversion from muS
-        print('MEADIAN VALUES:', self.ww_mdn)
+        print("\n\n\n --------------------------------------------------------------------------------------------------")
+        print('TYPE:', self.chosen_type)
+        print('MEDIAN VALUES:', self.ww_mdn)
         self.ww_std = ww_std * 1e6 # handle conversion from muS
         print('STD VALUES:', self.ww_std)
         self.debug = debug
