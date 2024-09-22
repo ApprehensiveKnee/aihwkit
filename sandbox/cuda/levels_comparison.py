@@ -335,6 +335,7 @@ if __name__ == '__main__':
     ax.set_ylabel("Accuracy")
     ax.set_title("Accuracy comparison between q.levels at different noise types")
     ax.legend()
+    # Make the directory if it does not exist
     plt.savefig(f"{p_PATH}/{SELECTED_MODEL}/plots/level_comparison_{SELECTED_MODEL}_{SELECTED_NOISE}.png")
 
     # Also plot a heatmap
@@ -343,7 +344,7 @@ if __name__ == '__main__':
         text = ""
         if h != 0:
             accuracies = accuracies_comp 
-            text = "w/comp"
+            text = "with_comp"
         plt.rcParams.update({'font.size': 22})
         im = ax.matshow(accuracies, cmap='viridis',origin='lower' )
         for (i,j), z in np.ndenumerate(accuracies):
