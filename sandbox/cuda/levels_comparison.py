@@ -319,7 +319,7 @@ if __name__ == '__main__':
                 if j == 0:
                     accuracies_comp[i-1,j] = model_accuracy[0,i,j,:].mean()
                 else:
-                    accuracies_comp[i-1,j] = model_accuracy[1,i,j+1,:].mean()
+                    accuracies_comp[i-1,j] = model_accuracy[1,i,j,:].mean()
 
     
     colors = ["coral", "plum"]
