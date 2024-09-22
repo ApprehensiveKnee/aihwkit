@@ -30,8 +30,8 @@ def import_mat_file(file_path: str, type: str = None):
 
     if type is not None:
         mask = [True if type == variables['str'][i] else False for i in range(len(variables['str']))]
-        variables['ww_mdn'] = variables['ww_mdn'][:, mask]
-        variables['ww_std'] = variables['ww_std'][:, mask]
+        variables['ww_mdn'] = torch.tensor(variables['ww_mdn'][:, mask])
+        variables['ww_std'] = torch.tensor(variables['ww_std'][:, mask])
         variables['str'] = [type]
     
     return variables
@@ -70,6 +70,7 @@ def interpolate(levels: int, file_path: str, type: str = None, force_interpolati
     -  levels: int, the number of levels to interpolate the data to 
     -  file_path: str, the path to the .mat file containing the orginal data, on which to perform the interpolation
        OSS: in general, if levels = 9,17, no interpolation is needed, the data is just imported, in all other cases, the data is interpolated from the chosen file
+    - type: str, the type of noise to extract from the file
     -  force_interpolation: bool, a flag used to force interpolation/extrapolation from the chosen file, in case the level selected is 9 or 17
     -  compensation: bool, a flag used to apply the compensation on the median of the noise
     -  gmax: float, the maximum value of the conductance/weight
@@ -106,7 +107,7 @@ def interpolate(levels: int, file_path: str, type: str = None, force_interpolati
                     for i in range(data[key].shape[1]):
                         temp = np.interp(np.linspace(-gmax, gmax, 17), np.linspace(-gmax, gmax, 9), data[key][:, i])
                         temp_data[:, i] = temp
-                    data[key] = temp_data
+                    data[key] = torch.tensor(temp_data)
             else:
                 for key in ['ww_mdn', 'ww_std']:
                     data[key] = data[key][::2, :]
@@ -136,13 +137,13 @@ def interpolate(levels: int, file_path: str, type: str = None, force_interpolati
                     temp = np.interp(np.linspace(-gmax, gmax, 33), np.linspace(-gmax, gmax, MAP[file_name]), data[key][:, i])
                     # Reshape data[key] array to store the interpolated data
                     temp_data[:, i] = temp
-                data[key] = temp_data
+                data[key] = torch.tensor(temp_data)
 
     if compensation:
         # Correct the data
         for key in ['ww_mdn']:
             for i in range(data[key].shape[1]):
-                data[key][:, i] = correct(np.linspace(-gmax, gmax, levels)*1e-6, data[key][:, i])
+                data[key][:, i] = torch.tensor(correct(np.linspace(-gmax, gmax, levels)*1e-6, data[key][:, i]))
 
     if debug:
         # Plot the interpolated data
@@ -174,6 +175,7 @@ def interpolate(levels: int, file_path: str, type: str = None, force_interpolati
     if type is not None:
         for key in ['ww_mdn', 'ww_std']:
             data[key] = data[key][:, 0].squeeze()
+
 
     return data
 
