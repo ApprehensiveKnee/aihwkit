@@ -391,6 +391,7 @@ if __name__ == '__main__':
     ax.set_xlabel("Noise type", fontsize=22)
     ax.set_ylabel("Levels", fontsize=22)
     ax.set_title(f"Accuracy difference between models with and without compensation", pad=45)
+    plt.savefig(f"{p_PATH}/{SELECTED_MODEL}/plots/heatmap_diff_levelComp_{SELECTED_MODEL}_{SELECTED_NOISE}.png")
     
     
 
