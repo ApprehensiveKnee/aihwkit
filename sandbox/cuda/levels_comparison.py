@@ -322,7 +322,7 @@ if __name__ == '__main__':
                     accuracies_comp[i-1,j] = model_accuracy[1,i,j,:].mean()
 
 
-    colors = ["coral", "plum"]
+    colors = ["coral", "mediumslateblue"]
     markers = ['o','s','^','v','D']
     x = np.arange(len(types)+1)
     for h in range(2 if COMPENSATION else 1):
@@ -340,9 +340,9 @@ if __name__ == '__main__':
                         plt.Line2D([0], [0], marker='v', color='w', label='17 levels', markerfacecolor='black', markeredgecolor='black', markersize=10),
                         plt.Line2D([0], [0], marker='D', color='w', label='33 levels', markerfacecolor='black', markeredgecolor='black', markersize=10),
                         plt.Line2D([0], [0], color='coral', label='Without compensation'),
-                        plt.Line2D([0], [0], color='plum', label='With compensation'),
+                        plt.Line2D([0], [0], color='mediumslateblue', label='With compensation'),
                         plt.Line2D([0], [0], color='black', linestyle="--", label='Unquantized')]
-    ax.legend(handles=legend_elements)
+    ax.legend(handles=legend_elements,loc = 'center left')
     # Make the directory if it does not exist
     plt.savefig(f"{p_PATH}/{SELECTED_MODEL}/plots/lines_levelComp_{SELECTED_MODEL}_{SELECTED_NOISE}.png")
 
@@ -375,7 +375,7 @@ if __name__ == '__main__':
     # Finally, plot a heatmap for the difference in the mean accuracy between the models with and without compensation
     fig,ax = plt.subplots(1,1, figsize=(23,23))
     accuracies_diff = accuracies_comp - accuracies
-    im = ax.matshow(accuracies_diff, cmap='viridis',origin='lower' )
+    im = ax.matshow(accuracies_diff, cmap="magma",origin='lower' )
     for (i,j), z in np.ndenumerate(accuracies_diff):
         ax.text(j, i, '{:0.1f}'.format(z), ha='center', va='center', color='white',
             bbox=dict(boxstyle='round', facecolor='black', edgecolor='black'))
