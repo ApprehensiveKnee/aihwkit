@@ -349,16 +349,14 @@ if __name__ == '__main__':
     # Also plot a heatmap
     for h in range(2 if COMPENSATION else 1):
         fig, ax = plt.subplots(1,1, figsize=(23,23))
-        text = ""
-        if h != 0:
-            accuracies = accuracies_comp 
-            text = "_with_comp"
+        _accuracies = accuracies if h == 0 else accuracies_comp
+        text = "" if h == 0 else "_with_comp"
         plt.rcParams.update({'font.size': 22})
-        im = ax.matshow(accuracies, cmap='viridis',origin='lower' )
-        for (i,j), z in np.ndenumerate(accuracies):
+        im = ax.matshow(_accuracies, cmap='viridis',origin='lower' )
+        for (i,j), z in np.ndenumerate(_accuracies):
             ax.text(j, i, '{:0.1f}'.format(z), ha='center', va='center', color='white',
                 bbox=dict(boxstyle='round', facecolor='black', edgecolor='black'))
-        im_ratio = accuracies.shape[0]/accuracies.shape[1]
+        im_ratio = _accuracies.shape[0]/_accuracies.shape[1]
         cax = fig.add_axes([ax.get_position().x1+0.01,ax.get_position().y0,0.02,ax.get_position().height])
         cbar = plt.colorbar(im, cax=cax)
         cbar.ax.set_ylabel("accuracy range", rotation=-90, va="bottom")
