@@ -321,20 +321,28 @@ if __name__ == '__main__':
                 else:
                     accuracies_comp[i-1,j] = model_accuracy[1,i,j,:].mean()
 
-    
+
     colors = ["coral", "plum"]
     markers = ['o','s','^','v','D']
     x = np.arange(len(types)+1)
     for h in range(2 if COMPENSATION else 1):
         for i in range(1,len(LEVELS)+1):
-            ax.plot(x, accuracies[i-1,:] if h == 0 else accuracies_comp[i-1,:], label=f"{LEVELS[i-1]} levels", color=colors[h], marker=markers[i-1], markerfacecolor='black', markeredgecolor='black')
-    ax.plot(x, [accuracy_unquantized for _ in range(len(types)+1)], label="Unquantized", color="black", linestyle="--")
+            ax.plot(x, accuracies[i-1,:] if h == 0 else accuracies_comp[i-1,:], color=colors[h], marker=markers[i-1], markerfacecolor='black', markeredgecolor='black')
+    ax.plot(x, [accuracy_unquantized for _ in range(len(types)+1)], color="black", linestyle="--")
     # Save the plot
     ax.set_xticks(x, labels=['No Noise']+types)
     ax.set_xlabel("Noise type")
     ax.set_ylabel("Accuracy")
     ax.set_title("Accuracy comparison between q.levels at different noise types")
-    ax.legend()
+    legend_elements = [plt.Line2D([0], [0], marker='o', color='w', label='3 levels', markerfacecolor='black', markeredgecolor='black', markersize=10),
+                        plt.Line2D([0], [0], marker='s', color='w', label='5 levels', markerfacecolor='black', markeredgecolor='black', markersize=10),
+                        plt.Line2D([0], [0], marker='^', color='w', label='9 levels', markerfacecolor='black', markeredgecolor='black', markersize=10),
+                        plt.Line2D([0], [0], marker='v', color='w', label='17 levels', markerfacecolor='black', markeredgecolor='black', markersize=10),
+                        plt.Line2D([0], [0], marker='D', color='w', label='33 levels', markerfacecolor='black', markeredgecolor='black', markersize=10),
+                        plt.Line2D([0], [0], color='coral', label='Without compensation'),
+                        plt.Line2D([0], [0], color='plum', label='With compensation'),
+                        plt.Line2D([0], [0], color='black', linestyle="--", label='Unquantized')]
+    ax.legend(handles=legend_elements)
     # Make the directory if it does not exist
     plt.savefig(f"{p_PATH}/{SELECTED_MODEL}/plots/level_comparison_{SELECTED_MODEL}_{SELECTED_NOISE}.png")
 
@@ -344,7 +352,7 @@ if __name__ == '__main__':
         text = ""
         if h != 0:
             accuracies = accuracies_comp 
-            text = "with_comp"
+            text = "_with_comp"
         plt.rcParams.update({'font.size': 22})
         im = ax.matshow(accuracies, cmap='viridis',origin='lower' )
         for (i,j), z in np.ndenumerate(accuracies):
@@ -362,7 +370,7 @@ if __name__ == '__main__':
         ax.set_xlabel("Noise type", fontsize=22)
         ax.set_ylabel("Levels", fontsize=22)
         ax.set_title(f"Accuracy comparison between q.levels at different noise types({text})", pad=45)
-        plt.savefig(f"{p_PATH}/{SELECTED_MODEL}/plots/heatmap_accuracy_level_{SELECTED_MODEL}_{SELECTED_NOISE}_{text}.png")
+        plt.savefig(f"{p_PATH}/{SELECTED_MODEL}/plots/heatmap_accuracy_level_{SELECTED_MODEL}_{SELECTED_NOISE}{text}.png")
 
 
     
