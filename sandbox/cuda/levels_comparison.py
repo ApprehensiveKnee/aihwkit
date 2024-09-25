@@ -305,7 +305,7 @@ if __name__ == '__main__':
                         for i, _ in enumerate(analog_tiles):
                             # Iterate over the tiles
                             tile_w = next(analog_tiles).get_weights()
-                            max_val = abs(tile_w[0].max())
+                            max_val = abs(tile_w[0].max()).item()
                             ax[i//2, i%2].hist(tile_w[0].flatten().numpy(), bins=200, range=(-max_val-0.1, max_val+0.1), color = "darkorange", ) 
                             ax[i//2, i%2].set_title(f"Tile (W.V.) {i}")
                         text = "comp" if h == 1 else ""
