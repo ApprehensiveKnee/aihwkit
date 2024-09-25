@@ -304,7 +304,7 @@ if __name__ == '__main__':
                         # analog_tiles = model.analog_tiles()
                         # for i, _ in enumerate(analog_tiles):
                         #     # Iterate over the tiles
-                        #     tile_w = next(analog_tiles).get_weights()
+                        #     tile_w = next(analog_tiles).get_weights
                         #     max_val = abs(tile_w[0].max()).item()
                         #     ax[i//2, i%2].hist(tile_w[0].flatten().numpy(), bins=200, range=(-max_val-0.1, max_val+0.1), color = "darkorange", ) 
                         #     ax[i//2, i%2].set_title(f"Tile (W.V.) {i}")
@@ -400,33 +400,34 @@ if __name__ == '__main__':
         ax.set_title(f"Accuracy comparison between q.levels at different noise types({text})", pad=45)
         plt.savefig(f"{p_PATH}/{SELECTED_MODEL}/plots/heatmap_levelComp_{SELECTED_MODEL}_{SELECTED_NOISE}{text}.png")
 
-    # Finally, plot a heatmap for the difference in the mean accuracy between the models with and without compensation
-    fig,ax = plt.subplots(1,1, figsize=(23,23))
-    accuracies_diff = accuracies_comp - accuracies
-    im = ax.matshow(accuracies_diff, cmap="magma",origin='lower' )
-    for (i,j), z in np.ndenumerate(accuracies_diff):
-        ax.text(j, i, '{:0.1f}'.format(z), ha='center', va='center', color='white',
-            bbox=dict(boxstyle='round', facecolor='black', edgecolor='black'))
-    im_ratio = accuracies_diff.shape[0]/accuracies_diff.shape[1]
-    cax = fig.add_axes([ax.get_position().x1+0.01,ax.get_position().y0,0.02,ax.get_position().height])
-    cbar = plt.colorbar(im, cax=cax)
-    cbar.ax.set_ylabel("accuracy range", rotation=-90, va="bottom")
-    ax.spines[:].set_visible(False)
-    ax.set_xticks(np.arange(len(types)+1), labels=['No Noise']+types)
-    ax.set_yticks(np.arange(len(LEVELS)), labels=LEVELS)
-    plt.setp(ax.get_xticklabels(), rotation=40, ha="left", va="bottom",  fontsize = 18, rotation_mode="anchor")
-    plt.setp(ax.get_yticklabels(), fontsize = 18)
-    ax.set_xlabel("Noise type", fontsize=22)
-    ax.set_ylabel("Levels", fontsize=22)
-    ax.set_title(f"Accuracy difference between models with and without compensation", pad=45)
-    plt.savefig(f"{p_PATH}/{SELECTED_MODEL}/plots/heatmap_diff_levelComp_{SELECTED_MODEL}_{SELECTED_NOISE}.png")
+    if COMPENSATION
+        # Finally, plot a heatmap for the difference in the mean accuracy between the models with and without compensation
+        fig,ax = plt.subplots(1,1, figsize=(23,23))
+        accuracies_diff = accuracies_comp - accuracies
+        im = ax.matshow(accuracies_diff, cmap="magma",origin='lower' )
+        for (i,j), z in np.ndenumerate(accuracies_diff):
+            ax.text(j, i, '{:0.1f}'.format(z), ha='center', va='center', color='white',
+                bbox=dict(boxstyle='round', facecolor='black', edgecolor='black'))
+        im_ratio = accuracies_diff.shape[0]/accuracies_diff.shape[1]
+        cax = fig.add_axes([ax.get_position().x1+0.01,ax.get_position().y0,0.02,ax.get_position().height])
+        cbar = plt.colorbar(im, cax=cax)
+        cbar.ax.set_ylabel("accuracy range", rotation=-90, va="bottom")
+        ax.spines[:].set_visible(False)
+        ax.set_xticks(np.arange(len(types)+1), labels=['No Noise']+types)
+        ax.set_yticks(np.arange(len(LEVELS)), labels=LEVELS)
+        plt.setp(ax.get_xticklabels(), rotation=40, ha="left", va="bottom",  fontsize = 18, rotation_mode="anchor")
+        plt.setp(ax.get_yticklabels(), fontsize = 18)
+        ax.set_xlabel("Noise type", fontsize=22)
+        ax.set_ylabel("Levels", fontsize=22)
+        ax.set_title(f"Accuracy difference between models with and without compensation", pad=45)
+        plt.savefig(f"{p_PATH}/{SELECTED_MODEL}/plots/heatmap_diff_levelComp_{SELECTED_MODEL}_{SELECTED_NOISE}.png")
 
-    # Save the accuracies values to a file
-    df = pd.DataFrame(model_accuracy[0,:,:,:].mean(axis=-1))
-    df.to_csv(f"{p_PATH}/{SELECTED_MODEL}/plots/accuracies_{SELECTED_MODEL}_{SELECTED_NOISE}.csv")
-    if COMPENSATION:
-        df = pd.DataFrame(model_accuracy[1,:,:,:].mean(axis=-1))
-        df.to_csv(f"{p_PATH}/{SELECTED_MODEL}/plots/accuracies_{SELECTED_MODEL}_{SELECTED_NOISE}_with_comp.csv")
+        # Save the accuracies values to a file
+        df = pd.DataFrame(model_accuracy[0,:,:,:].mean(axis=-1))
+        df.to_csv(f"{p_PATH}/{SELECTED_MODEL}/plots/accuracies_{SELECTED_MODEL}_{SELECTED_NOISE}.csv")
+        if COMPENSATION:
+            df = pd.DataFrame(model_accuracy[1,:,:,:].mean(axis=-1))
+            df.to_csv(f"{p_PATH}/{SELECTED_MODEL}/plots/accuracies_{SELECTED_MODEL}_{SELECTED_NOISE}_with_comp.csv")
     
     
 
