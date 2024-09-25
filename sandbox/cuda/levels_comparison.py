@@ -229,7 +229,6 @@ if __name__ == '__main__':
         del model
         torch.cuda.empty_cache()
         gc.collect()
-    del model
     
 
     
