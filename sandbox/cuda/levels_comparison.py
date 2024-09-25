@@ -302,9 +302,9 @@ if __name__ == '__main__':
                         number_of_tiles = len(list(model.analog_tiles()))
                         fig, ax = plt.subplots(2, number_of_tiles//2, figsize=( 10*number_of_tiles, 20))
                         for i, tile in enumerate(model.analog_tiles()):
-                            tile_weights = tile.get_weights()
-                            max_val = abs(tile_weights[0].max())
-                            ax[i//2, i%2].hist(tile_weights[0].flatten(), bins=200, range=(-max_val-0.1, max_val+0.1), color = "darkorange", ) 
+                            tile_w,_ = tile.get_weights()
+                            max_val = abs(tile_w[0].max())
+                            ax[i//2, i%2].hist(tile_w[0].flatten(), bins=200, range=(-max_val-0.1, max_val+0.1), color = "darkorange", ) 
                             ax[i//2, i%2].set_title(f"Tile (W.V.) {i}")
                         plt.savefig(f"{p_PATH}/{SELECTED_MODEL}/plots/Weight_Distribution_comparison_plots/Tile_weights_{SELECTED_MODEL}_{SELECTED_NOISE}.png")
                             
