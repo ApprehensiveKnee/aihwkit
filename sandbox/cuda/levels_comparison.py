@@ -297,7 +297,7 @@ if __name__ == '__main__':
                     if k == 0:
                         text = "" if h == 0 else "-comp"
                         tile_weights = next(model.analog_tiles()).get_weights()
-                        pl.plot_tensor_values(tile_weights[0], 141, (-.6,.6), f"Conv1 {SELECTED_MODEL} - levels={levels} - noise_type={noise_type}", p_PATH + f"/{SELECTED_MODEL}/plots/Conv1_comparison_plots/Conv1-levels={levels}-type={noise_type}{text}.png")
+                        pl.plot_tensor_values(tile_weights[0], 171, (-.8,.8), f"Conv1 {SELECTED_MODEL} - levels={levels} - noise_type={noise_type}", p_PATH + f"/{SELECTED_MODEL}/plots/Conv1_comparison_plots/Conv1-levels={levels}-type={noise_type}{text}.png")
 
                         # extract the weights from each tile and plot them on istograms
                         # number_of_tiles = len(list(model.analog_tiles()))
