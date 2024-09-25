@@ -400,7 +400,7 @@ if __name__ == '__main__':
         ax.set_title(f"Accuracy comparison between q.levels at different noise types({text})", pad=45)
         plt.savefig(f"{p_PATH}/{SELECTED_MODEL}/plots/heatmap_levelComp_{SELECTED_MODEL}_{SELECTED_NOISE}{text}.png")
 
-    if COMPENSATION
+    if COMPENSATION:
         # Finally, plot a heatmap for the difference in the mean accuracy between the models with and without compensation
         fig,ax = plt.subplots(1,1, figsize=(23,23))
         accuracies_diff = accuracies_comp - accuracies
@@ -422,12 +422,12 @@ if __name__ == '__main__':
         ax.set_title(f"Accuracy difference between models with and without compensation", pad=45)
         plt.savefig(f"{p_PATH}/{SELECTED_MODEL}/plots/heatmap_diff_levelComp_{SELECTED_MODEL}_{SELECTED_NOISE}.png")
 
-        # Save the accuracies values to a file
-        df = pd.DataFrame(model_accuracy[0,:,:,:].mean(axis=-1))
-        df.to_csv(f"{p_PATH}/{SELECTED_MODEL}/plots/accuracies_{SELECTED_MODEL}_{SELECTED_NOISE}.csv")
-        if COMPENSATION:
-            df = pd.DataFrame(model_accuracy[1,:,:,:].mean(axis=-1))
-            df.to_csv(f"{p_PATH}/{SELECTED_MODEL}/plots/accuracies_{SELECTED_MODEL}_{SELECTED_NOISE}_with_comp.csv")
+    # Save the accuracies values to a file
+    df = pd.DataFrame(model_accuracy[0,:,:,:].mean(axis=-1))
+    df.to_csv(f"{p_PATH}/{SELECTED_MODEL}/plots/accuracies_{SELECTED_MODEL}_{SELECTED_NOISE}.csv")
+    if COMPENSATION:
+        df = pd.DataFrame(model_accuracy[1,:,:,:].mean(axis=-1))
+        df.to_csv(f"{p_PATH}/{SELECTED_MODEL}/plots/accuracies_{SELECTED_MODEL}_{SELECTED_NOISE}_with_comp.csv")
     
     
 
