@@ -303,11 +303,13 @@ if __name__ == '__main__':
                         fig, ax = plt.subplots(2, number_of_tiles//2, figsize=( 10*number_of_tiles, 20))
                         analog_tiles = model.analog_tiles()
                         for i, _ in enumerate(analog_tiles):
-                            tile_w= next(analog_tiles).get_weights()
+                            # Iterate over the tiles
+                            tile_w = next(analog_tiles).get_weights()
                             max_val = abs(tile_w[0].max())
-                            ax[i//2, i%2].hist(tile_w[0].flatten(), bins=200, range=(-max_val-0.1, max_val+0.1), color = "darkorange", ) 
+                            ax[i//2, i%2].hist(tile_w[0].flatten().numpy(), bins=200, range=(-max_val-0.1, max_val+0.1), color = "darkorange", ) 
                             ax[i//2, i%2].set_title(f"Tile (W.V.) {i}")
-                        plt.savefig(f"{p_PATH}/{SELECTED_MODEL}/plots/Weight_Distribution_comparison_plots/Tile_weights_{SELECTED_MODEL}_{SELECTED_NOISE}.png")
+                        text = "comp" if h == 1 else ""
+                        plt.savefig(f"{p_PATH}/{SELECTED_MODEL}/plots/Weight_Distribution_comparison_plots/Tile_weights_{SELECTED_MODEL}_{SELECTED_NOISE}{text}.png")
                             
 
                     if SELECTED_MODEL == "resnet":
