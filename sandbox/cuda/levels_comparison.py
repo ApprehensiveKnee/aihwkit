@@ -209,17 +209,35 @@ if __name__ == '__main__':
 
         RPU_CONFIG_BASE = CustomDefinedPreset()
 
-    
-    # Prepare first the ideal models
-    model_accuracy = torch.zeros((2 if COMPENSATION else 1,len(LEVELS)+1,len(types)+1, N_REPS))
-    models_ideal = ["Unquantized","Quantized - 3 levels", "Quantized - 5 levels", "Quantized - 9 levels", "Quantized - 17 levels", "Quantized - 33 levels",]
-    unquantized_model = sel_model_init(SELECTED_MODEL, RPU_CONFIG_BASE, state_dict)
-
     if not os.path.exists(f"{p_PATH}/{SELECTED_MODEL}/plots/Weight_Distribution_comparison_plots"):
         os.mkdir(f"{p_PATH}/{SELECTED_MODEL}/plots/Weight_Distribution_comparison_plots")
     else:
         os.system(f"rm -r {p_PATH}/{SELECTED_MODEL}/plots/Weight_Distribution_comparison_plots")
         os.mkdir(f"{p_PATH}/{SELECTED_MODEL}/plots/Weight_Distribution_comparison_plots")
+    
+    # First, show the difference in the conductance distribution for the ideal quantized models when different values of eps are used
+
+    eps = [0.03, 0.07, 0.15, 0.27, 0.39]
+
+    for i, eps_i in enumerate(eps):
+        RPU_CONFIG = deepcopy(RPU_CONFIG_BASE)
+        RPU_CONFIG.eps = eps_i
+        model = sel_model_init(SELECTED_MODEL, RPU_CONFIG, state_dict)
+        model = get_quantized_model(model, 9, RPU_CONFIG, eps=eps_i)
+        model.eval()
+        model.program_analog_weights()
+        pl.generate_moving_hist(model, title=f"Quantized - 9 levels - eps={eps_i}", file_name=f"{p_PATH}/{SELECTED_MODEL}/plots/Weight_Distribution_comparison_plots/Quantized_9_levels_eps={eps_i}.gif",  range = (-.7,.7), top=None, split_by_rows=False)
+        del model
+        torch.cuda.empty_cache()
+        gc.collect()
+    del model
+    
+
+    
+    # Prepare first the ideal models
+    model_accuracy = torch.zeros((2 if COMPENSATION else 1,len(LEVELS)+1,len(types)+1, N_REPS))
+    models_ideal = ["Unquantized","Quantized - 3 levels", "Quantized - 5 levels", "Quantized - 9 levels", "Quantized - 17 levels", "Quantized - 33 levels",]
+    unquantized_model = sel_model_init(SELECTED_MODEL, RPU_CONFIG_BASE, state_dict)
 
     for i, model_name in enumerate(models_ideal): 
         RPU_CONFIG = deepcopy(RPU_CONFIG_BASE)
@@ -272,6 +290,8 @@ if __name__ == '__main__':
                                                             compensation = False if h == 0 else True,
                                                             g_converter=SinglePairConductanceConverter(g_max=40.))
                 
+
+                
                 for k in range(N_REPS):
                     model = sel_model_init(SELECTED_MODEL, RPU_CONFIG, state_dict)
                     model = get_quantized_model(model, levels, RPU_CONFIG, eps=EPS)
@@ -281,6 +301,17 @@ if __name__ == '__main__':
                     if k == 0:
                         tile_weights = next(model.analog_tiles()).get_weights()
                         pl.plot_tensor_values(tile_weights[0], 141, (-.6,.6), f"Conv1 {SELECTED_MODEL} - levels={levels} - noise_type={noise_type}", p_PATH + f"/{SELECTED_MODEL}/plots/Conv1_comparison_plots/Conv1-levels={levels}-type={noise_type}.png")
+
+                        # extract the weights from each tile and plot them on istograms
+                        number_of_tiles = len(list(model.analog_tiles()))
+                        fig, ax = plt.subplots(2, number_of_tiles//2, figsize=( 10*number_of_tiles, 20))
+                        for i, tile in enumerate(model.analog_tiles()):
+                            tile_weights = tile.get_weights()
+                            max_val = abs(tile_weights[0].max())
+                            ax[i//2, i%2].hist(tile_weights[0].flatten(), bins=200, range=(-max_val-0.1, max_val+0.1), color = "darkorange", ) 
+                            ax[i//2, i%2].set_title(f"Tile (W.V.) {i}")
+                        plt.savefig(f"{p_PATH}/{SELECTED_MODEL}/plots/Weight_Distribution_comparison_plots/Tile_weights_{SELECTED_MODEL}_{SELECTED_NOISE}.png")
+                            
 
                     if SELECTED_MODEL == "resnet":
                         # Calibrate input ranges
@@ -390,6 +421,13 @@ if __name__ == '__main__':
     ax.set_ylabel("Levels", fontsize=22)
     ax.set_title(f"Accuracy difference between models with and without compensation", pad=45)
     plt.savefig(f"{p_PATH}/{SELECTED_MODEL}/plots/heatmap_diff_levelComp_{SELECTED_MODEL}_{SELECTED_NOISE}.png")
+
+    # Save the accuracies values to a file
+    df = pd.DataFrame(model_accuracy[0,:,:,:].mean(axis=-1))
+    df.to_csv(f"{p_PATH}/{SELECTED_MODEL}/plots/accuracies_{SELECTED_MODEL}_{SELECTED_NOISE}.csv")
+    if COMPENSATION:
+        df = pd.DataFrame(model_accuracy[1,:,:,:].mean(axis=-1))
+        df.to_csv(f"{p_PATH}/{SELECTED_MODEL}/plots/accuracies_{SELECTED_MODEL}_{SELECTED_NOISE}_with_comp.csv")
     
     
 

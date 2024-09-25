@@ -37,9 +37,10 @@ class NullNoiseModel(BaseNoiseModel):
 class TestNVMNoiseModel(BaseNoiseModel):
     """Test noise model """
 
-    def __init__(self, prog_std=0.1, **kwargs):
+    def __init__(self, file_path: str, type:str, debug:bool= False, levels : int = None, force_interpolation: bool = False, compensation: bool = False ,**kwargs):
         super().__init__(**kwargs)
-        self.prog_std = prog_std  # in muS 
+        self.chosen_type = type
+        self.debug = debug
 
     def apply_programming_noise_to_conductance(self, g_target: torch.Tensor) -> torch.Tensor:
         """Apply programming noise to a target conductance Tensor. """
@@ -56,10 +57,11 @@ class TestNVMNoiseModel(BaseNoiseModel):
     
     def __str__(self) -> str:
         return (
-            "{}(prog_std={}, nu={}, g_converter={})"
+            "{}(chosen_type={}, debug={}, g_converter={})"
         ).format(  # type: ignore
             self.__class__.__name__,
-            self.prog_std,
+            self.chosen_type,
+            self.debug,
             self.g_converter)
 
 class ExperimentalNoiseModel(BaseNoiseModel):
@@ -278,8 +280,8 @@ class JustMedianNoiseModel(ExperimentalNoiseModel):
     This new noise model just considers the median values of the experimental data:
     the conductances are shifted from their original quantized values to the corresponding median values
     """
-    def __init__(self, file_path: str, type: str, debug: bool= False,**kwargs):
-        super().__init__(file_path, type, debug,**kwargs)
+    def __init__(self, file_path: str, type:str, debug:bool= False, levels : int = None, force_interpolation: bool = False, compensation: bool = False ,**kwargs):
+        super().__init__(file_path, type, debug, levels, force_interpolation, compensation ,**kwargs)
 
     def fit_data(self,g_target, ww_mdn, ww_std, debug:bool = False):
         """ Differently from the handle of the parent class, this function
@@ -379,8 +381,9 @@ class JustStdNoiseModel(ExperimentalNoiseModel):
     the conductances are shifted from their original quantized values to the corresponding standard deviation values
     """
 
-    def __init__(self, file_path: str, type: str, debug: bool= False, **kwargs):
-        super().__init__(file_path, type, debug,**kwargs)
+    def __init__(self, file_path: str, type:str, debug:bool= False, levels : int = None, force_interpolation: bool = False, compensation: bool = False ,**kwargs):
+        super().__init__(file_path, type, debug, levels, force_interpolation, compensation ,**kwargs)
+
 
     def fit_data(self, g_target, ww_mdn, ww_std, debug:bool = False):
         """ Differently from the handle of the parent class, this function
