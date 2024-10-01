@@ -10,6 +10,7 @@ from scipy import stats
 import torch
 import scipy.io
 import numpy as np
+from scipy.optimize import curve_fit
 import os
 
 def import_mat_file(file_path: str, type: str = None):
@@ -36,7 +37,7 @@ def import_mat_file(file_path: str, type: str = None):
     
     return variables
 
-def correct(x: list , y_old: list):
+def correct(x: list , y_old: list, weights: list = None):
 
     """ The function is used to implement weight/conductance correction
     on the median values shift due to drift/program noise.
@@ -51,7 +52,13 @@ def correct(x: list , y_old: list):
     """
 
     # Fit a linear regression model to the data
-    slope, intercept, _, _, _ = stats.linregress(x, y_old)
+    def func(x, a, b):
+        return a*x + b # plain linear function to be fitted
+    p0= 1,0
+    popt, _ = curve_fit(func, x, y_old, p0, sigma = weights)
+    slope = popt[0]
+    intercept = popt[1]
+
     y_new = y_old
     # Correct the y values
     for i in range(len(x)):
@@ -143,7 +150,11 @@ def interpolate(levels: int, file_path: str, type: str = None, force_interpolati
         # Correct the data
         for key in ['ww_mdn']:
             for i in range(data[key].shape[1]):
-                data[key][:, i] = torch.tensor(correct(np.linspace(-gmax, gmax, levels)*1e-6, data[key][:, i]))
+                # Use a gaussian distribution centered at 0 to weight the linear regression
+                #weights = np.ones(levels)
+                weights = stats.chi2.pdf(np.linspace(0, gmax, int(levels/2)+1), 2, 0, 6)
+                weights = np.concatenate((weights[:-1], weights[::-1]), axis= 0)
+                data[key][:, i] = torch.tensor(correct(np.linspace(-gmax, gmax, levels)*1e-6, data[key][:, i], weights))
 
     if debug:
         # Plot the interpolated data
