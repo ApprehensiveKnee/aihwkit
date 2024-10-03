@@ -278,7 +278,7 @@ if __name__ == '__main__':
                 gc.collect()
 
                 noiseless_accuracy[i] = evaluate_model(unquantized_model, get_test_loader(), device)
-                print(f"Model: {SELECTED_MODEL} - Accuracy: {noiseless_accuracy[i+eps_idx]}")
+                print(f"Model: {SELECTED_MODEL} {model_name} - Eps: {eps} - Accuracy: {noiseless_accuracy[i+eps_idx]}")
 
     # Now, evaluate the accuracy for the quantized models for different eps values and noise types
     if not os.path.exists(f"{p_PATH}/{SELECTED_MODEL}/plots/Conv1_comparison_eps_plots"):
