@@ -375,7 +375,7 @@ if __name__ == '__main__':
                         plt.Line2D([0], [0], color='mediumslateblue', label='With compensation'),
                         plt.Line2D([0], [0], color='black', linestyle="--", label='Unquantized')]
     ax.legend(handles=legend_elements)
-    plt.savefig(f"{p_PATH}/{SELECTED_MODEL}/plots/lines_epsComp_{SELECTED_MODEL}_{SELECTED_NOISE}.png")
+    plt.savefig(f"{p_PATH}/{SELECTED_MODEL}/plots/lines_epsComp_{SELECTED_MODEL}_{SELECTED_LEVEL}_{SELECTED_NOISE}.png")
 
     # Also plot a heatmap
     for h in range(2 if COMPENSATION else 1):
@@ -399,7 +399,7 @@ if __name__ == '__main__':
         ax.set_xlabel("Noise type", fontsize=22)
         ax.set_ylabel("Eps", fontsize=22)
         ax.set_title(f"Accuracy comparison between eps values at different noise types({text})", pad=45)
-        plt.savefig(f"{p_PATH}/{SELECTED_MODEL}/plots/heatmap_epsComp_{SELECTED_MODEL}_{SELECTED_NOISE}{text}.png")
+        plt.savefig(f"{p_PATH}/{SELECTED_MODEL}/plots/heatmap_epsComp_{SELECTED_MODEL}_{SELECTED_LEVEL}_{SELECTED_NOISE}{text}.png")
 
     if COMPENSATION:
         # Finally. plot a heatmap for the difference in the mean accuracy  between  the models with and without compensation
@@ -422,13 +422,13 @@ if __name__ == '__main__':
         ax.set_xlabel("Noise type", fontsize=22)
         ax.set_ylabel("Eps", fontsize=22)
         ax.set_title(f"Accuracy difference between models with and without compensation", pad=45)
-        plt.savefig(f"{p_PATH}/{SELECTED_MODEL}/plots/heatmap_diff_epsComp_{SELECTED_MODEL}_{SELECTED_NOISE}.png")
+        plt.savefig(f"{p_PATH}/{SELECTED_MODEL}/plots/heatmap_diff_epsComp_{SELECTED_MODEL}_{SELECTED_LEVEL}_{SELECTED_NOISE}.png")
 
     # Save the accuracies values to a file
     df = pd.DataFrame(accuracies)
-    df.to_csv(f"{p_PATH}/{SELECTED_MODEL}/plots/accuracies_eps_{SELECTED_MODEL}_{SELECTED_NOISE}.csv")
+    df.to_csv(f"{p_PATH}/{SELECTED_MODEL}/plots/accuracies_eps_{SELECTED_MODEL}_{SELECTED_LEVEL}_{SELECTED_NOISE}.csv")
     if COMPENSATION:
         df = pd.DataFrame(accuracies_comp)
-        df.to_csv(f"{p_PATH}/{SELECTED_MODEL}/plots/accuracies_eps_{SELECTED_MODEL}_{SELECTED_NOISE}_with_comp.csv")
+        df.to_csv(f"{p_PATH}/{SELECTED_MODEL}/plots/accuracies_eps_{SELECTED_MODEL}_{SELECTED_LEVEL}_{SELECTED_NOISE}_with_comp.csv")
     
     
