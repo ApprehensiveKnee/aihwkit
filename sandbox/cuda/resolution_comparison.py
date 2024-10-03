@@ -342,7 +342,7 @@ if __name__ == '__main__':
 
     
     # Plot the results
-    fig, ax = plt.subplots()
+    fig, ax = plt.subplots(23,7)
     accuracies = np.zeros((len(EPS), len(types)+1))
     accuracy_unquantized = noiseless_accuracy[0]
 
