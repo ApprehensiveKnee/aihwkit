@@ -290,6 +290,10 @@ if __name__ == '__main__':
 
     for h in range(2 if COMPENSATION else 1):
         for eps_idx, eps in enumerate(EPS):
+            print(" ---------------------------------------------------------------------------------------------")
+            print(f"                                        EPS: {eps}\n")
+            print(" ---------------------------------------------------------------------------------------------")
+
             for type_idx, noise_type in enumerate(types):
                 RPU_CONFIG = deepcopy(RPU_CONFIG_BASE)
                 if SELECTED_NOISE != "none":
@@ -301,9 +305,7 @@ if __name__ == '__main__':
                                                                 g_converter=SinglePairConductanceConverter(g_max=40.))
                 else:
                     RPU_CONFIG.noise_model = NullNoiseModel()
-                print(" ---------------------------------------------------------------------------------")
-                print(f"                                    EPS: {eps}\n")
-
+                
                 for rep in range(N_REPS):
                     model = sel_model_init(SELECTED_MODEL, RPU_CONFIG, state_dict)
                     model = get_quantized_model(model, SELECTED_LEVEL ,RPU_CONFIG, eps = eps)
