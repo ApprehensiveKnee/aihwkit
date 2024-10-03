@@ -257,7 +257,7 @@ if __name__ == '__main__':
 
         else:
             for eps_idx, eps in enumerate(EPS):
-                model_i = get_quantized_model(unquantized_model, SELECTED_LEVEL, eps=eps)
+                model_i = get_quantized_model(unquantized_model, SELECTED_LEVEL, RPU_CONFIG, eps=eps)
                 model_i.eval()
 
                 if SELECTED_MODEL == "resnet":
@@ -305,7 +305,7 @@ if __name__ == '__main__':
 
                 for rep in range(N_REPS):
                     model = sel_model_init(SELECTED_MODEL, RPU_CONFIG, state_dict)
-                    model = get_quantized_model(model.levels, RPU_CONFIG, eps = eps)
+                    model = get_quantized_model(model.levels, SELECTED_LEVEL ,RPU_CONFIG, eps = eps)
                     model.eval()
                     model.program_analog_weights()
 
