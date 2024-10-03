@@ -124,8 +124,8 @@ if __name__ == '__main__':
             SELECTED_MODEL = arg
             print(f"Selected model: {SELECTED_MODEL}")
         if opt in ('-n', '--noise'):
-            if arg not in ["whole","std","median"]:
-                raise ValueError("The selected noise must be either 'std' or 'median'")
+            if arg not in ["whole","std","median", "none"]:
+                raise ValueError("The selected noise must be either 'std', 'median', 'whole' or 'none'")
             SELECTED_NOISE = arg
             print(f"Selected noise: {SELECTED_NOISE}")
         if opt in ('-r', '--reps'):
@@ -169,7 +169,8 @@ if __name__ == '__main__':
     MAP_NOISE_TYPE = {
         "whole" : ExperimentalNoiseModel,
         "std" : JustStdNoiseModel,
-        "median" : JustMedianNoiseModel
+        "median" : JustMedianNoiseModel,
+        "none" : NullNoiseModel
     }
 
     # Extract types of noises from the data for the 9 level models
@@ -237,7 +238,7 @@ if __name__ == '__main__':
     models_ideal = ["Unquantized","Quantized - 3 levels", "Quantized - 5 levels", "Quantized - 9 levels", "Quantized - 17 levels", "Quantized - 33 levels",]
     for i, model_name in enumerate(models_ideal): 
         RPU_CONFIG = deepcopy(RPU_CONFIG_BASE)
-        for j in range(N_REPS):
+        for j in range(N_REPS): # for the noiseless models, we would only need one repetition, but we keep the loop for consistency
             if model_name == "Unquantized":
                 model_i = deepcopy(unquantized_model)
             else:
@@ -254,7 +255,7 @@ if __name__ == '__main__':
                 )
 
             if j == 0:
-                pl.generate_moving_hist(model_i, title=f"{model_name} - {SELECTED_NOISE}", file_name=f"{p_PATH}/{SELECTED_MODEL}/plots/Weight_Distribution_comparison_plots/{model_name}_{SELECTED_NOISE}.gif",  range = (-.7,.7), top=None, split_by_rows=False)
+                pl.generate_moving_hist(model_i, title=f"{model_name} - {SELECTED_NOISE}", file_name=f"{p_PATH}/{SELECTED_MODEL}/plots/Weight_Distribution_comparison_plots/{model_name}.gif",  range = (-.7,.7), top=None, split_by_rows=False)
 
 
             model_accuracy[0,i,0,j] = evaluate_model(model_i, get_test_loader(), device)
@@ -332,11 +333,10 @@ if __name__ == '__main__':
                     gc.collect()
 
                 print(
-                    f"Model: {levels} levels - Noise: {noise_type} - Average accuracy: {model_accuracy[h,i+1,j+1,:].mean()}, std: {model_accuracy[h,i+1,j+1,:].std() if N_REPS > 1 else 0}"
+                    f"Model: {SELECTED_MODEL} - Level: {levels} levels - Noise: {noise_type} - Average accuracy: {model_accuracy[h,i+1,j+1,:].mean()}, std: {model_accuracy[h,i+1,j+1,:].std() if N_REPS > 1 else 0}"
                 )
 
     # Plot and save the results
-
     fig, ax = plt.subplots(1,1, figsize=(23,7))
     accuracies = np.zeros((len(LEVELS),len(types)+1))
     accuracy_unquantized = model_accuracy[0,0,0,:].mean()
@@ -374,7 +374,6 @@ if __name__ == '__main__':
                         plt.Line2D([0], [0], color='mediumslateblue', label='With compensation'),
                         plt.Line2D([0], [0], color='black', linestyle="--", label='Unquantized')]
     ax.legend(handles=legend_elements,loc = 'center left')
-    # Make the directory if it does not exist
     plt.savefig(f"{p_PATH}/{SELECTED_MODEL}/plots/lines_levelComp_{SELECTED_MODEL}_{SELECTED_NOISE}.png")
 
     # Also plot a heatmap

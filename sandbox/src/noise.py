@@ -39,8 +39,6 @@ class TestNVMNoiseModel(BaseNoiseModel):
 
     def __init__(self, file_path: str, type:str, debug:bool= False, levels : int = None, force_interpolation: bool = False, compensation: bool = False ,**kwargs):
         super().__init__(**kwargs)
-        self.chosen_type = type
-        self.debug = debug
 
     def apply_programming_noise_to_conductance(self, g_target: torch.Tensor) -> torch.Tensor:
         """Apply programming noise to a target conductance Tensor. """
