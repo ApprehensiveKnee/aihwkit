@@ -244,7 +244,7 @@ if __name__ == '__main__':
                     calibration_type=InputRangeCalibrationType.CACHE_QUANTILE,
                     dataloader=dataloader,
                     )
-                pl.generate_moving_hist(model_i, title = f"{model_name} - {SELECTED_MODEL}", file_path = f"{p_PATH}/{SELECTED_MODEL}/plots/WD_comparison_eps_plots/{model_name}.png", range = (-0.7, 0.7), top=None, split_by_rows=False)
+                pl.generate_moving_hist(model_i, title = f"{model_name} - {SELECTED_MODEL}", file_name = f"{p_PATH}/{SELECTED_MODEL}/plots/WD_comparison_eps_plots/{model_name}.png", range = (-0.7, 0.7), top=None, split_by_rows=False)
 
                 del model_i
                 if SELECTED_MODEL == "resnet":
@@ -269,7 +269,7 @@ if __name__ == '__main__':
                     dataloader=dataloader,
                     )
 
-                pl.generate_moving_hist(model_i, title = f"{model_name} - {SELECTED_MODEL} \n - eps: {eps}", file_path = f"{p_PATH}/{SELECTED_MODEL}/plots/WD_comparison_eps_plots/{model_name}_{eps}.png", range = (-0.7, 0.7), top=None, split_by_rows=False)
+                pl.generate_moving_hist(model_i, title = f"{model_name} - {SELECTED_MODEL} \n - eps: {eps}", file_name = f"{p_PATH}/{SELECTED_MODEL}/plots/WD_comparison_eps_plots/{model_name}_{eps}.png", range = (-0.7, 0.7), top=None, split_by_rows=False)
                 
                 del model_i
                 if SELECTED_MODEL == "resnet":
