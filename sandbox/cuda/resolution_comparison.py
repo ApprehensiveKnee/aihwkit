@@ -244,6 +244,8 @@ if __name__ == '__main__':
                     calibration_type=InputRangeCalibrationType.CACHE_QUANTILE,
                     dataloader=dataloader,
                     )
+
+                noiseless_accuracy[i] = evaluate_model(model_i, get_test_loader(), device)
                 pl.generate_moving_hist(model_i, title = f"{model_name} - {SELECTED_MODEL}", file_name = f"{p_PATH}/{SELECTED_MODEL}/plots/WD_comparison_eps_plots/{model_name}.png", range = (-0.7, 0.7), top=None, split_by_rows=False)
 
                 del model_i
@@ -252,7 +254,6 @@ if __name__ == '__main__':
                 torch.cuda.empty_cache()
                 gc.collect()
 
-                noiseless_accuracy[i] = evaluate_model(unquantized_model, get_test_loader(), device)
                 print(f"Model: {SELECTED_MODEL} {model_name} - Accuracy: {noiseless_accuracy[i]}")
 
         else:
@@ -269,6 +270,7 @@ if __name__ == '__main__':
                     dataloader=dataloader,
                     )
 
+                noiseless_accuracy[i+eps_idx] = evaluate_model(model_i, get_test_loader(), device)
                 pl.generate_moving_hist(model_i, title = f"{model_name} - {SELECTED_MODEL} \n - eps: {eps}", file_name = f"{p_PATH}/{SELECTED_MODEL}/plots/WD_comparison_eps_plots/{model_name}_{eps}.png", range = (-0.7, 0.7), top=None, split_by_rows=False)
                 
                 del model_i
