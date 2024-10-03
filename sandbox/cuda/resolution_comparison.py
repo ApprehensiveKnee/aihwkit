@@ -253,7 +253,7 @@ if __name__ == '__main__':
                 gc.collect()
 
                 noiseless_accuracy[i] = evaluate_model(unquantized_model, get_test_loader(), device)
-                print(f"Model: {SELECTED_MODEL} {model_name} - Eps: {eps} - Accuracy: {noiseless_accuracy[i+eps_idx]}")
+                print(f"Model: {SELECTED_MODEL} {model_name} - Accuracy: {noiseless_accuracy[i+eps_idx]}")
 
         else:
             for eps_idx, eps in enumerate(EPS):
