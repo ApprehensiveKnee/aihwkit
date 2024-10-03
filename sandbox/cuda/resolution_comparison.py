@@ -253,7 +253,7 @@ if __name__ == '__main__':
                 gc.collect()
 
                 noiseless_accuracy[i] = evaluate_model(unquantized_model, get_test_loader(), device)
-                print(f"Model: {SELECTED_MODEL} - Accuracy: {noiseless_accuracy[i]}")
+                print(f"Model: {SELECTED_MODEL} {model_name} - Eps: {eps} - Accuracy: {noiseless_accuracy[i+eps_idx]}")
 
         else:
             for eps_idx, eps in enumerate(EPS):
@@ -305,7 +305,7 @@ if __name__ == '__main__':
 
                 for rep in range(N_REPS):
                     model = sel_model_init(SELECTED_MODEL, RPU_CONFIG, state_dict)
-                    model = get_quantized_model(model.levels, SELECTED_LEVEL ,RPU_CONFIG, eps = eps)
+                    model = get_quantized_model(model, SELECTED_LEVEL ,RPU_CONFIG, eps = eps)
                     model.eval()
                     model.program_analog_weights()
 
