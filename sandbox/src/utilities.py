@@ -31,8 +31,8 @@ def import_mat_file(file_path: str, type: str = None):
 
     if type is not None:
         mask = [True if type == variables['str'][i] else False for i in range(len(variables['str']))]
-        variables['ww_mdn'] = torch.tensor(variables['ww_mdn'][:, mask])
-        variables['ww_std'] = torch.tensor(variables['ww_std'][:, mask])
+        variables['ww_mdn'] = variables['ww_mdn'][:, mask].clone().detach()
+        variables['ww_std'] = variables['ww_std'][:, mask].clone().detach()
         variables['str'] = [type]
     
     return variables
