@@ -170,7 +170,7 @@ if __name__ == '__main__':
         33 : "matlab/4bit.mat"
     }
 
-    EPS = [0.03, 0.06, 0.12, 0.24, 0.36]
+    EPS = [0.08, 0.10, 0.14 , 0.18, 0.20]
 
     MAP_NOISE_TYPE = {
         "whole" : ExperimentalNoiseModel,

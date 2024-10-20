@@ -55,14 +55,14 @@ def correct(x: list , y_old: list, weights: list = None):
     def func(x, a, b):
         return a*x + b # plain linear function to be fitted
     p0= 1,0
-    popt, _ = curve_fit(func, x, y_old, p0, sigma = weights)
+    popt, _ = curve_fit(func, x, y_old, p0, sigma = weights, absolute_sigma = True)
     slope = popt[0]
     intercept = popt[1]
 
     y_new = y_old
     # Correct the y values
     for i in range(len(x)):
-        y_new[i] = (y_old[i] - intercept)/slope
+        y_new[i] = (y_old[i])/slope
     return y_new
 
 def interpolate(levels: int, file_path: str, type: str = None, force_interpolation: bool = False, compensation: bool = False, gmax:float = 40.0, debug: bool = False):
@@ -151,9 +151,14 @@ def interpolate(levels: int, file_path: str, type: str = None, force_interpolati
         for key in ['ww_mdn']:
             for i in range(data[key].shape[1]):
                 # Use a gaussian distribution centered at 0 to weight the linear regression
+                #   UNIFORM WEIGHTS
                 #weights = np.ones(levels)
-                weights = stats.chi2.pdf(np.linspace(0, gmax, int(levels/2)+1), 2, 0, 6)
-                weights = np.concatenate((weights[:-1], weights[::-1]), axis= 0)
+                #   CHI2 WEIGHTS
+                #weights = stats.chi2.pdf(np.linspace(0, gmax, int(levels/2)+1), 2, 0, 6)
+                #weights = np.concatenate((weights[:-1], weights[::-1]), axis= 0)
+                #   GAUSSIAN WEIGHTS
+                weights = stats.norm.pdf(np.linspace(-40, 40, levels), 0, 14)
+                weights = (weights.max() - weights) + weights.min()
                 data[key][:, i] = torch.tensor(correct(np.linspace(-gmax, gmax, levels)*1e-6, data[key][:, i], weights))
 
     if debug:
