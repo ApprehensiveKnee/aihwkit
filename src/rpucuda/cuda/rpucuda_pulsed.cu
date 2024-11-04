@@ -290,12 +290,9 @@ template <typename T> void RPUCudaPulsed<T>::clipWeights(const WeightClipParamet
 }
 
 template <typename T> void RPUCudaPulsed<T>::quantizeWeights(const WeightQuantizerParameter<T> &wqpar) {
-  if (wqpar.quantizer_type == WeightQuantizerType::Uniform) {
-    RPUCudaSimple<T>::quantizeWeights(wqpar);
-  }
-  else {
-    RPU_FATAL("Fixed value quantization is NOT implemented yet");
-  }
+  
+  RPUCudaSimple<T>::quantizeWeights(wqpar);
+
 }
 
 template <typename T>
