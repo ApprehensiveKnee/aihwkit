@@ -20,7 +20,7 @@ namespace RPU {
   int tid = blockDim.x * blockIdx.x + threadIdx.x;                                                 \
   int total_threads = blockDim.x * gridDim.x;                                                      \
   int size = size_in;                                                                              \
-  int size_without_bias = quantize_last_column ? (size - d_size) : size;                               \
+  int size_without_bias = quantize_last_column ? size: (size - d_size);                               \
   const bool stoch_if = STOCH_IF;                                                                  \
                                                                                                    \
   curandState local_state;                                                                         \
@@ -56,7 +56,7 @@ __global__ void kernelCustomQuantize(
   int tid = blockDim.x * blockIdx.x + threadIdx.x;
   int total_threads = blockDim.x * gridDim.x;
   int size = size_in;
-  int size_without_bias = quantize_last_column ? (size - d_size) : size;
+  int size_without_bias = quantize_last_column ? size : (size - d_size);
 
   for (int i_stride = 0; i_stride < size; i_stride += total_threads) {                             
     int i = i_stride + tid;                                                                        
