@@ -202,7 +202,7 @@ class TileWithPeriphery(BaseTile, SimulatorTileWrapper):
                         alert = "===============================================================\n"
                         alert += f"WARNING: in {self.tile.__class__.__name__} tile bias:\n"
                         alert += f"Weight quantizer produced {np.unique(quant_bias).size} levels, but {new_wqpar.levels} were requested.\n"
-                        alert += f"The unique levels are: {np.unique(quant_weights)}\n"
+                        alert += f"The unique levels are: {np.unique(quant_bias)}\n"
                         alert += "===============================================================\n"
                         print(alert)
 
