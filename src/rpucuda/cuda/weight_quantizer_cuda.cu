@@ -145,12 +145,12 @@ void WeightQuantizerCuda<T>::apply(T *weights, const WeightQuantizerParameter<T>
         case WeightQuantizerType::UniformSymmetric: {
             if (wqpar.resolution >0){
 
-              T z = (T).0
+              T z = (T).0;
                 
               // call the kernel
               kernelQuantize<T><<<nblocks, nthreads, 0, s>>>(
                   size_, d_size_, wqpar.quantize_last_column, weights, weights, wqpar.resolution, wqpar.stochastic_round, 
-                  z, wqpar.levels, amax, wmpar.stochastic_round ? context_->getRandomStates(nblocks * nthreads) : nullptr);
+                  z, wqpar.levels, amax, wqpar.stochastic_round ? context_->getRandomStates(nblocks * nthreads) : nullptr);
                 
             }
             break;
@@ -161,7 +161,7 @@ void WeightQuantizerCuda<T>::apply(T *weights, const WeightQuantizerParameter<T>
               // call the kernel
               kernelQuantize<T><<<nblocks, nthreads, 0, s>>>(
                   size_, d_size_, wqpar.quantize_last_column, weights, weights, wqpar.resolution, wqpar.stochastic_round, 
-                  wqpar.z, wqpar.levels, amax,wmpar.stochastic_round ? context_->getRandomStates(nblocks * nthreads) : nullptr);
+                  wqpar.z, wqpar.levels, amax, wqpar.stochastic_round ? context_->getRandomStates(nblocks * nthreads) : nullptr);
             }
             break;
         }
