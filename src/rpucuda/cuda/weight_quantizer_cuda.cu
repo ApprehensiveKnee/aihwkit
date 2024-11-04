@@ -50,12 +50,8 @@ __global__ void kernelCustomQuantize(
     const bool quantize_last_column,
     T *new_weights,
     T *weights,
-    const std::vector<T> &quant_values) {
-
-  // move the quant_values to GPU
-  T* device_quant_values;
-  cudaMalloc(&device_quant_values, quant_values.size() * sizeof(T));
-  cudaMemcpy(device_quant_values, quant_values.data(), quant_values.size() * sizeof(T), cudaMemcpyHostToDevice);
+    const T* device_quant_values,
+    int quant_values_size) {
 
   int tid = blockDim.x * blockIdx.x + threadIdx.x;
   int total_threads = blockDim.x * gridDim.x;
@@ -67,7 +63,7 @@ __global__ void kernelCustomQuantize(
     if (i < size_without_bias) {                                                                                                                                                         
       T value = weights[i];                                                                      
       T quant_value = (T)device_quant_values[0];                                                          
-      for (int j = 0; j < device_quant_values.size(); j++) {                                           
+      for (int j = 0; j < quant_values_size; j++) {                                           
         // check the difference between the value and the quantization value
         if (fabs(value - device_quant_values[j]) < fabs(value - quant_value)) {                         
           quant_value = device_quant_values[j];                                                        
@@ -77,7 +73,6 @@ __global__ void kernelCustomQuantize(
     } else if ((i < size) && (new_weights != weights)) {                                           
       new_weights[i] = weights[i];                                                                  
     }                                                                                              
-    
   }                                                                                                  
 }
 
@@ -175,10 +170,19 @@ void WeightQuantizerCuda<T>::apply(T *weights, const WeightQuantizerParameter<T>
                 RPU_FATAL("Custom quantization requires quant_values to be set.");
             }
             
-            // call the kernel
+            // move the quant_values to the device
+            T* device_quant_values;
+            cudaMalloc(&device_quant_values, wqpar.quant_values.size() * sizeof(T));
+            cudaMemcpy(device_quant_values, wqpar.quant_values.data(), wqpar.quant_values.size() * sizeof(T), cudaMemcpyHostToDevice);
+
+
             kernelCustomQuantize<T><<<nblocks, nthreads, 0, s>>>(
                 size_, d_size_, wqpar.quantize_last_column, weights, weights, wqpar.quant_values);
 
+
+            cudaDeviceSynchronize();
+
+            cudaFree(device_quant_values);
 
             break;
         }
