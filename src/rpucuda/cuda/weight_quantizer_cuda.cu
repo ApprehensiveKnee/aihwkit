@@ -52,6 +52,11 @@ __global__ void kernelCustomQuantize(
     T *weights,
     const std::vector<T> &quant_values) {
 
+  // move the quant_values to GPU
+  T* device_quant_values;
+  cudaMalloc(&device_quant_values, quant_values.size() * sizeof(T));
+  cudaMemcpy(device_quant_values, quant_values.data(), quant_values.size() * sizeof(T), cudaMemcpyHostToDevice);
+
   int tid = blockDim.x * blockIdx.x + threadIdx.x;
   int total_threads = blockDim.x * gridDim.x;
   int size = size_in;
@@ -61,11 +66,11 @@ __global__ void kernelCustomQuantize(
     int i = i_stride + tid;                                                                        
     if (i < size_without_bias) {                                                                                                                                                         
       T value = weights[i];                                                                      
-      T quant_value = (T)quant_values[0];                                                          
-      for (int j = 0; j < quant_values.size(); j++) {                                           
+      T quant_value = (T)device_quant_values[0];                                                          
+      for (int j = 0; j < device_quant_values.size(); j++) {                                           
         // check the difference between the value and the quantization value
-        if (fabs(value - quant_values[j]) < fabs(value - quant_value)) {                         
-          quant_value = quant_values[j];                                                        
+        if (fabs(value - device_quant_values[j]) < fabs(value - quant_value)) {                         
+          quant_value = device_quant_values[j];                                                        
         }                                                                                  
       } 
       new_weights[i] = quant_value;                                                                                           
