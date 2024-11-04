@@ -144,7 +144,7 @@ void WeightQuantizerCuda<T>::apply(T *weights, const WeightQuantizerParameter<T>
     switch (wqpar.quantizer_type) {
         case WeightQuantizerType::UniformSymmetric: {
             if (wqpar.resolution >0){
-
+              std::cout << "UniformSymmetric" << std::endl;
               T z = (T).0;
                 
               // call the kernel
