@@ -184,15 +184,22 @@ class TileWithPeriphery(BaseTile, SimulatorTileWrapper):
             # levels in the current tile, alert the user
             if new_wqpar.debug and new_wqpar.levels > 0:
                 quant_weights = self.tile.get_weights()
-                print(quant_weights[1])
                 import numpy as np
-                quant_weights = np.round(quant_weights.reshape(-1), 4)
+                quant_bias = np.round(quant_weights[1].reshape(-1), 4)
+                quant_weights = np.round(quant_weights[0].reshape(-1), 4)
                 if np.unique(quant_weights).size != new_wqpar.levels:
                     alert = "===============================================================\n"
-                    alert += f"WARNING: in {self.tile.__class__.__name__} tile:\n"
+                    alert += f"WARNING: in {self.tile.__class__.__name__} tile weights:\n"
                     alert += f"Weight quantizer produced {np.unique(quant_weights).size} levels, but {new_wqpar.levels} were requested.\n"
                     alert += "===============================================================\n"
                     print(alert)
+                if wqpar.quantize_last_column == True:
+                    if np.unique(quant_bias).size != new_wqpar.levels:
+                        alert = "===============================================================\n"
+                        alert += f"WARNING: in {self.tile.__class__.__name__} tile bias:\n"
+                        alert += f"Weight quantizer produced {np.unique(quant_bias).size} levels, but {new_wqpar.levels} were requested.\n"
+                        alert += "===============================================================\n"
+                        print(alert)
 
 
         if realistic:

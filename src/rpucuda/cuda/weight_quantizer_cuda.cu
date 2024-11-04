@@ -146,6 +146,7 @@ void WeightQuantizerCuda<T>::apply(T *weights, const WeightQuantizerParameter<T>
         case WeightQuantizerType::UniformSymmetric: {
             if (wqpar.resolution >0){
               T z = (T).0;
+              std::cout << "The levels are: " << wqpar.levels << std::endl; 
                 
               // call the kernel
               kernelQuantize<T><<<nblocks, nthreads, 0, s>>>(
