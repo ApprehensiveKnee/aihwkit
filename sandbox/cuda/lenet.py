@@ -198,7 +198,7 @@ if __name__ == '__main__':
         gdown.download(url, output, quiet=False)
 
     # Set-up the RPU_config object 
-    RPU_CONFIG  = InferenceRPUConfig(forward=IOParameters(is_perfect=True),
+    RPU_CONFIG  = InferenceRPUConfig(forward=IOParameters(),
                                     noise_model=NullNoiseModel(),
                                     clip= WeightClipParameter(type=WeightClipType.NONE,),
                                     remap= WeightRemapParameter(type=WeightRemapType.NONE,),

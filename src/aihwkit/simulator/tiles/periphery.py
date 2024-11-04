@@ -184,6 +184,7 @@ class TileWithPeriphery(BaseTile, SimulatorTileWrapper):
             # levels in the current tile, alert the user
             if new_wqpar.debug and new_wqpar.levels > 0:
                 quant_weights = self.tile.get_weights()
+                print(quant_weights[1])
                 import numpy as np
                 quant_weights = np.round(quant_weights.reshape(-1), 4)
                 if np.unique(quant_weights).size != new_wqpar.levels:

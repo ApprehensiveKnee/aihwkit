@@ -109,7 +109,8 @@ __global__ void kernelQuantize(
       }
       else {
         T quant_value = round(value + zero_point);
-        quant_value = fmin(fmax(quant_value, - ((T)levels - 1)/2.), (((T)levels - 1)/2.));
+        quant_value = quant_value > (T)levels/2.0 ? (T)(levels-1.)/2. : quant_value;
+        quant_value = quant_value < -(T)levels/2.0 ? -(T)(levels-1.)/2. : quant_value;
         new_weights[i] = amax * res * (quant_value - zero_point);
       });
         
@@ -144,7 +145,6 @@ void WeightQuantizerCuda<T>::apply(T *weights, const WeightQuantizerParameter<T>
     switch (wqpar.quantizer_type) {
         case WeightQuantizerType::UniformSymmetric: {
             if (wqpar.resolution >0){
-              std::cout << "UniformSymmetric" << std::endl;
               T z = (T).0;
                 
               // call the kernel
