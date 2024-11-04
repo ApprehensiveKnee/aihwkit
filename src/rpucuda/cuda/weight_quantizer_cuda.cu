@@ -105,12 +105,12 @@ __global__ void kernelQuantize(
       }
 
       if (levels == 0) {
-        weights[i] = amax * res * (round(value + zero_point) - zero_point);
+        new_weights[i] = amax * res * (round(value + zero_point) - zero_point);
       }
       else {
         T quant_value = round(value + zero_point);
         quant_value = fmin(fmax(quant_value, - ((T)levels - 1)/2.), (((T)levels - 1)/2.));
-        weights[i] = amax * res * (quant_value - zero_point);
+        new_weights[i] = amax * res * (quant_value - zero_point);
       });
         
 }
