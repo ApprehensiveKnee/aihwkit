@@ -198,7 +198,7 @@ if __name__ == '__main__':
         gdown.download(url, output, quiet=False)
 
     # Set-up the RPU_config object 
-    RPU_CONFIG  = InferenceRPUConfig(forward=IOParameters(),
+    RPU_CONFIG  = InferenceRPUConfig(forward=IOParameters(is_perfect=True),
                                     noise_model=NullNoiseModel(),
                                     clip= WeightClipParameter(type=WeightClipType.NONE,),
                                     remap= WeightRemapParameter(type=WeightRemapType.NONE,),
@@ -258,7 +258,7 @@ if __name__ == '__main__':
             # print(f"Tile weights for model {model_names[i]}: {tile_weights[0][:, :]}")
 
             # plot the weights
-            pl.generate_moving_hist(model_i,title=f"Distribution of Quantized Weight\n Values over the tiles - {model_names[i]}", file_name= p_PATH + f"hist_lenet_{model_name}.gif", range = (-.7,.7), top=None, split_by_rows=False)
+            pl.generate_moving_hist(model_i,title=f"Distribution of Quantized Weight\n Values over the tiles - {model_names[i]}", file_name= p_PATH + f"/cuda/hist_lenet_{model_name}.gif", range = (-.7,.7), top=None, split_by_rows=False)
             
             del model_i
             torch.cuda.empty_cache()
