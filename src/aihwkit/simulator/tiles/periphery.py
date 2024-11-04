@@ -173,7 +173,7 @@ class TileWithPeriphery(BaseTile, SimulatorTileWrapper):
         if wqpar is not None:
             # new_wqpar = tiles.WeightQuantizerParameter()
             # new_wqpar.copy_from(wqpar)
-            wqpar.fit(self.tile.get_weights())
+            wqpar.calibrate_weights(self.tile.get_weights())
             data_type = self.get_data_type()
             new_wqpar = parameters_to_bindings(
                     wqpar, data_type

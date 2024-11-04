@@ -21,16 +21,15 @@ WeightQuantizer<T>::WeightQuantizer(int x_size, int d_size)
 template <typename T>
 void WeightQuantizer<T>::apply(T *weights, const WeightQuantizerParameter<T> &wqpar,RNG<T> &rng) {
 
-    if (wqpar.resolution == 0.0 && wqpar.quantizer_type == WeightQuantizerType::Uniform) {
+    if (wqpar.resolution == 0.0 && 
+        (wqpar.quantizer_type == WeightQuantizerType::UniformSymmetric 
+        || wqpar.quantizer_type == WeightQuantizerType::UniformAsymmetric)
+        ){ 
         return;
     }
-    if (wqpar.resolution > wqpar.bound){
-        RPU_FATAL("Quantize value cannot be greater than bound");
+    if (wqpar.resolution > wqpar.amax){
+        RPU_FATAL("Resolution value cannot be greater than bound");
     }
-    // if (new_weights != weights) {
-    // RPU::math::copy<T>(size_, weights, 1, new_weights, 1);
-    // }
-
 
     // If quantization for the bias is disabled, save the bias values
     // in a buffer
@@ -41,8 +40,9 @@ void WeightQuantizer<T>::apply(T *weights, const WeightQuantizerParameter<T> &wq
         }
     }
 
-    T bound = (T)wqpar.bound;
-    if (wqpar.rel_to_actual_bound) {
+    T amax = (T)wqpar.amax;
+    // amax represents int_range/float_range [(2**bits/(beta-alpha)]
+    if (wqpar.rel_to_actual_wmax) {
         T amax = 0.0;
         PRAGMA_SIMD
         for (int i = 0; i < size_; i++) {
@@ -53,11 +53,10 @@ void WeightQuantizer<T>::apply(T *weights, const WeightQuantizerParameter<T> &wq
             amax = a > amax ? a : amax;
         }
         amax = amax > (T)0.0 ? amax : (T)1.0;
-        bound = amax;
     }
 
     // Check for the quantizer_type 
-    if (wqpar.quantizer_type == WeightQuantizerType::FixedValued){
+    if (wqpar.quantizer_type == WeightQuantizerType::Custom){
         // Check if the quant_values vector is empty
         if (wqpar.quant_values.size() == 0){
             RPU_FATAL("Quant values are empty");
@@ -70,11 +69,11 @@ void WeightQuantizer<T>::apply(T *weights, const WeightQuantizerParameter<T> &wq
             PRAGMA_SIMD
             for (int i = 0; i < size_; i++) {
                 T w = weights[i];
-                weights[i] = bound * getDiscretizedValueNonUniform(w/bound, quant_values, rng);
+                weights[i] = amax * getDiscretizedValueNonUniform(w/amax, quant_values, rng);
             }
         }
     }
-    else if(wqpar.quantizer_type == WeightQuantizerType::Uniform){
+    else if(wqpar.quantizer_type == WeightQuantizerType::UniformSymmetric){
         const bool stochastic_round = wqpar.stochastic_round;
         const T resolution = wqpar.resolution;
         const T levels = (T) wqpar.levels;
@@ -84,7 +83,34 @@ void WeightQuantizer<T>::apply(T *weights, const WeightQuantizerParameter<T> &wq
             PRAGMA_SIMD
             for (int i = 0; i < size_; i++) {
                 T w = weights[i];
-                weights[i]= bound*getDiscretizedValueRound(w/bound, resolution, stochastic_round, rng);
+                weights[i]= amax*getDiscretizedValueRound(w/amax, resolution, stochastic_round, rng);
+            }
+        }
+        else
+        {
+            T z = (T)0.0;
+            PRAGMA_SIMD
+            for (int i = 0; i < size_; i++) {
+                T w = weights[i];
+                weights[i] = amax * getDiscretizedValueClip(w/amax, resolution, z , stochastic_round, levels, rng);
+            }
+        }
+    }
+    else if(wqpar.quantizer_type == WeightQuantizerType::UniformAsymmetric){
+        const bool stochastic_round = wqpar.stochastic_round;
+        const T resolution = wqpar.resolution;
+        const unsigned int levels = wqpar.levels;
+        const T z = wqpar.z;
+
+        if(z == 0.0){
+            RPU_FATAL("zero-point value is set to 0.0 for asymmetric quantization");
+        }
+
+        if (levels == 0){
+            PRAGMA_SIMD
+            for (int i = 0; i < size_; i++) {
+                T w = weights[i];
+                weights[i]= amax*getDiscretizedValueRound(w/amax, resolution, z, stochastic_round, rng);
             }
         }
         else
@@ -92,7 +118,7 @@ void WeightQuantizer<T>::apply(T *weights, const WeightQuantizerParameter<T> &wq
             PRAGMA_SIMD
             for (int i = 0; i < size_; i++) {
                 T w = weights[i];
-                weights[i] = bound * getDiscretizedValueCollapse(w/bound, resolution, stochastic_round, levels, rng);
+                weights[i] = amax * getDiscretizedValueClip(w/amax, resolution, z, stochastic_round, levels, rng);
             }
         }
     }

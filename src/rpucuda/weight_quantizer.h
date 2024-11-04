@@ -18,33 +18,41 @@ namespace py = pybind11;
 namespace RPU {
 
 enum class WeightQuantizerType {
-  Uniform,
-  FixedValued,
+  UniformSymmetric, // zero-centered
+  UniformAsymmetric, // zero-point value is != 0
+  Custom // fixed quantization values specified in input
 };
 
 template <typename T>
 struct WeightQuantizerParameter{
 
   T resolution = (T)0.0;
-  T bound =(T) 1.0;
+  T amax =(T) 1.0;
   T eps = (T) 0.0;
+  T z = (T) 0.0;
+  std::string method = "percentile";
   unsigned short levels = 0;
-  bool rel_to_actual_bound = true;
-  bool quantize_last_column = true;
-  WeightQuantizerType quantizer_type = WeightQuantizerType::Uniform;
+  bool quantize_last_column = false;
+  bool rel_to_actual_wmax = false;
+  WeightQuantizerType quantizer_type = WeightQuantizerType::UniformSymmetric;
   std::vector<T> quant_values = {};
   bool stochastic_round = false;
   bool debug = true;
 
   inline std::string getTypeName() const {
     switch (quantizer_type) {
-    case WeightQuantizerType::Uniform:
+    case WeightQuantizerType::UniformSymmetric:
       return "Uniform";
-    case WeightQuantizerType::FixedValued:
+    case WeightQuantizerType::UniformAsymmetric:
       return "FixedValued";
+    case WeightQuantizerType::Custom:
     default:
       return "Unknown";
     }
+  }
+
+  inline std::string getMethodName() const {
+    return method;
   }
 
   void print() const {
@@ -58,11 +66,12 @@ struct WeightQuantizerParameter{
     ss << "\t levels: \t" << levels << std::endl;
     ss << "\t eps: \t" << eps << std::endl;
     //ss << "\t bound: \t" << bound << std::endl;
-    //ss << "\t rel_to_actual_bound: \t" << rel_to_actual_bound << std::endl;
+    ss << "\t z: \t" << z << std::endl;
+    ss << "\t method: \t" << getMethodName() << std::endl;
     ss << "\t quantize_last_column: \t" << quantize_last_column << std::endl;
     ss << "\t stochastic_round: \t" << stochastic_round << std::endl;
     ss << "\t quantizer_type: \t" << getTypeName() << std::endl;
-    if(quantizer_type == WeightQuantizerType::FixedValued){
+    if(quantizer_type == WeightQuantizerType::Custom){
       ss << "\t quant_values: \t[";
       for (size_t i = 0; i < quant_values.size(); i++) {
         ss << quant_values[i];

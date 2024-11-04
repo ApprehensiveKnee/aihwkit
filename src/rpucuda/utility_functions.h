@@ -209,6 +209,9 @@ inline T getDiscretizedValueSR(T value, T res, RNGClass &rng) {
 // With respect to getDiscretizedValueRound, this function considers
 // no quatization value centered at 0. The values are then rounded to
 // the nearest semi-integer value instead of the nearest integer value.
+
+/*
+
 template <typename T, typename RNGClass>
 inline T getDiscretizedValueEven(T value, T res, bool sto_round,RNGClass &rng){
   return (res <= (T)0.0)
@@ -216,6 +219,8 @@ inline T getDiscretizedValueEven(T value, T res, bool sto_round,RNGClass &rng){
              : (sto_round ? (T)roundf(value / (res/2) + (T).5 + (rng.sampleUniform() - (T)0.5)) * (res/2)
                           : (T)roundf(value / (res/2) + (T).5) * (res/2));
 }
+
+*/
 
 template <typename T, typename RNGClass>
 inline T getDiscretizedValueNonUniform(T value, const std::vector<T> &quant_values, RNGClass &rng) {
@@ -237,42 +242,31 @@ inline T getDiscretizedValueNonUniform(T value, const std::vector<T> &quant_valu
 }
 
 template <typename T, typename RNGClass>
-inline T getDiscretizedValueCollapse( T value, T res, bool sto_round, unsigned short levels ,RNGClass &rng) {
+inline T getDiscretizedValueRound(T value, T res, T z, bool sto_round, RNGClass &rng) {
+
+  return (res <= (T)0.0)
+             ? value
+             : (sto_round ? (T)(roundf(value / res + (rng.sampleUniform() - (T)0.5) + z) - z) * res
+                          : (T)(roundf(value / res + z) - z) * res);
+}
+
+template <typename T, typename RNGClass>
+inline T getDiscretizedValueClip( T value, T res, T z, bool sto_round, unsigned short levels ,RNGClass &rng) {
 
   T initial_q =  (res <= (T)0.0)
              ? value
-             : (sto_round ? (T)roundf(value / res + (rng.sampleUniform() - (T)0.5))
-                          : (T)roundf(value / res));
+             : (sto_round ? (T)roundf(value / res + (rng.sampleUniform() - (T)0.5) + z)
+                          : (T)roundf(value / res + z));
   initial_q = ((initial_q <= (T)(levels)/2.) && (initial_q >= -(T)(levels)/2.)) 
               ? initial_q
               : (initial_q > (T)(levels)/2. ? (T)(levels-1.)/2. 
                                              : -(T)(levels-1.)/2.);
 
-  return initial_q*res;
-
-
-  // std::vector<T> quant_levels(levels);
-  // for (int i = -(levels-1)/2; i <= (levels-1)/2; i++){
-  //   quant_levels[i+(levels-1)/2] = (T)i;
-  // }
-
-  // T initial_q =  (res <= (T)0.0)
-  //            ? value
-  //            : (sto_round ? (T)roundf(value / res + (rng.sampleUniform() - (T)0.5))
-  //                         : (T)roundf(value / res));
-                      
-  // T min_diff = std::numeric_limits<T>::max();
-  // T quantized_value = quant_levels[0];
-  // for (size_t i = 0; i < levels; i++) {
-  //   T diff = std::abs(initial_q - quant_levels[i]);
-  //   if (diff < min_diff) {
-  //     min_diff = diff;
-  //     quantized_value = (T)quant_levels[i];
-  //   }
-  // }
-
-  // return quantized_value*res;
+  return (initial_q - z)*res;
 }
+
+
+
 // -- MODIFIED: utility function for non uniform quantization
 
 template <typename T> inline T **Array_2D_Get(size_t r, size_t c) {

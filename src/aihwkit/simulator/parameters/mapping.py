@@ -17,6 +17,8 @@
 from torch import Tensor
 from typing import Type, Optional, ClassVar, Union, List
 from dataclasses import dataclass, fields, field
+import logging
+import numpy as np
 
 from aihwkit.exceptions import ConfigError
 
@@ -24,6 +26,7 @@ from .base import RPUConfigBase
 from .helpers import _PrintableMixin
 
 from .enums import WeightQuantizerType
+from .quantization_utils.calibrators import reduce_amax, _compute_amax_percentile, _compute_amax_mse
 
 
 @dataclass
@@ -149,9 +152,23 @@ class WeightQuantizerParameter(_PrintableMixin):
     this number of quantization levels.
     """
 
-    eps: float = 0.
-    """If set to a value in (0,0.9], it allows to fine tun the resolution parameter
-    to include up to a fraction (1-eps) of the weight population inside the FSR derived
+    zero_point: float = 0
+    """The zero point of the quantization.
+    
+    Is used only if the type of quantizer is set to Uniform Asymmetric.
+    In that case is it required to be set to a non-zero value.
+    """
+
+    method: str = "percentile"
+    """ The method used when performing PTQ. The method can be one of the following:
+    - percentile: the quantization resolution(amax) is determined by the percentiles of the weight distribution.
+    - mse: the quantization resolution(amax) are determined by minimizing the mean squared error between the original and quantized weights.
+    - entropy: the quantization resolution(amax) are determined by minimizing the entropy of the quantized weights.
+    - max: the quantization resolution(amax) are determined by taking the maximum value of the weights.
+    """
+
+    eps: float = 0. 
+    """The percentage of the weights population that should be excluded from the FSR.
     """
 
     levels: int = 0
@@ -170,12 +187,13 @@ class WeightQuantizerParameter(_PrintableMixin):
     """
 
     quantizer_type: WeightQuantizerType = field(
-        default_factory=lambda: WeightQuantizerType.UNIFORM, metadata={"always_show": True}
+        default_factory=lambda: WeightQuantizerType.UNIFORM_SYMMETRIC, metadata={"always_show": True}
     )
     """Specifies the type of quantizer to use.
 
     The quantizer type can be one of the following:
-    - Uniform: quantizes the weights uniformly between the quantization levels.
+    - Uniform Symmetric: quantizes the weights using uniform steps, symmetric around 0.
+    - Uniform Asymmetric: quantizes the weights using uniform steps, asymmetric around 0, symmetric around the zero point Z
     - FixedValued: quantizes the weights to some fixed values.
     """
 
@@ -195,43 +213,92 @@ class WeightQuantizerParameter(_PrintableMixin):
     debug: bool = True
     """Whether to print debug information during quantization."""
 
-    def fit(self, weights: Tensor) -> None:
-        """The function is used to fit the resolution parameter for the current weights
-        considered, so that up to (1-eps)% of the weghts population (at least) is covered
-        by the FSR
+
+    def calibrate_weights(self, tensor , method="percentile", percentile=99.99, num_bins=2048):
+        """Calibrate weights on a given weight tensor
+
+
+        .. note::
+            This function uses `method` specified by the argument to decide which method to use, NOT the one
+            specified by the calibrator embedded in weight_quantizer.
+            We haven't moved calibration to GPU, so everything is transfered to CPU
 
         Args:
-        weights: list of weights to be quantized
+            tensor: A tensor of weights (check for the shape at the beginning of the function)
+            method: A string of calibration method. Supports "mse" and "percentile". Default "percentile"
+            percentile: A float. Default 99.99
+            num_bins: A integer. Number of bins of histogram. Default 2048.
+
         """
 
-        if (self.eps == 0):
-            return
-        if (self.eps >0.999):
-            raise ValueError("The eps parameter must be less than 0.999")
-        # Create a deepcopy of the weights tensor
-        w = weights.detach().clone()
 
-        # Sort the weights
-        w = w.reshape(-1).tolist()
-        w.sort()
-        max_elem = abs(max(w, key=abs))
-        tot_size = len(w)
-        max_count = int(tot_size * self.eps)
+        levels = self.levels
+        percentile = 100 - self.eps*100 if self.eps > 0 else percentile
+        method = self.method if self.method is not None else method
+        axis = None
+        axis_size = 1
 
-        # starting from the ends, move towards the center to find the min and max elements
-        # delimiting the (1 - eps)% of the population
-        r_idx, l_idx = 0, 0
-        max_bound, min_bound = w[0], w[tot_size -1]
-        for i in range(max_count):
-            if abs(w[l_idx]) > abs(w[tot_size - 1 - r_idx]):
-                limit = abs(w[l_idx])
-                l_idx +=1
-            else:
-                limit = abs(w[tot_size - 1 - r_idx])
-                r_idx +=1
+        input_weights = tensor.abs().cpu().detach().numpy()
+        calib_hist, calib_bin_edges = np.histogram(input_weights, bins=num_bins, range=(0, input_weights.max()))
+        calib_hist = [calib_hist]
+        calib_bin_edges = [calib_bin_edges]
 
-        self.resolution = (2/(self.levels - 1)) * (limit/max_elem)
-        return
+        calib_amax = []
+        if method == "max":
+            reduce_axis = list(range(tensor.dim()))
+            reduce_axis.remove(axis) 
+            calib_amax.append(reduce_amax(tensor, axis = reduce_axis))
+        elif method == "percentile": 
+            for i in range(axis_size):
+                calib_amax.append(_compute_amax_percentile(calib_hist[i], calib_bin_edges[i], percentile))
+        elif method == "mse":
+            for i in range(axis_size):
+                calib_amax.append(_compute_amax_mse(calib_hist[i], calib_bin_edges[i], levels))
+        else:
+            raise TypeError("Unsupported calibration method {}".format(method))
+        
+        calib_amax = calib_amax[0]
+        # finally compute the resolution
+        self.resolution = float((2./(levels - 1)) * (calib_amax))
+        
+
+    # def fit(self, weights: Tensor) -> None:
+    #     """The function is used to fit the resolution parameter for the current weights
+    #     considered, so that up to (1-eps)% of the weghts population (at least) is covered
+    #     by the FSR
+
+    #     Args:
+    #     weights: list of weights to be quantized
+    #     """
+
+    #     if (self.eps == 0):
+    #         return
+    #     if (self.eps >0.999):
+    #         raise ValueError("The eps parameter must be less than 0.999")
+    #     # Create a deepcopy of the weights tensor
+    #     w = weights.detach().clone()
+
+    #     # Sort the weights
+    #     w = w.reshape(-1).tolist()
+    #     w.sort()
+    #     max_elem = abs(max(w, key=abs))
+    #     tot_size = len(w)
+    #     max_count = int(tot_size * self.eps)
+
+    #     # starting from the ends, move towards the center to find the min and max elements
+    #     # delimiting the (1 - eps)% of the population
+    #     r_idx, l_idx = 0, 0
+    #     max_bound, min_bound = w[0], w[tot_size -1]
+    #     for i in range(max_count):
+    #         if abs(w[l_idx]) > abs(w[tot_size - 1 - r_idx]):
+    #             limit = abs(w[l_idx])
+    #             l_idx +=1
+    #         else:
+    #             limit = abs(w[tot_size - 1 - r_idx])
+    #             r_idx +=1
+
+    #     self.resolution = (2/(self.levels - 1)) * (limit/max_elem)
+    #     return
         
 
 # -- MODIFIED: added quantize parameter

@@ -1,0 +1,3 @@
+## Quantization Utils
+
+This module contains the definition of functions and classes used to perform quantization (mostly on the weights) for the analog layers defined by the IBM aihwkit simulator. Inspiration for most of the code comes from the NVIDIA's [pythorch-quantization](https://github.com/NVIDIA/TensorRT/tree/release/10.5/tools/pytorch-quantization) toolkit , part of the [TensorRT library](https://github.com/NVIDIA/TensorRT), Copyright (c) 2020 NVIDIA Corporation

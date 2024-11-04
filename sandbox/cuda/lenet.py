@@ -150,9 +150,9 @@ if __name__ == '__main__':
         print("Debugging plots disabled")
 
     MAP_LEVEL_FILE = {
-        3 : "matlab/3bit.mat",
-        5 : "matlab/3bit.mat",
-        9 : "matlab/3bit.mat",
+        3 : "matlab/4bit.mat",
+        5 : "matlab/4bit.mat",
+        9 : "matlab/4bit.mat",
         17 : "matlab/4bit.mat",
         33 : "matlab/4bit.mat"
     }
@@ -176,8 +176,7 @@ if __name__ == '__main__':
 
      # Extract the data from the .mat file
     path = p_PATH+ f"/data/{MAP_LEVEL_FILE[SELECTED_LEVEL]}"
-    variables = interpolate(levels=SELECTED_LEVEL, file_path=path)
-
+    variables = interpolate(levels=SELECTED_LEVEL, file_path=path, force_interpolation=True)
     types = variables['str']
     ww_mdn = variables['ww_mdn']* 1e6
     ww_std = variables['ww_std']* 1e6
@@ -199,13 +198,17 @@ if __name__ == '__main__':
         gdown.download(url, output, quiet=False)
 
     # Set-up the RPU_config object 
-    RPU_CONFIG  = InferenceRPUConfig(forward=IOParameters(is_perfect=True),
+    RPU_CONFIG  = InferenceRPUConfig(forward=IOParameters(),
                                     noise_model=NullNoiseModel(),
                                     clip= WeightClipParameter(type=WeightClipType.NONE,),
                                     remap= WeightRemapParameter(type=WeightRemapType.NONE,),
                                     modifier= WeightModifierParameter(type=WeightModifierType.NONE,), 
                                     drift_compensation=None,
                                     )
+    n_bits = 4
+    RPU_CONFIG.forward.inp_res = 2.**n_bits -2
+    RPU_CONFIG.forward.out_res = 2.**n_bits -2
+
     N_CLASSES = 10
 
     # Load the model
@@ -274,7 +277,7 @@ if __name__ == '__main__':
     path = p_PATH + f"/data/{MAP_LEVEL_FILE[SELECTED_LEVEL]}"
     print(f"Selected level: {SELECTED_LEVEL}")
 
-    RPU_CONFIG  = InferenceRPUConfig(forward=IOParameters(is_perfect=True),
+    RPU_CONFIG  = InferenceRPUConfig(forward=IOParameters(),
                                         clip= WeightClipParameter(type=WeightClipType.NONE,),
                                         remap= WeightRemapParameter(type=WeightRemapType.NONE,),
                                         modifier= WeightModifierParameter(type=WeightModifierType.NONE,), 
@@ -349,6 +352,8 @@ if __name__ == '__main__':
                                         modifier= WeightModifierParameter(type=WeightModifierType.NONE,), 
                                         drift_compensation=None,
                                         )
+        RPU_CONFIG.forward.inp_res = 2.**n_bits -2
+        RPU_CONFIG.forward.out_res = 2.**n_bits -2
         RPU_CONFIG.noise_model=MAP_NOISE_TYPE[SELECTED_NOISE](file_path = path,
                                                         type = CHOSEN_NOISE,
                                                         debug = DEBUGGING_PLOTS,
