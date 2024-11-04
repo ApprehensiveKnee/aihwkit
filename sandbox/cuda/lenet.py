@@ -255,7 +255,7 @@ if __name__ == '__main__':
             )
             print(f"Accuracy on rep:{0}, model:{i} -->" , inference_accuracy_values[t_id, 0, i])
             tile_weights = next(model_i.analog_tiles()).get_weights()
-            print(f"Tile weights for model {model_names[i]}: {tile_weights[1]}")
+            print(f"Tile weights for model {model_names[i]}: {tile_weights[0]}")
 
             # plot the weights
             pl.generate_moving_hist(model_i,title=f"Distribution of Quantized Weight\n Values over the tiles - {model_names[i]}", file_name= p_PATH + f"/cuda/hist_lenet_{model_name}.gif", range = (-.7,.7), top=None, split_by_rows=False)
