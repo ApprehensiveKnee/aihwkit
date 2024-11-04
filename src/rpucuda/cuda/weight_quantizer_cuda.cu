@@ -177,7 +177,7 @@ void WeightQuantizerCuda<T>::apply(T *weights, const WeightQuantizerParameter<T>
 
 
             kernelCustomQuantize<T><<<nblocks, nthreads, 0, s>>>(
-                size_, d_size_, wqpar.quantize_last_column, weights, weights, wqpar.quant_values, wqpar.quant_values.size());
+                size_, d_size_, wqpar.quantize_last_column, weights, weights, device_quant_values, wqpar.quant_values.size());
 
 
             cudaDeviceSynchronize();
