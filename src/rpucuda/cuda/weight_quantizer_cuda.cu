@@ -44,6 +44,40 @@ namespace RPU {
   }
 
 template <typename T>
+__global__ void kernelCustomQuantize(
+    int size_in,
+    int d_size,
+    const bool quantize_last_column,
+    T *new_weights,
+    T *weights,
+    const std::vector<T> &quant_values) {
+
+  int tid = blockDim.x * blockIdx.x + threadIdx.x;
+  int total_threads = blockDim.x * gridDim.x;
+  int size = size_in;
+  int size_without_bias = quantize_last_column ? (size - d_size) : size;
+
+  for (int i_stride = 0; i_stride < size; i_stride += total_threads) {                             
+    int i = i_stride + tid;                                                                        
+    if (i < size_without_bias) {                                                                   
+      {                                                                                            
+        T value = weights[i];                                                                      
+        T quant_value = (T)quant_values[0];                                                          
+        for (int j = 0; j < quant_values.size(); j++) {                                           
+          // check the difference between the value and the quantization value
+          if (fabs(value - quant_values[j]) < fabs(value - quant_value)) {                         
+            quant_value = quant_values[j];                                                        
+          }                                                                                  
+        } 
+        new_weights[i] = quant_value;                                                                                           
+      } else if ((i < size) && (new_weights != weights)) {                                           
+        new_weights[i] = weights[i];                                                                  
+      }                                                                                              
+    }
+  }                                                                                                  
+}
+
+template <typename T>
 __global__ void kernelQuantize(
     int size_in,
     int d_size,
@@ -112,13 +146,13 @@ void WeightQuantizerCuda<T>::apply(T *weights, const WeightQuantizerParameter<T>
         case WeightQuantizerType::UniformSymmetric: {
             if (wqpar.resolution >0){
 
-                T z = (T).0
+              T z = (T).0
                 
-                // call the kernel
-                kernelQuantize<T><<<nblocks, nthreads, 0, s>>>(
-                    size_, d_size_, 
-                    wqpar.quantize_last_column, weights, weights, wqpar.resolution, wqpar.stochastic_round, 
-                    z, wqpar.levels, amax, wmpar.stochastic_round ? context_->getRandomStates(nblocks * nthreads) : nullptr);
+              // call the kernel
+              kernelQuantize<T><<<nblocks, nthreads, 0, s>>>(
+                  size_, d_size_, 
+                  wqpar.quantize_last_column, weights, weights, wqpar.resolution, wqpar.stochastic_round, 
+                  z, wqpar.levels, amax, wmpar.stochastic_round ? context_->getRandomStates(nblocks * nthreads) : nullptr);
                 
             }
             break;
@@ -126,11 +160,11 @@ void WeightQuantizerCuda<T>::apply(T *weights, const WeightQuantizerParameter<T>
         case WeightQuantizerType::UniformAsymmetric: {
             if (wqpar.resolution >0){
                 
-                // call the kernel
-                kernelQuantize<T><<<nblocks, nthreads, 0, s>>>(
-                    size_, d_size_, 
-                    wqpar.quantize_last_column, weights, weights, wqpar.resolution, wqpar.stochastic_round, 
-                    wqpar.z, wqpar.levels, amax,wmpar.stochastic_round ? context_->getRandomStates(nblocks * nthreads) : nullptr);
+              // call the kernel
+              kernelQuantize<T><<<nblocks, nthreads, 0, s>>>(
+                  size_, d_size_, 
+                  wqpar.quantize_last_column, weights, weights, wqpar.resolution, wqpar.stochastic_round, 
+                  wqpar.z, wqpar.levels, amax,wmpar.stochastic_round ? context_->getRandomStates(nblocks * nthreads) : nullptr);
             }
             break;
         }
@@ -138,8 +172,12 @@ void WeightQuantizerCuda<T>::apply(T *weights, const WeightQuantizerParameter<T>
             if (wqpar.quant_values.size() == 0){
                 RPU_FATAL("Custom quantization requires quant_values to be set.");
             }
-            // Quantize the weights
-            RPU::math::custom_quantize(context_, weights, size_, wqpar.quant_values);
+            
+            // call the kernel
+            kernelCustomQuantize<T><<<nblocks, nthreads, 0, s>>>(
+                size_, d_size_, 
+                wqpar.quantize_last_column, weights, weights, wqpar.quant_values);
+
 
             break;
         }
