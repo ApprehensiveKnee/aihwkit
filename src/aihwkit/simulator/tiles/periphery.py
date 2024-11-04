@@ -173,7 +173,10 @@ class TileWithPeriphery(BaseTile, SimulatorTileWrapper):
         if wqpar is not None:
             # new_wqpar = tiles.WeightQuantizerParameter()
             # new_wqpar.copy_from(wqpar)
-            wqpar.calibrate_weights(self.tile.get_weights())
+            if wqpar.quantize_last_column == False:
+                wqpar.calibrate_weights(self.tile.get_weights()[0])
+            else:
+                wqpar.calibrate_weights(self.tile.get_weights())
             data_type = self.get_data_type()
             new_wqpar = parameters_to_bindings(
                     wqpar, data_type
@@ -187,14 +190,14 @@ class TileWithPeriphery(BaseTile, SimulatorTileWrapper):
                 import numpy as np
                 quant_bias = np.round(quant_weights[1].reshape(-1), 4)
                 quant_weights = np.round(quant_weights[0].reshape(-1), 4)
-                if np.unique(quant_weights).size != new_wqpar.levels:
+                if np.unique(quant_weights).size > new_wqpar.levels:
                     alert = "===============================================================\n"
                     alert += f"WARNING: in {self.tile.__class__.__name__} tile weights:\n"
                     alert += f"Weight quantizer produced {np.unique(quant_weights).size} levels, but {new_wqpar.levels} were requested.\n"
                     alert += "===============================================================\n"
                     print(alert)
                 if wqpar.quantize_last_column == True:
-                    if np.unique(quant_bias).size != new_wqpar.levels:
+                    if np.unique(quant_bias).size > new_wqpar.levels:
                         alert = "===============================================================\n"
                         alert += f"WARNING: in {self.tile.__class__.__name__} tile bias:\n"
                         alert += f"Weight quantizer produced {np.unique(quant_bias).size} levels, but {new_wqpar.levels} were requested.\n"
