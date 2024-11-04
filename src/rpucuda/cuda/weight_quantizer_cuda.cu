@@ -59,21 +59,20 @@ __global__ void kernelCustomQuantize(
 
   for (int i_stride = 0; i_stride < size; i_stride += total_threads) {                             
     int i = i_stride + tid;                                                                        
-    if (i < size_without_bias) {                                                                   
-      {                                                                                            
-        T value = weights[i];                                                                      
-        T quant_value = (T)quant_values[0];                                                          
-        for (int j = 0; j < quant_values.size(); j++) {                                           
-          // check the difference between the value and the quantization value
-          if (fabs(value - quant_values[j]) < fabs(value - quant_value)) {                         
-            quant_value = quant_values[j];                                                        
-          }                                                                                  
-        } 
-        new_weights[i] = quant_value;                                                                                           
-      } else if ((i < size) && (new_weights != weights)) {                                           
-        new_weights[i] = weights[i];                                                                  
-      }                                                                                              
-    }
+    if (i < size_without_bias) {                                                                                                                                                         
+      T value = weights[i];                                                                      
+      T quant_value = (T)quant_values[0];                                                          
+      for (int j = 0; j < quant_values.size(); j++) {                                           
+        // check the difference between the value and the quantization value
+        if (fabs(value - quant_values[j]) < fabs(value - quant_value)) {                         
+          quant_value = quant_values[j];                                                        
+        }                                                                                  
+      } 
+      new_weights[i] = quant_value;                                                                                           
+    } else if ((i < size) && (new_weights != weights)) {                                           
+      new_weights[i] = weights[i];                                                                  
+    }                                                                                              
+    
   }                                                                                                  
 }
 
@@ -125,17 +124,17 @@ WeightQuantizerCuda<T>::WeightQuantizerCuda(CudaContextPtr context, int x_size, 
 template <typename T>
 void WeightQuantizerCuda<T>::apply(T *weights, const WeightQuantizerParameter<T> &wqpar) {
   
-    // int nthreads = context_->getNThreads();
-    // int nblocks = context_->getNBlocks(size_, nthreads);
-    // auto s = context_->getStream();
+    int nthreads = context_->getNThreads();
+    auto s = context_->getStream();
+    int nblocks = context_->getNStrideBlocks(size_, nthreads);
 
     // First, rescale the weights based on the maximum absolute value:
     // 1. Find the maximum absolute value of the weights if required
     T *amax = nullptr;
-    if (wmpar.rel_to_actual_wmax) {
+    if (wqpar.rel_to_actual_wmax) {
         if (!amaximizer_) {
         amaximizer_ = RPU::make_unique<Maximizer<T>>(
-            context_, wmpar.quantize_last_column ? (size_ - d_size_) : size_, true);
+            context_, wqpar.quantize_last_column ? (size_ - d_size_) : size_, true);
         }
         amaximizer_->compute(weights, 1, false);
         amax = amaximizer_->getMaxValues();
@@ -150,8 +149,7 @@ void WeightQuantizerCuda<T>::apply(T *weights, const WeightQuantizerParameter<T>
                 
               // call the kernel
               kernelQuantize<T><<<nblocks, nthreads, 0, s>>>(
-                  size_, d_size_, 
-                  wqpar.quantize_last_column, weights, weights, wqpar.resolution, wqpar.stochastic_round, 
+                  size_, d_size_, wqpar.quantize_last_column, weights, weights, wqpar.resolution, wqpar.stochastic_round, 
                   z, wqpar.levels, amax, wmpar.stochastic_round ? context_->getRandomStates(nblocks * nthreads) : nullptr);
                 
             }
@@ -162,8 +160,7 @@ void WeightQuantizerCuda<T>::apply(T *weights, const WeightQuantizerParameter<T>
                 
               // call the kernel
               kernelQuantize<T><<<nblocks, nthreads, 0, s>>>(
-                  size_, d_size_, 
-                  wqpar.quantize_last_column, weights, weights, wqpar.resolution, wqpar.stochastic_round, 
+                  size_, d_size_, wqpar.quantize_last_column, weights, weights, wqpar.resolution, wqpar.stochastic_round, 
                   wqpar.z, wqpar.levels, amax,wmpar.stochastic_round ? context_->getRandomStates(nblocks * nthreads) : nullptr);
             }
             break;
@@ -175,8 +172,7 @@ void WeightQuantizerCuda<T>::apply(T *weights, const WeightQuantizerParameter<T>
             
             // call the kernel
             kernelCustomQuantize<T><<<nblocks, nthreads, 0, s>>>(
-                size_, d_size_, 
-                wqpar.quantize_last_column, weights, weights, wqpar.quant_values);
+                size_, d_size_, wqpar.quantize_last_column, weights, weights, wqpar.quant_values);
 
 
             break;
