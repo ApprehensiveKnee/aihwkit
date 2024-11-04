@@ -258,6 +258,7 @@ class WeightQuantizerParameter(_PrintableMixin):
             raise TypeError("Unsupported calibration method {}".format(method))
         
         calib_amax = calib_amax[0]
+        print("Calibrated amax: ", calib_amax)
         # finally compute the resolution
         self.resolution = float((2./(levels - 1)) * (calib_amax))
         
