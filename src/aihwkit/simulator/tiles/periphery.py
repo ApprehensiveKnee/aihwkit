@@ -190,6 +190,7 @@ class TileWithPeriphery(BaseTile, SimulatorTileWrapper):
                 import numpy as np
                 quant_bias = np.round(quant_weights[1].reshape(-1), 4)
                 quant_weights = np.round(quant_weights[0].reshape(-1), 4)
+                print(f"Quantized bias: {quant_bias}")
                 if np.unique(quant_weights).size > new_wqpar.levels:
                     alert = "===============================================================\n"
                     alert += f"WARNING: in {self.tile.__class__.__name__} tile weights:\n"
