@@ -47,7 +47,7 @@ from aihwkit.simulator.tiles.base import BaseTile, SimulatorTileWrapper, Simulat
 
 
 from aihwkit.simulator.rpu_base import tiles
-from aihwkit.simulator.parameters.mapping import MappingParameter, WeightQuantizerParameter
+from aihwkit.simulator.parameters.mapping import MappingParameter
 from aihwkit.simulator.parameters.pre_post import PrePostProcessingRPU, InputRangeParameter
 
 
