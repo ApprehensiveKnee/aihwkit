@@ -382,11 +382,13 @@ if __name__ == '__main__':
                                                             type = CHOSEN_NOISE,
                                                             levels = SELECTED_LEVEL,
                                                             debug = DEBUGGING_PLOTS,
+                                                            forcee_interpolation = True,
                                                             g_converter=SinglePairConductanceConverter(g_max=40.))
         else:
             RPU_CONFIG.noise_model = InterpolatedNoiseModel(file_path = path, 
                                                             type = CHOSEN_NOISE, 
                                                             degs=SELECTED_LEVEL, 
+                                                            force_interpolation = True,
                                                             g_converter=SinglePairConductanceConverter(g_max=40.))
         
     
