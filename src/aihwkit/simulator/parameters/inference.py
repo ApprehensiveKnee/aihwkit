@@ -17,6 +17,7 @@
 
 from dataclasses import dataclass, field
 from typing import ClassVar, Type, List, Optional, Union
+import numpy as np
 
 from aihwkit.simulator.parameters.helpers import _PrintableMixin
 from aihwkit.simulator.rpu_base import tiles
