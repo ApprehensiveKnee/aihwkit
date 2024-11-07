@@ -17,8 +17,6 @@
 from torch import Tensor
 from typing import Type, Optional, ClassVar, Union, List
 from dataclasses import dataclass, fields, field
-import logging
-import numpy as np
 
 from aihwkit.exceptions import ConfigError
 

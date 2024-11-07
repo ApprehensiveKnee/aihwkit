@@ -166,7 +166,7 @@ if __name__ == '__main__':
 
     G_RANGE = [-40, 40]
     TARGET_CONDUCTANCES = {
-        # noe discretized conductance values for levels = -1 (unquantized)
+        # no discretized conductance values for levels = -1 (unquantized)
         3 : [G_RANGE[0] + i * (G_RANGE[1] - G_RANGE[0]) / 2 for i in range(5)],
         5 : [G_RANGE[0] + i * (G_RANGE[1] - G_RANGE[0]) / 4 for i in range(33)],
         9 : [G_RANGE[0] + i * (G_RANGE[1] - G_RANGE[0]) / 8 for i in range(9)],
@@ -227,7 +227,7 @@ if __name__ == '__main__':
     # for debugging purposes: we plot the distribution of weights over the tiles of the model to check the quantization 
     # actually took place
     model_quantized_ideal = []
-    for level in MAP_LEVEL_FILE.keys():
+    for level in [3, 5, 9, 17, 33]:
         model_quantized_ideal.append(get_quantized_model(model_unquantized, level, RPU_CONFIG, eps=EPS))
         model_quantized_ideal[-1].eval()
         pl.generate_moving_hist(model_quantized_ideal[-1],title=f"Distribution of Quantized Weight\n Values over the tiles - LENET{level}", file_name= p_PATH + f"/lenet/plots/hist_lenet_QUANTIZED_{level}.gif", range = (-.7,.7), top=None, split_by_rows=False)
