@@ -307,12 +307,14 @@ if __name__ == '__main__':
                                                         type = CHOSEN_NOISE,
                                                         levels = SELECTED_LEVEL,
                                                         debug = DEBUGGING_PLOTS,
+                                                        force_interpolation = True,
                                                         g_converter=SinglePairConductanceConverter(g_max=40.))
     else:
         RPU_CONFIG.noise_model = InterpolatedNoiseModel(file_path = path,
                                                         type = CHOSEN_NOISE,
                                                         degs=SELECTED_LEVEL, # Unless the interpolation is performed using np.polyfit, this parameter does not affect the degree of intepolation
                                                                             # It will just always be performed using scipy piecewise cubic interpolation
+                                                        force_interpolation = True,
                                                         g_converter=SinglePairConductanceConverter(g_max=40.))
     
     original_model = inference_lenet5(RPU_CONFIG).to(device)
@@ -405,13 +407,13 @@ if __name__ == '__main__':
 
                 # //////////////////////////////////////    DEBUGGING    /////////////////////////////////////////
 
-                if next(model_fitted.analog_tiles()).rpu_config.noise_model[0].debug:
+                if next(model_fitted.analog_tiles()).rpu_config.noise_model.debug:
                     print(f"Plotting bugging weight info for noise: {CHOSEN_NOISE} ...")
                     # Loop over the debugging directory (.debug_dir/id=x/g_target_x) to get the conductance arrays
                     # for each tile, where x is the tile number
                     target = np.array([])
                     real = np.array([])
-                    debug_dir = next(model_fitted.analog_tiles()).rpu_config.noise_model[0].debug_dir
+                    debug_dir = next(model_fitted.analog_tiles()).rpu_config.noise_model.debug_dir
                     for tile_dir in os.listdir(debug_dir):
                         # Tile dir has the form id=x, get the tile number
                         tile_id = tile_dir.split("=")[1]
@@ -429,8 +431,8 @@ if __name__ == '__main__':
                     std = np.array([np.std(real[round_target == t]) for t in target_values])
 
                     # Plot the median and std values
-                    ax[0].plot(target_values, median, label=f"Noise: {CHOSEN_NOISE}", color = next(model_fitted.analog_tiles()).rpu_config.noise_model[0].color_noise, linestyle='dashdot', marker='x')
-                    ax[1].plot(target_values, std, label=f"Noise: {CHOSEN_NOISE}", color = next(model_fitted.analog_tiles()).rpu_config.noise_model[0].color_noise, linestyle='dashdot', marker='x')  
+                    ax[0].plot(target_values, median, label=f"Noise: {CHOSEN_NOISE}", color = next(model_fitted.analog_tiles()).rpu_config.noise_model.color_noise, linestyle='dashdot', marker='x')
+                    ax[1].plot(target_values, std, label=f"Noise: {CHOSEN_NOISE}", color = next(model_fitted.analog_tiles()).rpu_config.noise_model.color_noise, linestyle='dashdot', marker='x')  
                 # ////////////////////////////////////////////////////////////////////////////////////////////////
 
                 # Then evaluate the model
