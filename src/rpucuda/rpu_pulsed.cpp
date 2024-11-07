@@ -234,7 +234,15 @@ template <typename T> void RPUPulsed<T>::resetCols(int start_col, int n_cols, T 
 
 template <typename T> void RPUPulsed<T>::quantizeWeights(const WeightQuantizerParameter<T> &wqpar) {
   CHECK_RPU_DEVICE_INIT;
-  rpu_device_->quantizeWeights(this->getWeightsPtr(), wqpar, *this->rng_);
+  // in case the device does not support Floating Point updates, that means that the weights
+  // cannot effectively take any possible value. In this case the quantization should be done
+  // also considering the device's weight granularity.
+  if (rpu_device_->implements() == DeviceUpdateType::FloatingPoint) {
+    RPUSimple<T>::quantizeWeights(wqpar);
+  } else {
+    RPU_FATAL("Quantization is NOT implemented for most training devices");
+  }
+  
 }
 
 template <typename T> void RPUPulsed<T>::driftWeights(T time_since_last_call) {

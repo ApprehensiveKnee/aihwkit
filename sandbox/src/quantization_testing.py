@@ -158,7 +158,7 @@ from aihwkit.simulator.rpu_base import tiles
 from aihwkit.simulator.tiles.inference import InferenceTile
 from aihwkit.simulator.tiles import AnalogTile
 from aihwkit.simulator.configs import InferenceRPUConfig
-from aihwkit.simulator.parameters.mapping import MappingParameter, WeightQuantizerParameter
+from aihwkit.simulator.parameters import WeightQuantizerParameter, MappingParameter
 from aihwkit.simulator.parameters import IOParameters
 from aihwkit.simulator.parameters.enums import BoundManagementType, NoiseManagementType, WeightNoiseType
 from aihwkit.inference import BaseNoiseModel, PCMLikeNoiseModel

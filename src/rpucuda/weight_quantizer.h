@@ -18,6 +18,7 @@ namespace py = pybind11;
 namespace RPU {
 
 enum class WeightQuantizerType {
+  None, // no quantization
   UniformSymmetric, // zero-centered
   UniformAsymmetric, // zero-point value is != 0
   Custom // fixed quantization values specified in input
@@ -34,13 +35,15 @@ struct WeightQuantizerParameter{
   unsigned short levels = 0;
   bool quantize_last_column = false;
   bool rel_to_actual_wmax = false;
-  WeightQuantizerType quantizer_type = WeightQuantizerType::UniformSymmetric;
+  WeightQuantizerType quantizer_type = WeightQuantizerType::None;
   std::vector<T> quant_values = {};
   bool stochastic_round = false;
   bool debug = true;
 
   inline std::string getTypeName() const {
     switch (quantizer_type) {
+    case WeightQuantizerType::None:
+      return "None";
     case WeightQuantizerType::UniformSymmetric:
       return "Uniform";
     case WeightQuantizerType::UniformAsymmetric:

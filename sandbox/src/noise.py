@@ -16,6 +16,7 @@ from .utilities import import_mat_file, interpolate
 from aihwkit.inference.noise.base import BaseNoiseModel
 
 
+
 class NullNoiseModel(BaseNoiseModel):
     """Null noise model. """
 
@@ -61,7 +62,45 @@ class TestNVMNoiseModel(BaseNoiseModel):
             self.chosen_type,
             self.debug,
             self.g_converter)
+    
+class InterpolatedNoiseModel(BaseNoiseModel):
+    """ A noise model that shifts the conductances based on the interpolation of the experimental data
+        using polynomial fitting coefficients.
+    
+    """
 
+    def __init__(self, file_path: str, type:str, degs: int):
+        super().__init__()
+        self.chosen_type = type
+        self.mdn_p, self.std_p = interpolate(file_path = file_path, type = type, levels = -degs)
+        
+
+    def apply_programming_noise_to_conductance(self, g_target: torch.Tensor) -> torch.Tensor:
+        """Apply programming noise using the polynomial fitting coefficients"""
+
+        g_real = torch.zeros_like(g_target)
+        p_mdn , p_std = self.mdn_p, self.std_p
+        g_prog = p_mdn(g_target) + p_std(g_target) * randn_like(g_target)
+        return g_prog
+    
+    def generate_drift_coefficients(self, g_target: torch.Tensor) ->torch.Tensor:
+        """Not used"""
+        return torch.tensor(0.)
+     
+    def apply_drift_noise_to_conductance(self, g_prog, t_inference) -> torch.Tensor:
+        """Apply drift up to the assumed inference time"""
+        return g_prog 
+    
+    def __str__(self) -> str:
+        return (
+            "{}(chosen_type={}, mdn_p={}, std_p={}, g_converter={})"
+        ).format(  # type: ignore
+            self.__class__.__name__,
+            self.chosen_type,
+            self.mdn_p,
+            self.std_p,
+            self.g_converter)
+    
 class ExperimentalNoiseModel(BaseNoiseModel):
     """Experimental noise model. """
 

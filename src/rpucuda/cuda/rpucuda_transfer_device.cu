@@ -566,6 +566,7 @@ template <typename T> void TransferRPUDeviceCuda<T>::clipWeights(T *dev_weights,
   VectorRPUDeviceCuda<T>::clipWeights(dev_weights, clip);
 }
 
+
 template <typename T>
 void TransferRPUDeviceCuda<T>::resetCols(T *dev_weights, int start_col, int n_cols, T reset_prob) {
 

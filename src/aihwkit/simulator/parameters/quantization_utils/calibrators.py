@@ -338,7 +338,7 @@ def _compute_amax_mse(calib_hist, calib_bin_edges, levels, stride=1, start_bin=2
 
     counts = torch.from_numpy(calib_hist[:]).float()
     counts = counts.cuda() if torch.cuda.is_available() else counts.cpu()
-    edges = torch.from_numpy(calib_bin_edges[:]).float().cpu()
+    edges = torch.from_numpy(calib_bin_edges[:]).float()
     edges = edges.cuda() if torch.cuda.is_available() else edges.cpu()
     centers = (edges[1:] + edges[:-1]) / 2
 

@@ -30,7 +30,7 @@ public:
   virtual void driftWeights(T *dev_weights, T time_since_epoch) = 0;
   virtual void diffuseWeights(T *dev_weights) = 0;
   virtual void clipWeights(T *dev_weights, T clip) = 0;
-  virtual void quantizeWeights(T *dev_weights, const WeightQuantizerParameter<T> &wqp, RNG<T> &rng) = 0;
+  virtual void quantizeWeights(T *dev_weights, const WeightQuantizerParameter<T> &wqp) = 0; // not used for now
   virtual void resetCols(T *dev_weights, int start_col, int n_cols, T reset_prob) = 0;
 
   virtual std::vector<T> getHiddenWeights() const = 0;

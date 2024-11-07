@@ -193,6 +193,9 @@ class PulseType(Enum):
 class WeightQuantizerType(Enum):
     """Weight quantizer type."""
 
+    NONE = "None"
+    """No quantization."""
+
     UNIFORM_SYMMETRIC = "UniformSymmetric"
     """Uniform symmetric quantization."""
 

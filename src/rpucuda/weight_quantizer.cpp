@@ -21,14 +21,12 @@ WeightQuantizer<T>::WeightQuantizer(int x_size, int d_size)
 template <typename T>
 void WeightQuantizer<T>::apply(T *weights, const WeightQuantizerParameter<T> &wqpar,RNG<T> &rng) {
 
-    if (wqpar.resolution == 0.0 && 
+    if ((wqpar.resolution == 0.0 && 
         (wqpar.quantizer_type == WeightQuantizerType::UniformSymmetric 
-        || wqpar.quantizer_type == WeightQuantizerType::UniformAsymmetric)
+        || wqpar.quantizer_type == WeightQuantizerType::UniformAsymmetric))
+        || wqpar.quantizer_type == WeightQuantizerType::None
         ){ 
         return;
-    }
-    if (wqpar.resolution > wqpar.amax){
-        RPU_FATAL("Resolution value cannot be greater than bound");
     }
 
     // If quantization for the bias is disabled, save the bias values
@@ -55,75 +53,73 @@ void WeightQuantizer<T>::apply(T *weights, const WeightQuantizerParameter<T> &wq
         amax = amax > (T)0.0 ? amax : (T)1.0;
     }
 
+    const bool stochastic_round = wqpar.stochastic_round;
+    const T resolution = wqpar.resolution;
+    const unsigned int levels = wqpar.levels;
+    const T z = wqpar.z;
+
     // Check for the quantizer_type 
-    if (wqpar.quantizer_type == WeightQuantizerType::Custom){
-        // Check if the quant_values vector is empty
-        if (wqpar.quant_values.size() == 0){
-            RPU_FATAL("Quant values are empty");
-        }
-        else{
-            // Run the non uniform quantization function 
-            // from the utility_functions.h file, based on the
-            // quant_values vector and the bound value
-            const std::vector<T> &quant_values = wqpar.quant_values;
-            PRAGMA_SIMD
-            for (int i = 0; i < size_; i++) {
-                T w = weights[i];
-                weights[i] = amax * getDiscretizedValueNonUniform(w/amax, quant_values, rng);
+    switch (wqpar.quantizer_type){
+        case WeightQuantizerType::UniformSymmetric:
+            // Run the uniform quantization function from the utility_functions.h file
+            // based on the bound value and the stochastic_round flag
+            if (levels == 0){
+                PRAGMA_SIMD
+                for (int i = 0; i < size_; i++) {
+                    T w = weights[i];
+                    weights[i]= amax*getDiscretizedValueRound(w/amax, resolution, stochastic_round, rng);
+                }
             }
-        }
-    }
-    else if(wqpar.quantizer_type == WeightQuantizerType::UniformSymmetric){
-        const bool stochastic_round = wqpar.stochastic_round;
-        const T resolution = wqpar.resolution;
-        const T levels = (T) wqpar.levels;
-        // Run the uniform quantization function from the utility_functions.h file
-        // based on the bound value and the stochastic_round flag
-        if (levels == 0){
-            PRAGMA_SIMD
-            for (int i = 0; i < size_; i++) {
-                T w = weights[i];
-                weights[i]= amax*getDiscretizedValueRound(w/amax, resolution, stochastic_round, rng);
+            else
+            {
+                PRAGMA_SIMD
+                for (int i = 0; i < size_; i++) {
+                    T w = weights[i];
+                    weights[i] = amax * getDiscretizedValueClip(w/amax, resolution, (T)0.0 , stochastic_round, levels, rng);
+                }
             }
-        }
-        else
-        {
-            T z = (T)0.0;
-            PRAGMA_SIMD
-            for (int i = 0; i < size_; i++) {
-                T w = weights[i];
-                weights[i] = amax * getDiscretizedValueClip(w/amax, resolution, z , stochastic_round, levels, rng);
-            }
-        }
-    }
-    else if(wqpar.quantizer_type == WeightQuantizerType::UniformAsymmetric){
-        const bool stochastic_round = wqpar.stochastic_round;
-        const T resolution = wqpar.resolution;
-        const unsigned int levels = wqpar.levels;
-        const T z = wqpar.z;
+            break;
+        case WeightQuantizerType::UniformAsymmetric:
 
-        if(z == 0.0){
-            RPU_FATAL("zero-point value is set to 0.0 for asymmetric quantization");
-        }
+            if(z == 0.0){
+                RPU_FATAL("zero-point value is set to 0.0 for asymmetric quantization");
+            }
 
-        if (levels == 0){
-            PRAGMA_SIMD
-            for (int i = 0; i < size_; i++) {
-                T w = weights[i];
-                weights[i]= amax*getDiscretizedValueRound(w/amax, resolution, z, stochastic_round, rng);
+            if (levels == 0){
+                PRAGMA_SIMD
+                for (int i = 0; i < size_; i++) {
+                    T w = weights[i];
+                    weights[i]= amax*getDiscretizedValueRound(w/amax, resolution, z, stochastic_round, rng);
+                }
             }
-        }
-        else
-        {
-            PRAGMA_SIMD
-            for (int i = 0; i < size_; i++) {
-                T w = weights[i];
-                weights[i] = amax * getDiscretizedValueClip(w/amax, resolution, z, stochastic_round, levels, rng);
+            else
+            {
+                PRAGMA_SIMD
+                for (int i = 0; i < size_; i++) {
+                    T w = weights[i];
+                    weights[i] = amax * getDiscretizedValueClip(w/amax, resolution, z, stochastic_round, levels, rng);
+                }
             }
-        }
-    }
-    else{
-        RPU_FATAL("Unknown quantizer type");
+            break;
+        case WeightQuantizerType::Custom:
+            // Check if the quant_values vector is empty
+            if (wqpar.quant_values.size() == 0){
+                RPU_FATAL("Quant values are empty");
+            }
+            else{
+                // Run the non uniform quantization function 
+                // from the utility_functions.h file, based on the
+                // quant_values vector and the bound value
+                const std::vector<T> &quant_values = wqpar.quant_values;
+                PRAGMA_SIMD
+                for (int i = 0; i < size_; i++) {
+                    T w = weights[i];
+                    weights[i] = amax * getDiscretizedValueNonUniform(w/amax, quant_values, rng);
+                }
+            }
+            break;
+        default:
+            RPU_FATAL("Unknown quantizer type");
     }
 
     if (wqpar.quantize_last_column == false){

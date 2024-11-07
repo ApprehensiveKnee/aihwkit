@@ -300,7 +300,7 @@ template <typename T> void PulsedRPUDeviceCuda<T>::clipWeights(T *weights, T cli
   applyUpdateWriteNoise(weights);
 }
 
-template <typename T> void PulsedRPUDeviceCuda<T>::quantizeWeights(T *weights, const WeightQuantizerParameter<T> &wqp, RNG<T> &rng){
+template <typename T> void PulsedRPUDeviceCuda<T>::quantizeWeights(T *weights, const WeightQuantizerParameter<T> &wqp){
   
     T *w = getPar().usesPersistentWeight() ? dev_persistent_weights_->getData() : weights;
   

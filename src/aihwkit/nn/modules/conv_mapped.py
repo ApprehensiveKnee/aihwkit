@@ -110,7 +110,7 @@ class _AnalogConvNdMapped(AnalogLayerBase, _ConvNd):
 
         # Set weights from the reset_parameters (since now the
         # analog_tiles are registered)
-        self.set_weights(self.weight, self.bias)
+        self.set_weights(self.weight, self.bias, rpu_config.quantization)
 
         # Set the index matrices.
         self.use_indexed = use_indexed

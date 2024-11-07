@@ -17,6 +17,7 @@
 from typing import Optional, Tuple, Union, Any, List
 from numpy import array
 from aihwkit.simulator.parameters.helpers import parameters_to_bindings
+from aihwkit.simulator.parameters import WeightQuantizerParameter
 import inspect
 
 from torch import (

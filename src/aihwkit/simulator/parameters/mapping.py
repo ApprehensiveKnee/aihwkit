@@ -25,8 +25,6 @@ from aihwkit.exceptions import ConfigError
 from .base import RPUConfigBase
 from .helpers import _PrintableMixin
 
-from .enums import WeightQuantizerType
-from .quantization_utils.calibrators import reduce_amax, _compute_amax_percentile, _compute_amax_mse
 
 
 @dataclass
@@ -137,171 +135,6 @@ class MappingParameter(_PrintableMixin):
         return True
     
 
-# -- MODIFIED: added quantize parameter
-@dataclass
-class WeightQuantizerParameter(_PrintableMixin):
-    """Parameter related to quantization of weights."""
-
-    bindings_class: ClassVar[Optional[Union[str, Type]]] = "WeightQuantizerParameter"
-    bindings_module: ClassVar[str] = "tiles"
-
-    resolution: float = 0
-    """Whether to quantize the weights to the tile's precision.
-
-    If set to a integer value, the original weights will be quantized to
-    this number of quantization levels.
-    """
-
-    zero_point: float = 0
-    """The zero point of the quantization.
-    
-    Is used only if the type of quantizer is set to Uniform Asymmetric.
-    In that case is it required to be set to a non-zero value.
-    """
-
-    method: str = "percentile"
-    """ The method used when performing PTQ. The method can be one of the following:
-    - percentile: the quantization resolution(amax) is determined by the percentiles of the weight distribution.
-    - mse: the quantization resolution(amax) are determined by minimizing the mean squared error between the original and quantized weights.
-    - entropy: the quantization resolution(amax) are determined by minimizing the entropy of the quantized weights.
-    - max: the quantization resolution(amax) are determined by taking the maximum value of the weights.
-    """
-
-    eps: float = 0. 
-    """The percentage of the weights population that should be excluded from the FSR.
-    """
-
-    levels: int = 0
-    """The number of quantization levels.
-
-    If set to 0, the quantization levels will be ignored and the quantization
-    will just be based on the quantize (resolution) parameter.
-    """
-
-    quantize_last_column: bool = True
-    """Whether to quantize the last column of the weight matrix (usually the bias).
-    
-    
-    If set to True, the last column of the weight matrix will be quantized
-    along with the other weights.
-    """
-
-    quantizer_type: WeightQuantizerType = field(
-        default_factory=lambda: WeightQuantizerType.UNIFORM_SYMMETRIC, metadata={"always_show": True}
-    )
-    """Specifies the type of quantizer to use.
-
-    The quantizer type can be one of the following:
-    - Uniform Symmetric: quantizes the weights using uniform steps, symmetric around 0.
-    - Uniform Asymmetric: quantizes the weights using uniform steps, asymmetric around 0, symmetric around the zero point Z
-    - FixedValued: quantizes the weights to some fixed values.
-    """
-
-    quant_values: List[float] = field(
-        default_factory=lambda: [-1.0, 1.0],
-        metadata={"hide_if": [-1.0, 1.0]},
-    )
-
-    stochastic_round: bool = False
-    """Whether to use stochastic rounding when quantizing the weights.
-
-    If set to True, the weights will be rounded to the nearest quantization
-    level with a probability proportional to the distance to the two closest
-    quantization levels.
-    """
-
-    debug: bool = True
-    """Whether to print debug information during quantization."""
-
-
-    def calibrate_weights(self, tensor , method="percentile", percentile=99.99, num_bins=2048):
-        """Calibrate weights on a given weight tensor
-
-
-        .. note::
-            This function uses `method` specified by the argument to decide which method to use, NOT the one
-            specified by the calibrator embedded in weight_quantizer.
-            We haven't moved calibration to GPU, so everything is transfered to CPU
-
-        Args:
-            tensor: A tensor of weights (check for the shape at the beginning of the function)
-            method: A string of calibration method. Supports "mse" and "percentile". Default "percentile"
-            percentile: A float. Default 99.99
-            num_bins: A integer. Number of bins of histogram. Default 2048.
-
-        """
-
-
-        levels = self.levels
-        percentile = 100 - self.eps*100 if self.eps > 0 else percentile
-        method = self.method if self.method is not None else method
-        axis = None
-        axis_size = 1
-
-        input_weights = tensor.abs().cpu().detach().numpy()
-        calib_hist, calib_bin_edges = np.histogram(input_weights, bins=num_bins, range=(0, input_weights.max()))
-        calib_hist = [calib_hist]
-        calib_bin_edges = [calib_bin_edges]
-
-        calib_amax = []
-        if method == "max":
-            reduce_axis = list(range(tensor.dim()))
-            reduce_axis.remove(axis) 
-            calib_amax.append(reduce_amax(tensor, axis = reduce_axis))
-        elif method == "percentile": 
-            for i in range(axis_size):
-                calib_amax.append(_compute_amax_percentile(calib_hist[i], calib_bin_edges[i], percentile))
-        elif method == "mse":
-            for i in range(axis_size):
-                calib_amax.append(_compute_amax_mse(calib_hist[i], calib_bin_edges[i], levels))
-        else:
-            raise TypeError("Unsupported calibration method {}".format(method))
-        
-        calib_amax = calib_amax[0]
-        # finally compute the resolution
-        self.resolution = float((2./(levels - 1)) * (calib_amax))
-        
-
-    # def fit(self, weights: Tensor) -> None:
-    #     """The function is used to fit the resolution parameter for the current weights
-    #     considered, so that up to (1-eps)% of the weghts population (at least) is covered
-    #     by the FSR
-
-    #     Args:
-    #     weights: list of weights to be quantized
-    #     """
-
-    #     if (self.eps == 0):
-    #         return
-    #     if (self.eps >0.999):
-    #         raise ValueError("The eps parameter must be less than 0.999")
-    #     # Create a deepcopy of the weights tensor
-    #     w = weights.detach().clone()
-
-    #     # Sort the weights
-    #     w = w.reshape(-1).tolist()
-    #     w.sort()
-    #     max_elem = abs(max(w, key=abs))
-    #     tot_size = len(w)
-    #     max_count = int(tot_size * self.eps)
-
-    #     # starting from the ends, move towards the center to find the min and max elements
-    #     # delimiting the (1 - eps)% of the population
-    #     r_idx, l_idx = 0, 0
-    #     max_bound, min_bound = w[0], w[tot_size -1]
-    #     for i in range(max_count):
-    #         if abs(w[l_idx]) > abs(w[tot_size - 1 - r_idx]):
-    #             limit = abs(w[l_idx])
-    #             l_idx +=1
-    #         else:
-    #             limit = abs(w[tot_size - 1 - r_idx])
-    #             r_idx +=1
-
-    #     self.resolution = (2/(self.levels - 1)) * (limit/max_elem)
-    #     return
-        
-
-# -- MODIFIED: added quantize parameter
 
 
 @dataclass
@@ -317,13 +150,6 @@ class MappableRPU(RPUConfigBase, _PrintableMixin):
 
     mapping: MappingParameter = field(default_factory=MappingParameter)
     """Parameter related to mapping weights to tiles for supporting modules."""
-
-    quantization: WeightQuantizerParameter = field(default_factory=WeightQuantizerParameter, metadata=dict(bindings_include=True))
-    """Parameter for weight quantizer.
-
-    If the modifier type is set, t is called just once, to quantize the weights at the
-    beginning of the testing/evaluation phase.
-    """
 
     def get_default_tile_module_class(self, out_size: int = 0, in_size: int = 0) -> Type:
         """Returns the default TileModule class.

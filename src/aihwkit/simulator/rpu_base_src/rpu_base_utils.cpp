@@ -37,6 +37,7 @@ void declare_utils(py::module &m_devices, py::module &m_tiles) {
       .def_readwrite("type", &RPU::WeightRemapParameter::type);
 
   py::enum_<RPU::WeightQuantizerType>(m_tiles, "WeightQuantizerType")
+      .value("None", RPU::WeightQuantizerType::None)
       .value("UniformSymmetric", RPU::WeightQuantizerType::UniformSymmetric)
       .value("UniformAsymmetric", RPU::WeightQuantizerType::UniformAsymmetric)
       .value("Custom", RPU::WeightQuantizerType::Custom);

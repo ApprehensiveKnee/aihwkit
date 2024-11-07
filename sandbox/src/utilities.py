@@ -6,11 +6,13 @@
 # -*- coding: utf-8 -*-
 
 
+import warnings
 from scipy import stats
 import torch
 import scipy.io
 import numpy as np
 from scipy.optimize import curve_fit
+from scipy.interpolate import CubicSpline
 import os
 
 def import_mat_file(file_path: str, type: str = None):
@@ -65,7 +67,7 @@ def correct(x: list , y_old: list, weights: list = None):
         y_new[i] = (y_old[i])/slope
     return y_new
 
-def interpolate(levels: int, file_path: str, type: str = None, force_interpolation: bool = False, compensation: bool = False, gmax:float = 40.0, debug: bool = False):
+def interpolate(levels: int, file_path: str, type: str = None, force_interpolation: bool = False, compensation: bool = False, gmax:float = 40.0, debug: bool = False, interp_type : str = "scipy"):
     '''
     The function makes consistent use of the import_mat_file function.
     In addition to importing the data, it interpolates the data to match the number of levels chosen:
@@ -87,8 +89,26 @@ def interpolate(levels: int, file_path: str, type: str = None, force_interpolati
     Returns:
     -  data: dict, a dictionary containing the interpolated data
     '''
+
     if levels is None:
         return import_mat_file(file_path, type)
+    
+    # if levels == -1 we are asking for to interpolate the .mat file with -levels degrees of freedom (polyfit)
+    if levels < 0:
+        deg = -levels
+        data = import_mat_file(file_path, type)
+        mdn_p = []
+        std_p = []
+        # fit the data with a polynomial of degree deg and return the coefficients
+        for key in ['ww_mdn', 'ww_std']:
+            for i in range(data[key].shape[1]):
+                levels = 9 if '3bit.mat' in file_path else 17
+                with warnings.catch_warnings():
+                    warnings.simplefilter('ignore', np.RankWarning)
+                    coeffs = np.poly1d(np.polyfit(np.linspace(-gmax*1e-6, gmax*1e-6, levels), data[key][:, i], deg)) if interp_type == "np" else  CubicSpline(np.linspace(-gmax*1e-6, gmax*1e-6, levels), data[key][:, i]) if interp_type == "scipy" else None
+                mdn_p.append(coeffs) if key == 'ww_mdn' else std_p.append(coeffs)
+        return mdn_p, std_p
+            
 
     MAP = {
         "3bit.mat": 9,

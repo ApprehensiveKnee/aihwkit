@@ -124,10 +124,20 @@ WeightQuantizerCuda<T>::WeightQuantizerCuda(CudaContextPtr context, int x_size, 
 
 template <typename T>
 void WeightQuantizerCuda<T>::apply(T *weights, const WeightQuantizerParameter<T> &wqpar) {
+
+    if ((wqpar.resolution == 0.0 && 
+        (wqpar.quantizer_type == WeightQuantizerType::UniformSymmetric 
+        || wqpar.quantizer_type == WeightQuantizerType::UniformAsymmetric))
+        || wqpar.quantizer_type == WeightQuantizerType::None
+        ){ 
+        return;
+    }
   
     int nthreads = context_->getNThreads();
     auto s = context_->getStream();
     int nblocks = context_->getNStrideBlocks(size_, nthreads);
+
+    
 
     // First, rescale the weights based on the maximum absolute value:
     // 1. Find the maximum absolute value of the weights if required

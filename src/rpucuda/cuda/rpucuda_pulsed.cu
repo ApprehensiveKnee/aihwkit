@@ -290,8 +290,12 @@ template <typename T> void RPUCudaPulsed<T>::clipWeights(const WeightClipParamet
 }
 
 template <typename T> void RPUCudaPulsed<T>::quantizeWeights(const WeightQuantizerParameter<T> &wqpar) {
-  
-  RPUCudaSimple<T>::quantizeWeights(wqpar);
+
+  if (rpu_device_->implements() == DeviceUpdateType::FloatingPoint) {
+    RPUCudaSimple<T>::quantizeWeights(wqpar);
+  } else {
+    RPU_FATAL("Quantization is NOT implemented for most training devices");
+  }
 
 }
 
