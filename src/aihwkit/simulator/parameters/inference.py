@@ -224,7 +224,7 @@ class WeightQuantizerParameter(_PrintableMixin):
     bindings_class: ClassVar[Optional[Union[str, Type]]] = "WeightQuantizerParameter"
     bindings_module: ClassVar[str] = "tiles"
 
-    use_PTQ: bool = True
+    #use_PTQ: bool = True
     """Whether to use the parameter to perform PTQ. If the option is set to true, once the 
     model is initialized, the quantization is performed on each tile. The methods to calibrate the
     resolution are tile-based, which means that, for example, the percentile quantization is, for now,
