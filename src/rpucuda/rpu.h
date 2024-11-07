@@ -360,7 +360,6 @@ public:
   virtual void driftWeights(T time_since_last_call);
 
   /* Applying quantization to the weights */
-  virtual void quantizeWeights( const T res, const unsigned int levels, const T zero_point);
   virtual void quantizeWeights( const WeightQuantizerParameter<T> &wqpar);
 
   /* 1/f pink noise process (flicker noise) */

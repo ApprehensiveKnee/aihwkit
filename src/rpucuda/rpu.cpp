@@ -1602,16 +1602,6 @@ template <typename T> void RPUSimple<T>::driftWeights(T time_since_last_call) {
   wdrifter_->apply(this->getWeightsPtr()[0], time_since_last_call, *rng_);
 }
 
-template <typename T> void RPUSimple<T>::quantizeWeights( const T res, const unsigned int levels, const T zero_point){
-  if (res >= (T)0.0) {
-    int size = this->d_size_ * this->x_size_;
-    T *w = this->getWeightsPtr()[0];
-    PRAGMA_SIMD
-    for (int i = 0; i < size; ++i) {
-      w[i] = res * (round(w[i]/res + (rng_->sampleUniform() - (T)0.5) + zero_point) - zero_point);
-    }
-  }
-}
 
 template <typename T> void RPUSimple<T>::quantizeWeights( const WeightQuantizerParameter<T> &wqp) {
 
