@@ -11,6 +11,7 @@ from scipy import stats
 import torch
 import scipy.io
 import numpy as np
+from numpy.polynomial import RankWarning
 from scipy.optimize import curve_fit
 from scipy.interpolate import CubicSpline
 import os
@@ -104,7 +105,7 @@ def interpolate(levels: int, file_path: str, type: str = None, force_interpolati
             for i in range(data[key].shape[1]):
                 levels = 9 if '3bit.mat' in file_path else 17
                 with warnings.catch_warnings():
-                    warnings.simplefilter('ignore', np.RankWarning)
+                    warnings.simplefilter('ignore', RankWarning)
                     coeffs = np.poly1d(np.polyfit(np.linspace(-gmax*1e-6, gmax*1e-6, levels), data[key][:, i], deg)) if interp_type == "np" else  CubicSpline(np.linspace(-gmax*1e-6, gmax*1e-6, levels), data[key][:, i]) if interp_type == "scipy" else None
                 mdn_p.append(coeffs) if key == 'ww_mdn' else std_p.append(coeffs)
         return mdn_p, std_p
