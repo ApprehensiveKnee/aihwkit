@@ -84,7 +84,7 @@ class InterpolatedNoiseModel(BaseNoiseModel):
     def apply_programming_noise_to_conductance(self, g_target: torch.Tensor) -> torch.Tensor:
         """Apply programming noise using the polynomial fitting coefficients"""
 
-        g_real = torch.zeros_like(g_target)
+        g_prog = torch.zeros_like(g_target)
         p_mdn , p_std = self.mdn_p[0], self.std_p[0]
         g_prog = p_mdn(g_target) + p_std(g_target) * randn_like(g_target)
         return g_prog
