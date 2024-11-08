@@ -102,7 +102,7 @@ class InterpolatedNoiseModel(BaseNoiseModel):
         print(g_prog[0,:10])
 
         if neg:
-            g_real = -g_real
+            g_prog = -g_prog
         return g_prog
     
     @no_grad()
