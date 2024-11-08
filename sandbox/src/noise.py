@@ -86,7 +86,7 @@ class InterpolatedNoiseModel(BaseNoiseModel):
 
         if neg:
             g_target = -g_target
-            
+
         print("Target conductances")
         print(g_target[0,:10])
         g_prog = torch.zeros_like(g_target)
@@ -95,6 +95,36 @@ class InterpolatedNoiseModel(BaseNoiseModel):
         print("Programmed conductances")
         print(g_prog[0,:10])
         return g_prog
+    
+    @no_grad()
+    def apply_programming_noise(self, weights: Tensor) -> Tuple[Tensor, List[Tensor]]:
+        """Apply the expected programming noise to weights.
+
+        Uses the :meth:`~apply_programming_noise_to_conductances` on
+        each of the conductance slices.
+
+        Args:
+            weights: weights tensor
+
+        Returns:
+            weight tensor with programming noise applied, and tuple of
+            all drift coefficients (per conductances slice) that are
+            determined during programming.
+        """
+        target_conductances, params = self.g_converter.convert_to_conductances(weights)
+
+        noisy_conductances = []
+        nu_drift_list = []
+        for i,g_target in enumerate(target_conductances):
+            if i % 2 == 0:
+                neg = False
+            else:
+                neg = True
+            noisy_conductances.append(self.apply_programming_noise_to_conductance(g_target, neg))
+            nu_drift_list.append(self.generate_drift_coefficients(g_target))
+        noisy_weights = self.g_converter.convert_back_to_weights(noisy_conductances, params)
+
+        return noisy_weights, nu_drift_list
     
     def generate_drift_coefficients(self, g_target: torch.Tensor) ->torch.Tensor:
         """Not used"""
