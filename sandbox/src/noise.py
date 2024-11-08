@@ -72,6 +72,9 @@ class InterpolatedNoiseModel(BaseNoiseModel):
     def __init__(self, file_path: str, type:str, degs: int, **kwargs):
         super().__init__(**kwargs)
         self.chosen_type = type
+        # check the degs argument is a positive integer
+        if not isinstance(degs, int) or degs < 0:
+            raise ValueError("The degree of the polynomial must be a positive integer")
         variables = interpolate(file_path = file_path, type = type, levels = -degs)
         self.mdn_p = variables['ww_mdn']
         self.std_p = variables['ww_std']
