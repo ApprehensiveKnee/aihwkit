@@ -92,8 +92,17 @@ class InterpolatedNoiseModel(BaseNoiseModel):
         g_prog = torch.zeros_like(g_target)
         p_mdn , p_std = self.mdn_p[0], self.std_p[0]
         g_prog = torch.tensor(p_mdn(g_target)) + torch.tensor(p_std(g_target)) * randn_like(g_target)
+        if neg:
+            # all positive values are clipped to 0
+            g_prog = torch.clamp(g_prog, max = 0)
+        else:
+            # all negative values are clipped to 0
+            g_prog = torch.clamp(g_prog, min = 0)
         print("Programmed conductances")
         print(g_prog[0,:10])
+
+        if neg:
+            g_real = -g_real
         return g_prog
     
     @no_grad()
@@ -198,7 +207,15 @@ class ExperimentalNoiseModel(BaseNoiseModel):
         # Neg is a boolean variable set to true to apply the noise fitted for "negative" conductances
         if neg:
             g_target = -g_target
+
+        print("Target conductances")
+        print(g_target[0,:10])
+
         g_real = self.fit_data(g_target, self.ww_mdn, self.ww_std, self.debug)
+
+        print("Programmed conductances")
+        print(g_real[0,:10])
+
         if neg:
             g_real = -g_real
         return g_real
