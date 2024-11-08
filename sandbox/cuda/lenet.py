@@ -319,7 +319,6 @@ if __name__ == '__main__':
                                                         type = CHOSEN_NOISE,
                                                         degs=SELECTED_LEVEL, # Unless the interpolation is performed using np.polyfit, this parameter does not affect the degree of intepolation
                                                                             # It will just always be performed using scipy piecewise cubic interpolation
-                                                        force_interpolation = True,
                                                         g_converter=SinglePairConductanceConverter(g_max=40.))
     
     original_model = inference_lenet5(RPU_CONFIG).to(device)
@@ -393,7 +392,6 @@ if __name__ == '__main__':
             RPU_CONFIG.noise_model = InterpolatedNoiseModel(file_path = path, 
                                                             type = CHOSEN_NOISE, 
                                                             degs=SELECTED_LEVEL, 
-                                                            force_interpolation = True,
                                                             g_converter=SinglePairConductanceConverter(g_max=40.))
         
     
