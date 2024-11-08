@@ -69,8 +69,8 @@ class InterpolatedNoiseModel(BaseNoiseModel):
     
     """
 
-    def __init__(self, file_path: str, type:str, degs: int):
-        super().__init__()
+    def __init__(self, file_path: str, type:str, degs: int, **kwargs):
+        super().__init__(**kwargs)
         self.chosen_type = type
         variables = interpolate(file_path = file_path, type = type, levels = -degs)
         self.mdn_p = variables['ww_mdn']
