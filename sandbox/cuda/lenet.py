@@ -390,6 +390,7 @@ if __name__ == '__main__':
                                                             g_converter=SinglePairConductanceConverter(g_max=40.))
         else:
             deg = - SELECTED_LEVEL
+            print(f"Degree of interpolation: {deg}")
             RPU_CONFIG.noise_model = InterpolatedNoiseModel(file_path = path, 
                                                             type = CHOSEN_NOISE, 
                                                             degs= deg, 
