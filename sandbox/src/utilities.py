@@ -108,7 +108,9 @@ def interpolate(levels: int, file_path: str, type: str = None, force_interpolati
                     warnings.simplefilter('ignore', RankWarning)
                     coeffs = np.poly1d(np.polyfit(np.linspace(-gmax*1e-6, gmax*1e-6, levels), data[key][:, i], deg)) if interp_type == "np" else  CubicSpline(np.linspace(-gmax*1e-6, gmax*1e-6, levels), data[key][:, i]) if interp_type == "scipy" else None
                 mdn_p.append(coeffs) if key == 'ww_mdn' else std_p.append(coeffs)
-        return mdn_p, std_p
+        data['ww_mdn'] = mdn_p
+        data['ww_std'] = std_p
+        return data
             
 
     MAP = {

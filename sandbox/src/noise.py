@@ -72,7 +72,10 @@ class InterpolatedNoiseModel(BaseNoiseModel):
     def __init__(self, file_path: str, type:str, degs: int):
         super().__init__()
         self.chosen_type = type
-        self.mdn_p, self.std_p = interpolate(file_path = file_path, type = type, levels = -degs)
+        variables = interpolate(file_path = file_path, type = type, levels = -degs)
+        self.mdn_p = variables['ww_mdn']
+        self.std_p = variables['ww_std']
+        self.debug = False
         
 
     def apply_programming_noise_to_conductance(self, g_target: torch.Tensor) -> torch.Tensor:

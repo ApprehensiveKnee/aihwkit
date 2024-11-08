@@ -180,16 +180,21 @@ if __name__ == '__main__':
     path = p_PATH+ f"/data/{MAP_LEVEL_FILE[SELECTED_LEVEL]}"
     variables = interpolate(levels=SELECTED_LEVEL, file_path=path, force_interpolation=True)
     types = variables['str']
-    ww_mdn = variables['ww_mdn']* 1e6
-    ww_std = variables['ww_std']* 1e6
-    ww_mdn = pd.DataFrame(ww_mdn, columns=types).astype("float")
-    ww_std = pd.DataFrame(ww_std, columns=types).astype("float")
-    
     if MAP_LEVEL_FILE[SELECTED_LEVEL] == "matlab/4bit.mat":
         # Delete the noise type '1d,RT' for faulty measurement
-        ww_mdn.drop(columns=['1d,RT'], inplace=True)
-        ww_std.drop(columns=['1d,RT'], inplace=True)
         types.remove('1d,RT')
+
+    if SELECTED_LEVEL != -1:
+        ww_mdn = variables['ww_mdn']* 1e6
+        ww_std = variables['ww_std']* 1e6
+        ww_mdn = pd.DataFrame(ww_mdn, columns=types).astype("float")
+        ww_std = pd.DataFrame(ww_std, columns=types).astype("float")
+        if MAP_LEVEL_FILE[SELECTED_LEVEL] == "matlab/4bit.mat":
+            ww_mdn.drop(columns=['1d,RT'], inplace=True)
+            ww_std.drop(columns=['1d,RT'], inplace=True)
+    
+    
+        
 
     # Download the model if it not already present
     os.makedirs(p_PATH + '/lenet')  if not os.path.exists(p_PATH + '/lenet') else None
