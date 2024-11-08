@@ -106,7 +106,7 @@ def interpolate(levels: int, file_path: str, type: str = None, force_interpolati
                 levels = 9 if '3bit.mat' in file_path else 17
                 with warnings.catch_warnings():
                     warnings.simplefilter('ignore', RankWarning)
-                    coeffs = np.poly1d(np.polyfit(np.linspace(-gmax*1e-6, gmax*1e-6, levels), data[key][:, i], deg)) if interp_type == "np" else  CubicSpline(np.linspace(-gmax*1e-6, gmax*1e-6, levels), data[key][:, i]) if interp_type == "scipy" else None
+                    coeffs = np.poly1d(np.polyfit(np.linspace(-gmax, gmax, levels), data[key][:, i]*1e6, deg)) if interp_type == "np" else  CubicSpline(np.linspace(-gmax, gmax, levels), data[key][:, i]*1e6) if interp_type == "scipy" else None
                 mdn_p.append(coeffs) if key == 'ww_mdn' else std_p.append(coeffs)
         data['ww_mdn'] = mdn_p
         data['ww_std'] = std_p
