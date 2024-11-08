@@ -391,7 +391,7 @@ if __name__ == '__main__':
         else:
             RPU_CONFIG.noise_model = InterpolatedNoiseModel(file_path = path, 
                                                             type = CHOSEN_NOISE, 
-                                                            degs=SELECTED_LEVEL, 
+                                                            degs=-SELECTED_LEVEL, 
                                                             g_converter=SinglePairConductanceConverter(g_max=40.))
         
     
