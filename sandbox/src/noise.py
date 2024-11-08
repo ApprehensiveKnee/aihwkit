@@ -86,7 +86,7 @@ class InterpolatedNoiseModel(BaseNoiseModel):
 
         g_prog = torch.zeros_like(g_target)
         p_mdn , p_std = self.mdn_p[0], self.std_p[0]
-        g_prog = p_mdn(g_target) + p_std(g_target) * randn_like(g_target)
+        g_prog = torch.tensor(p_mdn(g_target)) + torch.tensor(p_std(g_target)) * randn_like(g_target)
         return g_prog
     
     def generate_drift_coefficients(self, g_target: torch.Tensor) ->torch.Tensor:
