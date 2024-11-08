@@ -318,7 +318,7 @@ if __name__ == '__main__':
         deg = - SELECTED_LEVEL
         RPU_CONFIG.noise_model = InterpolatedNoiseModel(file_path = path,
                                                         type = CHOSEN_NOISE,
-                                                        degs=SELECTED_LEVEL, # Unless the interpolation is performed using np.polyfit, this parameter does not affect the degree of intepolation
+                                                        degs= deg, # Unless the interpolation is performed using np.polyfit, this parameter does not affect the degree of intepolation
                                                                             # It will just always be performed using scipy piecewise cubic interpolation
                                                         g_converter=SinglePairConductanceConverter(g_max=40.))
     
