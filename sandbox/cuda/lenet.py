@@ -462,20 +462,39 @@ if __name__ == '__main__':
 
     # PLOTTING OF THE ACCURACY RESULTS
     fig, ax = plt.subplots(figsize=(23,7))
-    models = ["Unquantized",f"Quantized - {SELECTED_LEVEL} levels"] + fitted_models_names
-    accuracies = [inference_accuracy_values[0, :, model_names.index(models[0])].mean(), inference_accuracy_values[0, :, model_names.index(models[1])].mean()]
-    accuracies = accuracies + fitted_models_accuracy.mean(dim=1)[0].tolist()
+    if SELECTED_LEVEL == -1:
+        models = ["Unquantized"] + fitted_models_names
+        accuracies = [inference_accuracy_values[0, :, model_names.index(models[0])].mean()]
+        accuracies = accuracies + fitted_models_accuracy.mean(dim=1)[0].tolist()
+
+        ax.boxplot([inference_accuracy_values[0,:,model_names.index(models[0])]],
+                patch_artist=True, 
+                positions=[0], 
+                boxprops=dict(facecolor="darkorange", alpha = 0.7), 
+                medianprops = dict(linewidth=2.5, color='indigo'),
+                whiskerprops = dict(linewidth=1.5, color='black'),
+                flierprops = dict(marker='o', markeredgecolor='firebrick', markerfacecolor = 'firebrick', markersize=9),
+                bootstrap=1000, 
+                widths=0.23,)
+        markerline, stemlines, baseline = ax.stem(models[:1], accuracies[:1], linefmt ='darkorange', markerfmt ='D', basefmt=' ')
+
+
+    else:
+        models = ["Unquantized",f"Quantized - {SELECTED_LEVEL} levels"] + fitted_models_names
+        accuracies = [inference_accuracy_values[0, :, model_names.index(models[0])].mean(), inference_accuracy_values[0, :, model_names.index(models[1])].mean()]
+        accuracies = accuracies + fitted_models_accuracy.mean(dim=1)[0].tolist()
     
-    ax.boxplot([inference_accuracy_values[0,:,model_names.index(models[0])],inference_accuracy_values[0, :, model_names.index(models[1])]], 
-               patch_artist=True, 
-               positions=[0,1], 
-               boxprops=dict(facecolor="darkorange", alpha = 0.7), 
-               medianprops = dict(linewidth=2.5, color='indigo'),
-               whiskerprops = dict(linewidth=1.5, color='black'),
-               flierprops = dict(marker='o', markeredgecolor='firebrick', markerfacecolor = 'firebrick', markersize=9),
-               bootstrap=1000, 
-               widths=0.23,)
-    markerline, stemlines, baseline = ax.stem(models[:2], accuracies[:2], linefmt ='darkorange', markerfmt ='D', basefmt=' ')
+        ax.boxplot([inference_accuracy_values[0,:,model_names.index(models[0])],inference_accuracy_values[0, :, model_names.index(models[1])]], 
+                patch_artist=True, 
+                positions=[0,1], 
+                boxprops=dict(facecolor="darkorange", alpha = 0.7), 
+                medianprops = dict(linewidth=2.5, color='indigo'),
+                whiskerprops = dict(linewidth=1.5, color='black'),
+                flierprops = dict(marker='o', markeredgecolor='firebrick', markerfacecolor = 'firebrick', markersize=9),
+                bootstrap=1000, 
+                widths=0.23,)
+        markerline, stemlines, baseline = ax.stem(models[:2], accuracies[:2], linefmt ='darkorange', markerfmt ='D', basefmt=' ')
+        
     plt.setp(markerline, 'color', 'black')
     ax.boxplot([fitted_models_accuracy[0, :, i] for i in range(fitted_models_accuracy.shape[2])], 
                patch_artist=True, 

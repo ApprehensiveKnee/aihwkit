@@ -87,8 +87,9 @@ class InterpolatedNoiseModel(BaseNoiseModel):
         if neg:
             g_target = -g_target
 
-        print("Target conductances")
-        print(g_target[0,:10])
+        # print("Target conductances")
+        # print(g_target[0,:10])
+
         g_prog = torch.zeros_like(g_target)
         p_mdn , p_std = self.mdn_p[0], self.std_p[0]
         g_prog = torch.tensor(p_mdn(g_target)) + torch.tensor(p_std(g_target)) * randn_like(g_target)
@@ -98,8 +99,9 @@ class InterpolatedNoiseModel(BaseNoiseModel):
         else:
             # all negative values are clipped to 0
             g_prog = torch.clamp(g_prog, min = 0)
-        print("Programmed conductances")
-        print(g_prog[0,:10])
+            
+        # print("Programmed conductances")
+        # print(g_prog[0,:10])
 
         if neg:
             g_prog = -g_prog
