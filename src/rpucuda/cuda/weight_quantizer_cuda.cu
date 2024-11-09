@@ -134,10 +134,6 @@ WeightQuantizerCuda<T>::WeightQuantizerCuda(CudaContextPtr context, int x_size, 
 template <typename T>
 void WeightQuantizerCuda<T>::apply(T *weights, const WeightQuantizerParameter<T> &wqpar) {
 
-    std::cout << " inside apply " << std::endl;
-    std::cout << " wqpar.resolution: " << wqpar.resolution << std::endl;
-    std::cout << " wqpar.amax_channelwise: " << wqpar.amax_channelwise << std::endl;
-    std::cout << " wqpar.quantizer_type: " << wqpar.getMethodName() << std::endl;
 
     if ((wqpar.resolution == 0.0 && wqpar.amax_channelwise == false &&
         (wqpar.quantizer_type == WeightQuantizerType::UniformSymmetric 
@@ -177,8 +173,6 @@ void WeightQuantizerCuda<T>::apply(T *weights, const WeightQuantizerParameter<T>
       cudaMalloc(&device_amax_values, d_size_ * sizeof(T));
       cudaMemcpy(device_amax_values, wqpar.amax_values.data(), d_size_ * sizeof(T), cudaMemcpyHostToDevice);
     }
-
-    std::cout << " before kernel call " << std::endl;
 
     // For now, only the implementation for the uniform quantization is provided (no stochastic rounding)
     switch (wqpar.quantizer_type) {
