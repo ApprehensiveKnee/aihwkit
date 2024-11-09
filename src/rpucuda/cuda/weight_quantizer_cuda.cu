@@ -134,6 +134,8 @@ WeightQuantizerCuda<T>::WeightQuantizerCuda(CudaContextPtr context, int x_size, 
 template <typename T>
 void WeightQuantizerCuda<T>::apply(T *weights, const WeightQuantizerParameter<T> &wqpar) {
 
+    std::cout << " inside apply " << std::endl;
+
     if ((wqpar.resolution == 0.0 && wqpar.amax_channelwise == false &&
         (wqpar.quantizer_type == WeightQuantizerType::UniformSymmetric 
         || wqpar.quantizer_type == WeightQuantizerType::UniformAsymmetric))

@@ -1607,7 +1607,6 @@ template <typename T> void RPUSimple<T>::quantizeWeights( const WeightQuantizerP
   if (wquantizer_ == nullptr) {
     wquantizer_ = RPU::make_unique<WeightQuantizer<T>>(this->x_size_, this->d_size_);
   }
-  std::cout << "quantizeWeights" << std::endl;
   wquantizer_->apply(getWeightsPtr()[0], wqp, *rng_);
   
 }
