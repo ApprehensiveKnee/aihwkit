@@ -70,7 +70,7 @@ void WeightQuantizer<T>::apply(T *weights, const WeightQuantizerParameter<T> &wq
 
         resolutions.resize(d_size_);
         // check the size of the amax_values vector
-        if (wqpar.amax_values.size() != d_size_){
+        if (wqpar.amax_values.size() != (size_t)d_size_){
             RPU_FATAL("amax_values size is not equal to d_size");
         }
         for (int i = 0; i < d_size_; i++) {

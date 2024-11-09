@@ -165,7 +165,7 @@ void WeightQuantizerCuda<T>::apply(T *weights, const WeightQuantizerParameter<T>
     T* device_amax_values;
 
     if (wqpar.amax_channelwise) {
-      if (wqpar.amax_values.size() != d_size){
+      if (wqpar.amax_values.size() != (size_t)d_size_){
         RPU_FATAL("amax_values size is not equal to d_size");
       }
       // move the amax_values to the device
