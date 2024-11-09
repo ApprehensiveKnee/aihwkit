@@ -59,16 +59,20 @@ __global__ void kernelQuantize(
     const unsigned int levels,
     const T *wmax,
     curandState_t *random_states) {
+  // first determine the resolution value based on the element  
+  // being processed
+  int row_idx = i / x_size;
+  T res = amax_channelwise ? (T)((2./(levels - 1.)) * amax_values[row_idx]) : res_in;
   T amax = (wmax) ? (*wmax) : (T)1.0;
   amax = amax > (T)0.0 ? amax : (T)1.0;
+
+  printf("inside kernelQuantize\n");
+  printf("the value of res: %f\n", res);
 
   RPU_WQ_KERNEL_LOOP(
       sto_round,
 
-      // first determine the resolution value based on the element 
-      // being processed
-      int row_idx = i / x_size;
-      T res = amax_channelwise ? (T)((2./(levels - 1.)) * amax_values[row_idx]) : res_in;
+      
 
       T value = weights[i] / amax;
       value /= res;
