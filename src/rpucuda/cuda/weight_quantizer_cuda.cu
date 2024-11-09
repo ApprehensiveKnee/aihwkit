@@ -67,7 +67,7 @@ __global__ void kernelQuantize(
 
       // first determine the resolution value based on the element 
       // being processed
-      int row_idx = i / x_size;
+      int row_idx = i % d_size;
       T res = amax_channelwise ? (T)((2./(levels - 1.)) * amax_values[row_idx]) : res_in;
 
       T value = weights[i] / amax;
