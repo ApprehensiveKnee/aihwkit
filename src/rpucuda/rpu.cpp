@@ -1604,10 +1604,10 @@ template <typename T> void RPUSimple<T>::driftWeights(T time_since_last_call) {
 
 
 template <typename T> void RPUSimple<T>::quantizeWeights( const WeightQuantizerParameter<T> &wqp) {
-
   if (wquantizer_ == nullptr) {
     wquantizer_ = RPU::make_unique<WeightQuantizer<T>>(this->x_size_, this->d_size_);
   }
+  std::cout << "quantizeWeights" << std::endl;
   wquantizer_->apply(getWeightsPtr()[0], wqp, *rng_);
   
 }

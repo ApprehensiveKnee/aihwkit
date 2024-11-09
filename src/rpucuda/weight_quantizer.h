@@ -28,13 +28,21 @@ template <typename T>
 struct WeightQuantizerParameter{
 
   T resolution = (T)0.0;
-  T amax =(T) 1.0;
+  bool amax_channelwise = false; // used to compute columnwise quantization
+  std::vector<T> amax_values = {}; // used to store the amax values to be used for the columnwise quantization
+  // amax computation has been moved to the python level, to support different kinds
+  // of amax computation (e.g. percentile or mse). The "amax" parameter is effectively
+  // deprecated and should not be used.
+  T amax =(T) 1.0; // deprecated
   T eps = (T) 0.0;
   T z = (T) 0.0;
   std::string method = "percentile";
   unsigned short levels = 0;
   bool quantize_last_column = false;
-  bool rel_to_actual_wmax = false;
+  // amax computation has been moved to the python level, to support different kinds
+  // of amax computation (e.g. percentile or mse). The "rel_to_actual_wmax" parameter
+  // is effectively deprecated and should not be used.
+  bool rel_to_actual_wmax = false; // deprecated
   WeightQuantizerType quantizer_type = WeightQuantizerType::None;
   std::vector<T> quant_values = {};
   bool stochastic_round = false;
@@ -66,9 +74,9 @@ struct WeightQuantizerParameter{
 
   void printToStream(std::stringstream &ss) const {
     ss << "\t resolution:\t" << resolution << std::endl;
+    ss << "\t amax_channelwise: \t" << amax_channelwise << std::endl;
     ss << "\t levels: \t" << levels << std::endl;
     ss << "\t eps: \t" << eps << std::endl;
-    //ss << "\t bound: \t" << bound << std::endl;
     ss << "\t z: \t" << z << std::endl;
     ss << "\t method: \t" << getMethodName() << std::endl;
     ss << "\t quantize_last_column: \t" << quantize_last_column << std::endl;

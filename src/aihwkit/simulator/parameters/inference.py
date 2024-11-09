@@ -18,6 +18,7 @@
 from dataclasses import dataclass, field
 from typing import ClassVar, Type, List, Optional, Union
 import numpy as np
+import torch
 
 from aihwkit.simulator.parameters.helpers import _PrintableMixin
 from aihwkit.simulator.rpu_base import tiles
@@ -231,11 +232,23 @@ class WeightQuantizerParameter(_PrintableMixin):
     resolution are tile-based, which means that, for example, the percentile quantization is, for now,
     computed using all the weights that are contained in a single tile"""
 
-    resolution: float = 0
-    """Whether to quantize the weights to the tile's precision.
+    resolution: float = 0.0
+    """The resolution of the quantization.
+    
+    In case eps is not set, the value of the resolution defined is used to perform the quantization.
+    Otherwise, the resolution is computed by the 'calibrate_weights' function accordingly.
+    """
 
-    If set to a integer value, the original weights will be quantized to
-    this number of quantization levels.
+    amax_channelwise: bool = False
+    """Whether to quantize the weights column-wise.
+    """
+
+    amax_values: List[float] = field(
+        default_factory=lambda: [0.0],
+    )
+    """The values used to compute the resolution for the quantization in case amax_channelwise is set to True.
+
+    This collection of values works as a sort of temporary storage for the amax values computed during the calibration.
     """
 
     zero_point: float = 0
@@ -247,9 +260,9 @@ class WeightQuantizerParameter(_PrintableMixin):
 
     method: str = "percentile"
     """ The method used when performing PTQ. The method can be one of the following:
+    - none: the quantization resolution(amax) is determined by the resolution parameter.
     - percentile: the quantization resolution(amax) is determined by the percentiles of the weight distribution.
     - mse: the quantization resolution(amax) are determined by minimizing the mean squared error between the original and quantized weights.
-    - entropy: the quantization resolution(amax) are determined by minimizing the entropy of the quantized weights.
     - max: the quantization resolution(amax) are determined by taking the maximum value of the weights.
     """
 
@@ -300,7 +313,7 @@ class WeightQuantizerParameter(_PrintableMixin):
     """Whether to print debug information during quantization."""
 
 
-    def calibrate_weights(self, tensor , method="percentile", percentile=99.99, num_bins=2048):
+    def calibrate_weights(self, tensor , method="percentile", per_channel = True ,percentile=99.99, num_bins=2048):
         """Calibrate weights on a given weight tensor
 
 
@@ -317,17 +330,34 @@ class WeightQuantizerParameter(_PrintableMixin):
 
         """
 
+        if method == "none":
+            return
+        
+        input_weights = tensor.abs().cpu().detach().numpy()
 
         levels = self.levels
         percentile = 100 - self.eps*100 if self.eps > 0 else percentile
         method = self.method if self.method is not None else method
-        axis = None
-        axis_size = 1
 
-        input_weights = tensor.abs().cpu().detach().numpy()
-        calib_hist, calib_bin_edges = np.histogram(input_weights, bins=num_bins, range=(0, input_weights.max()))
-        calib_hist = [calib_hist]
-        calib_bin_edges = [calib_bin_edges]
+        if per_channel:
+            axis = 0 # input tensor is [d,x] weght matrix, where d is the number of channels
+        else:
+            axis = None
+        axis_size = input_weights.shape[axis] if axis is not None else 1
+
+        
+        if axis is None:
+            calib_hist, calib_bin_edges = np.histogram(input_weights, bins=num_bins, range=(0, input_weights.max()))
+            calib_hist = [calib_hist]
+            calib_bin_edges = [calib_bin_edges]
+        else:
+            calib_hist = []
+            calib_bin_edges = []
+            for i in range(axis_size):
+                temp = input_weights[i]
+                hist, bin_edges = np.histogram(temp, bins=num_bins, range=(0, input_weights[i].max()))
+                calib_hist.append(hist)
+                calib_bin_edges.append(bin_edges)
 
         calib_amax = []
         if method == "max":
@@ -343,9 +373,13 @@ class WeightQuantizerParameter(_PrintableMixin):
         else:
             raise TypeError("Unsupported calibration method {}".format(method))
         
-        calib_amax = calib_amax[0]
-        # finally compute the resolution
-        self.resolution = float((2./(levels - 1)) * (calib_amax))
+        # finally compute the resolution as a list of floats
+        if axis is None:
+            self.resolution = float((2./(levels - 1.)) * calib_amax[0])
+        else:
+            self.resolution = 0.0
+            # save for later use
+            self.amax_values = calib_amax
         
 
     # def fit(self, weights: Tensor) -> None:

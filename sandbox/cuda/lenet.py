@@ -460,7 +460,10 @@ if __name__ == '__main__':
         ax[1].legend()
         plt.savefig(p_PATH + f"/cuda/debugging_plots/Conductance_values.png")
 
-    # PLOTTING OF THE ACCURACY RESULTS
+    # ==============================================================================================================
+    # ============================================ PLOTTING ========================================================
+    # ==============================================================================================================
+    
     fig, ax = plt.subplots(figsize=(23,7))
     if SELECTED_LEVEL == -1:
         models = ["Unquantized"] + fitted_models_names
@@ -494,18 +497,18 @@ if __name__ == '__main__':
                 bootstrap=1000, 
                 widths=0.23,)
         markerline, stemlines, baseline = ax.stem(models[:2], accuracies[:2], linefmt ='darkorange', markerfmt ='D', basefmt=' ')
-        
+
     plt.setp(markerline, 'color', 'black')
     ax.boxplot([fitted_models_accuracy[0, :, i] for i in range(fitted_models_accuracy.shape[2])], 
                patch_artist=True, 
-               positions=range(2,fitted_models_accuracy.shape[2]+2), 
+               positions=range(2 if SELECTED_LEVEL != -1 else 1,fitted_models_accuracy.shape[2]+2 if SELECTED_LEVEL != -1 else fitted_models_accuracy.shape[2]+1), 
                boxprops=dict(facecolor="mediumorchid", alpha = 0.7),
                medianprops = dict(linewidth=2.5, color='darkorange'), 
                whiskerprops = dict(linewidth=1.5, color='black'),
                flierprops = dict(marker='o', markeredgecolor='firebrick', markerfacecolor = 'firebrick', markersize=9),
                bootstrap=1000,
                widths=0.23,)
-    markerline, stemlines, baseline = ax.stem(models[2:], accuracies[2:], linefmt ='darkorchid', markerfmt ='D', basefmt=' ')
+    markerline, stemlines, baseline = ax.stem(models[2 if SELECTED_LEVEL !=1 else 1:], accuracies[2 if SELECTED_LEVEL !=1 else 1:], linefmt ='darkorchid', markerfmt ='D', basefmt=' ')
     plt.setp(markerline, 'color', 'black')
     # Define the points min max
     x = np.arange(len(models))

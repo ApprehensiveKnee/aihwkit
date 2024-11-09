@@ -19,8 +19,8 @@ namespace RPU {
 #define RPU_WQ_KERNEL_LOOP(STOCH_IF, BODY)                                                         \
   int tid = blockDim.x * blockIdx.x + threadIdx.x;                                                 \
   int total_threads = blockDim.x * gridDim.x;                                                      \
-  int size = size_in;                                                                              \
-  int size_without_bias = quantize_last_column ? size: (size - d_size);                               \
+  int size = x_size * d_size;                                                                      \
+  int size_without_bias = quantize_last_column ? size: (size - d_size);                            \
   const bool stoch_if = STOCH_IF;                                                                  \
                                                                                                    \
   curandState local_state;                                                                         \
@@ -35,13 +35,60 @@ namespace RPU {
         BODY;                                                                                      \
       }                                                                                            \
     } else if ((i < size) && (new_weights != weights)) {                                           \
-      new_weights[i] = weights[i];                                                                     \
+      new_weights[i] = weights[i];                                                                 \
     }                                                                                              \
   }                                                                                                \
                                                                                                    \
   if (stoch_if && tid < size) {                                                                    \
     random_states[tid] = local_state;                                                              \
   }
+
+
+template <typename T>
+__global__ void kernelQuantize(
+    const int x_size,
+    const int d_size,
+    const bool amax_channelwise,
+    const T * amax_values,
+    const bool quantize_last_column,
+    T *new_weights,
+    T *weights,
+    const T res_in,
+    const bool sto_round,
+    const T zero_point,
+    const unsigned int levels,
+    const T *wmax,
+    curandState_t *random_states) {
+  T amax = (wmax) ? (*wmax) : (T)1.0;
+  amax = amax > (T)0.0 ? amax : (T)1.0;
+
+  RPU_WQ_KERNEL_LOOP(
+      sto_round,
+
+      // first determine the resolution value based on the element 
+      // being processed
+      int row_idx = i / x_size;
+      T res = amax_channelwise ? (T)((2./(levels - 1.)) * amax_values[row_idx]) : res_in;
+
+      T value = weights[i] / amax;
+      value /= res;
+
+      if (stoch_if) {
+        T stoch_value = curand_uniform(&local_state);
+        value += stoch_value - (T)0.5;
+      }
+
+      if (levels == 0) {
+        new_weights[i] = amax * res * (round(value + zero_point) - zero_point);
+      }
+      else {
+        T quant_value = round(value + zero_point);
+        quant_value = quant_value > (T)levels/2.0 ? (T)(levels-1.)/2. : quant_value;
+        quant_value = quant_value < -(T)levels/2.0 ? -(T)(levels-1.)/2. : quant_value;
+        new_weights[i] = amax * res * (quant_value - zero_point);
+      });
+        
+}
 
 template <typename T>
 __global__ void kernelCustomQuantize(
@@ -76,45 +123,7 @@ __global__ void kernelCustomQuantize(
   }                                                                                                  
 }
 
-template <typename T>
-__global__ void kernelQuantize(
-    int size_in,
-    int d_size,
-    const bool quantize_last_column,
-    T *new_weights,
-    T *weights,
-    const T res_in,
-    const bool sto_round,
-    const T zero_point,
-    const unsigned int levels,
-    const T *wmax,
-    curandState_t *random_states) {
-  const T res = res_in;
-  T amax = (wmax) ? (*wmax) : (T)1.0;
-  amax = amax > (T)0.0 ? amax : (T)1.0;
 
-  RPU_WQ_KERNEL_LOOP(
-      sto_round,
-
-      T value = weights[i] / amax;
-      value /= res;
-
-      if (stoch_if) {
-        T stoch_value = curand_uniform(&local_state);
-        value += stoch_value - (T)0.5;
-      }
-
-      if (levels == 0) {
-        new_weights[i] = amax * res * (round(value + zero_point) - zero_point);
-      }
-      else {
-        T quant_value = round(value + zero_point);
-        quant_value = quant_value > (T)levels/2.0 ? (T)(levels-1.)/2. : quant_value;
-        quant_value = quant_value < -(T)levels/2.0 ? -(T)(levels-1.)/2. : quant_value;
-        new_weights[i] = amax * res * (quant_value - zero_point);
-      });
-        
-}
 
 template <typename T>
 WeightQuantizerCuda<T>::WeightQuantizerCuda(CudaContextPtr context, int x_size, int d_size)
@@ -125,7 +134,7 @@ WeightQuantizerCuda<T>::WeightQuantizerCuda(CudaContextPtr context, int x_size, 
 template <typename T>
 void WeightQuantizerCuda<T>::apply(T *weights, const WeightQuantizerParameter<T> &wqpar) {
 
-    if ((wqpar.resolution == 0.0 && 
+    if ((wqpar.resolution == 0.0 && wqpar.amax_channelwise == false &&
         (wqpar.quantizer_type == WeightQuantizerType::UniformSymmetric 
         || wqpar.quantizer_type == WeightQuantizerType::UniformAsymmetric))
         || wqpar.quantizer_type == WeightQuantizerType::None
@@ -137,8 +146,9 @@ void WeightQuantizerCuda<T>::apply(T *weights, const WeightQuantizerParameter<T>
     auto s = context_->getStream();
     int nblocks = context_->getNStrideBlocks(size_, nthreads);
 
-    
-
+    // The following portion of code won't affect the results
+    // of the following quantization steps
+    // ==================== DEPRECATED ====================
     // First, rescale the weights based on the maximum absolute value:
     // 1. Find the maximum absolute value of the weights if required
     T *amax = nullptr;
@@ -150,6 +160,18 @@ void WeightQuantizerCuda<T>::apply(T *weights, const WeightQuantizerParameter<T>
         amaximizer_->compute(weights, 1, false);
         amax = amaximizer_->getMaxValues();
     }
+    // ==================== DEPRECATED ====================
+
+    T* device_amax_values;
+
+    if (wqpar.amax_channelwise) {
+      if (wqpar.amax_values.size() != d_size){
+        RPU_FATAL("amax_values size is not equal to d_size");
+      }
+      // move the amax_values to the device
+      cudaMalloc(&device_amax_values, d_size_ * sizeof(T));
+      cudaMemcpy(device_amax_values, wqpar.amax_values.data(), d_size_ * sizeof(T), cudaMemcpyHostToDevice);
+    }
 
     // For now, only the implementation for the uniform quantization is provided (no stochastic rounding)
     switch (wqpar.quantizer_type) {
@@ -159,7 +181,7 @@ void WeightQuantizerCuda<T>::apply(T *weights, const WeightQuantizerParameter<T>
                 
               // call the kernel
               kernelQuantize<T><<<nblocks, nthreads, 0, s>>>(
-                  size_, d_size_, wqpar.quantize_last_column, weights, weights, wqpar.resolution, wqpar.stochastic_round, 
+                  x_size_, d_size_, wqpar.amax_channelwise, device_amax_values, wqpar.quantize_last_column, weights, weights, wqpar.resolution, wqpar.stochastic_round, 
                   z, wqpar.levels, amax, wqpar.stochastic_round ? context_->getRandomStates(nblocks * nthreads) : nullptr);
                 
             }
@@ -170,7 +192,7 @@ void WeightQuantizerCuda<T>::apply(T *weights, const WeightQuantizerParameter<T>
                 
               // call the kernel
               kernelQuantize<T><<<nblocks, nthreads, 0, s>>>(
-                  size_, d_size_, wqpar.quantize_last_column, weights, weights, wqpar.resolution, wqpar.stochastic_round, 
+                  x_size_, d_size_, wqpar.amax_channelwise, device_amax_values, wqpar.quantize_last_column, weights, weights, wqpar.resolution, wqpar.stochastic_round, 
                   wqpar.z, wqpar.levels, amax, wqpar.stochastic_round ? context_->getRandomStates(nblocks * nthreads) : nullptr);
             }
             break;

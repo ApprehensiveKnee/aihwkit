@@ -174,16 +174,16 @@ class TileWithPeriphery(BaseTile, SimulatorTileWrapper):
         if wqpar is not None:
             # new_wqpar = tiles.WeightQuantizerParameter()
             # new_wqpar.copy_from(wqpar)
-            wqpar.calibrate_weights(self.tile.get_weights())
+            wqpar.calibrate_weights(self.tile.get_weights(), method = wqpar.method, per_channel=wqpar.amax_channelwise)
             data_type = self.get_data_type()
             new_wqpar = parameters_to_bindings(
                     wqpar, data_type
                 )
-    
+
             self.tile.quantize_weights(new_wqpar)
             # If the weight quantizer has NOT produced the right amoung of 
             # levels in the current tile, alert the user
-            if new_wqpar.debug and new_wqpar.levels > 0:
+            if new_wqpar.debug and new_wqpar.levels > 0 and new_wqpar.amax_channelwise == False:
                 quant_weights = self.tile.get_weights()
                 import numpy as np
                 quant_weights = np.round(quant_weights.reshape(-1), 4)

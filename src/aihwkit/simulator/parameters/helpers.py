@@ -12,10 +12,11 @@
 
 """Utilities for resistive processing units configurations."""
 from sys import version_info
-from typing import Any, List, Optional, Type
+from typing import Any, List, Optional, Type, Union
 from dataclasses import Field, fields, is_dataclass
 from enum import Enum
 from textwrap import indent
+from typing import get_args
 
 from aihwkit.simulator import rpu_base
 from aihwkit.exceptions import ConfigError
@@ -23,7 +24,7 @@ from .enums import RPUDataType
 
 if version_info[0] >= 3 and version_info[1] > 7:
     # pylint: disable=no-name-in-module, ungrouped-imports
-    from typing import get_origin  # type: ignore
+    from typing import get_origin, get_args  # type: ignore
 
     HAS_ORIGIN = True
 else:
