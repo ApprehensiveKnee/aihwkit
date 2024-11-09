@@ -129,7 +129,7 @@ def test():
     y = Tensor([[10.4, 30.5], [6.7, 40.3]])
 
     # Define a single-layer network, using a constant step device type.
-    rpu_config = SingleRPUConfig(device=ConstantStepDevice())
+    rpu_config = FloatingPointRPUConfig(device = FloatingPointDevice())
 
     rpu_config.clip = WeightClipParameter(
         type=WeightClipType.FIXED_VALUE,
@@ -137,16 +137,16 @@ def test():
     )
 
     rpu_config.quantization = WeightQuantizerParameter(
-        resolution = 0.0,
-        eps = 0.5,
-        levels = 3
+        resolution = 0.,
+        levels = 3,
+        eps = 0.5
     )
     model = AnalogLinear(4, 2, bias=True, rpu_config=rpu_config)
 
     analog_tile = next(model.analog_tiles())
     print("Info about the tile at initialization", analog_tile.get_weights())
     # Plot the initial weights
-    pl.plot_tensor_values(analog_tile.get_weights()[0], 21,RANGE, "Distribution of quantized weights (initial)", "plots/hist1.png")
+    #pl.plot_tensor_values(analog_tile.get_weights()[0], 21,RANGE, "Distribution of quantized weights (initial)", "plots/hist1.png")
    
 
     # Move the model and tensors to cuda if it is available.
@@ -187,8 +187,16 @@ def test():
         analog_tile = next(model.analog_tiles())
         print("Info about the tile", analog_tile.get_weights())
     # Plot the initial weights
-    pl.plot_tensor_values(analog_tile.get_weights()[0], 21,RANGE,"Distribution of weights (after training)", "plots/hist2.png")
+    #pl.plot_tensor_values(analog_tile.get_weights()[0], 21,RANGE,"Distribution of weights (after training)", "plots/hist2.png")
 
+
+    rpu_config.quantization = WeightQuantizerParameter(
+        resolution = 0.3,
+        amax_channelwise= True,
+        eps= 0.25,
+        levels = 3,
+        method = "percentile"
+    )
 
     model_new = convert_to_analog(model, rpu_config, )
 
@@ -202,7 +210,7 @@ def test():
         analog_tile = next(model_new.analog_tiles())
         print("Info about the tile", analog_tile.get_weights())
     # Plot the initial weights
-    pl.plot_tensor_values(analog_tile.get_weights()[0], 21,RANGE,"Distribution of quantized weights (after transfer)", "plots/hist3.png")
+    #pl.plot_tensor_values(analog_tile.get_weights()[0], 21,RANGE,"Distribution of quantized weights (after transfer)", "plots/hist3.png")
 
 if __name__ == '__main__':
     check_gpu_status()
