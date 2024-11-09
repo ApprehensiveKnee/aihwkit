@@ -62,8 +62,6 @@ __global__ void kernelQuantize(
   T amax = (wmax) ? (*wmax) : (T)1.0;
   amax = amax > (T)0.0 ? amax : (T)1.0;
 
-  printf("inside kernelQuantize\n");
-
   RPU_WQ_KERNEL_LOOP(
       sto_round,
 
@@ -71,7 +69,6 @@ __global__ void kernelQuantize(
       // being processed
       int row_idx = i / x_size;
       T res = amax_channelwise ? (T)((2./(levels - 1.)) * amax_values[row_idx]) : res_in;
-      printf("res: %f for row_idx: %d\n", res, row_idx);
 
       T value = weights[i] / amax;
       value /= res;
@@ -186,25 +183,19 @@ void WeightQuantizerCuda<T>::apply(T *weights, const WeightQuantizerParameter<T>
     // For now, only the implementation for the uniform quantization is provided (no stochastic rounding)
     switch (wqpar.quantizer_type) {
         case WeightQuantizerType::UniformSymmetric: {
-            if (wqpar.resolution >0){
               T z = (T).0; 
                 
-              // call the kernel
-              kernelQuantize<T><<<nblocks, nthreads, 0, s>>>(
-                  x_size_, d_size_, wqpar.amax_channelwise, device_amax_values, wqpar.quantize_last_column, weights, weights, wqpar.resolution, wqpar.stochastic_round, 
-                  z, wqpar.levels, amax, wqpar.stochastic_round ? context_->getRandomStates(nblocks * nthreads) : nullptr);
-                
-            }
+            // call the kernel
+            kernelQuantize<T><<<nblocks, nthreads, 0, s>>>(
+                x_size_, d_size_, wqpar.amax_channelwise, device_amax_values, wqpar.quantize_last_column, weights, weights, wqpar.resolution, wqpar.stochastic_round, 
+                z, wqpar.levels, amax, wqpar.stochastic_round ? context_->getRandomStates(nblocks * nthreads) : nullptr);
             break;
         }
         case WeightQuantizerType::UniformAsymmetric: {
-            if (wqpar.resolution >0){
-                
-              // call the kernel
-              kernelQuantize<T><<<nblocks, nthreads, 0, s>>>(
-                  x_size_, d_size_, wqpar.amax_channelwise, device_amax_values, wqpar.quantize_last_column, weights, weights, wqpar.resolution, wqpar.stochastic_round, 
-                  wqpar.z, wqpar.levels, amax, wqpar.stochastic_round ? context_->getRandomStates(nblocks * nthreads) : nullptr);
-            }
+            // call the kernel
+            kernelQuantize<T><<<nblocks, nthreads, 0, s>>>(
+                x_size_, d_size_, wqpar.amax_channelwise, device_amax_values, wqpar.quantize_last_column, weights, weights, wqpar.resolution, wqpar.stochastic_round, 
+                wqpar.z, wqpar.levels, amax, wqpar.stochastic_round ? context_->getRandomStates(nblocks * nthreads) : nullptr);
             break;
         }
         case WeightQuantizerType::Custom: {
