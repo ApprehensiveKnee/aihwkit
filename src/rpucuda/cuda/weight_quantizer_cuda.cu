@@ -178,6 +178,8 @@ void WeightQuantizerCuda<T>::apply(T *weights, const WeightQuantizerParameter<T>
       cudaMemcpy(device_amax_values, wqpar.amax_values.data(), d_size_ * sizeof(T), cudaMemcpyHostToDevice);
     }
 
+    std::cout << " before kernel call " << std::endl;
+
     // For now, only the implementation for the uniform quantization is provided (no stochastic rounding)
     switch (wqpar.quantizer_type) {
         case WeightQuantizerType::UniformSymmetric: {
