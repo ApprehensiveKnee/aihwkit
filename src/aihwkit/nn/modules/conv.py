@@ -107,6 +107,14 @@ class _AnalogConvNd(AnalogLayerBase, _ConvNd):
 
         self.reset_parameters(rpu_config)
 
+        # if the weight quantization will also be used in the forward pass,
+        # store the wqpar
+        self.wqpar = rpu_config.quantization
+
+    def reset_wqpar(self, wqpar):
+        """ Reset the weight quantization parameters."""
+        self.wqpar = wqpar
+
     def get_tile_size(self, in_channels: int, groups: int, kernel_size: Tuple[int, ...]) -> int:
         """Calculate the tile size."""
         raise NotImplementedError
@@ -159,6 +167,12 @@ class _AnalogConvNd(AnalogLayerBase, _ConvNd):
             ModuleError: in case indexed convolution is needed but not supported by the TileModule.
         """
 
+        if self.wqpar is not None and self.wqpar.use_forward:
+            bias = self.bias
+            self.weight, self.bias = self.get_weights()
+
+            self.set_weights(self.weight, self.bias, self.wqpar)
+
         # Use indexed only in case of cuda.
         use_indexed = self.use_indexed
         if use_indexed is None and not self.NEEDS_INDEXED:
@@ -170,7 +184,16 @@ class _AnalogConvNd(AnalogLayerBase, _ConvNd):
             if self.input_size != input_size or not self.analog_module.is_indexed():
                 self._recalculate_indexes(x_input)
 
-            return self.analog_module(x_input, tensor_view=self.tensor_view)
+            out =  self.analog_module(x_input, tensor_view=self.tensor_view)
+
+            if self.wqpar is not None and self.wqpar.use_forward:
+                if not self.wqpar.use_inplace:
+                    # restore full precision weights
+                    self.set_weights(self.weight, self.bias)
+                self.weight, self.bias = None, bias
+            
+            return out
+                
 
         # Brute-force unfold.
         im_shape = x_input.shape
@@ -183,6 +206,12 @@ class _AnalogConvNd(AnalogLayerBase, _ConvNd):
         ).transpose(1, 2)
 
         out = self.analog_module(x_input_).transpose(1, 2)
+
+        if self.wqpar is not None and self.wqpar.use_forward:
+            if not self.wqpar.use_inplace:
+                self.set_weights(self.weight, self.bias)
+            self.weight, self.bias = None, bias
+
         out_size = (
             im_shape[2] + 2 * self.padding[0] - self.dilation[0] * (self.kernel_size[0] - 1) - 1
         ) // self.stride[0] + 1

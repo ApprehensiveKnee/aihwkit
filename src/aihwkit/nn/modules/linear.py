@@ -81,6 +81,14 @@ class AnalogLinear(AnalogLayerBase, Linear):
 
         self.reset_parameters(rpu_config)
 
+        # if the weight quantization will also be used in the forward pass,
+        # store the wqpar 
+        self.wqpar = rpu_config.quantization
+
+    def reset_wqpar(self, wqpar):
+        """Reset the quantization parameters."""
+        self.wqpar = wqpar
+
     def reset_parameters(self, rpu_config: Optional[RPUConfigBase] = None) -> None:
         """Reset the parameters (weight and bias)."""
         if hasattr(self, "analog_module"):
@@ -94,7 +102,24 @@ class AnalogLinear(AnalogLayerBase, Linear):
         """Compute the forward pass."""
         # pylint: disable=arguments-differ, arguments-renamed
 
-        return self.analog_module(x_input)  # type: ignore
+        if self.wqpar is not None and self.wqpar.use_forward:
+            bias = self.bias
+            #self.weights and self.bias are used as buffers to store temporarly
+            # the full precision weights and bias
+            self.weight, self.bias = self.get_weights()  # type: ignore
+
+            # set the weights and bias with the quantized values
+            self.set_weights(self.weight, self.bias, self.wqpar)  # type: ignore
+
+        out = self.analog_module(x_input)  # type: ignore
+
+        if self.wqpar is not None and self.wqpar.use_forward:
+            if not self.wqpar.use_inplace:
+                # restore the full precision weights and bias on the tile
+                self.set_weights(self.weight, self.bias)
+            self.weight, self.bias = None, bias
+
+        return out
 
     @classmethod
     def from_digital(

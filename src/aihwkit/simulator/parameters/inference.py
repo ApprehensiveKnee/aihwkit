@@ -220,17 +220,15 @@ class WeightQuantizerParameter(_PrintableMixin):
     weights after each update pass (it is used in the forward and backward pass but not in the update pass).
     The calibrator to set the resolution can be called after each update pass, but since the operations
     are done in CPU, it slows down considerably the training process.
-
     """
 
     bindings_class: ClassVar[Optional[Union[str, Type]]] = "WeightQuantizerParameter"
     bindings_module: ClassVar[str] = "tiles"
 
-    #use_PTQ: bool = True
-    """Whether to use the parameter to perform PTQ. If the option is set to true, once the 
-    model is initialized, the quantization is performed on each tile. The methods to calibrate the
-    resolution are tile-based, which means that, for example, the percentile quantization is, for now,
-    computed using all the weights that are contained in a single tile"""
+    #use_in_training: bool = True
+    """Whether to use the parameter to perform quantization after each training/update step. 
+    The weight quantizer parameter is intended to be used for PTQ: when the model is initialized in the kit, 
+    the quantization is performed on each tile, on the already trainined weights."""
 
     resolution: float = 0.0
     """The resolution of the quantization.
@@ -300,6 +298,15 @@ class WeightQuantizerParameter(_PrintableMixin):
         default_factory=lambda: [-1.0, 1.0],
         metadata={"hide_if": [-1.0, 1.0]},
     )
+
+    use_forward: bool = False
+    """Whether to use the quantized weights in the forward pass."""
+
+    use_inplace: bool = False
+    """Whether to quantize the weights in place in the forward pass.
+    
+    This is only used if the quantized weights are used in the forward pass.
+    """
 
     stochastic_round: bool = False
     """Whether to use stochastic rounding when quantizing the weights.

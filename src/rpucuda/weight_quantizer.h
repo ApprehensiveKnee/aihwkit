@@ -45,6 +45,8 @@ struct WeightQuantizerParameter{
   bool rel_to_actual_wmax = false; // deprecated
   WeightQuantizerType quantizer_type = WeightQuantizerType::None;
   std::vector<T> quant_values = {};
+  bool use_training = false;
+  bool use_inplace = false;
   bool stochastic_round = false;
   bool debug = true;
 
@@ -92,6 +94,8 @@ struct WeightQuantizerParameter{
       }
       ss << "]" << std::endl;
     };
+    ss << "\t use_training: \t" << use_training << std::endl;
+    ss << "\t use_inplace: \t" << use_inplace << std::endl;
   };
   
 

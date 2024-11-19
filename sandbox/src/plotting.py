@@ -8,7 +8,7 @@
 
 
 import functools
-
+import torch
 from matplotlib import container
 import matplotlib.pyplot as plt
 import numpy as np

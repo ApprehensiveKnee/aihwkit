@@ -1,3 +1,5 @@
+# -*- coding: utf-8 -*-
+
 # ///////////////////////////////////////////////////////////////////////////////////////////
 # histogram based calibrators
 # Inspo from TensorTR tool pythorch-quantization (Copyright (c) 1993-2023 NVIDIA CORPORATION & AFFILIATES)
