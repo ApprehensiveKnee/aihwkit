@@ -180,9 +180,9 @@ if __name__ == '__main__':
     path = p_PATH+ f"/data/{MAP_LEVEL_FILE[SELECTED_LEVEL]}"
     variables = interpolate(levels=SELECTED_LEVEL, file_path=path, force_interpolation=True)
     types = variables['str']
-    if MAP_LEVEL_FILE[SELECTED_LEVEL] == "matlab/4bit.mat":
-        # Delete the noise type '1d,RT' for faulty measurement
-        types.remove('1d,RT')
+    # if MAP_LEVEL_FILE[SELECTED_LEVEL] == "matlab/4bit.mat":
+    #     # Delete the noise type '1d,RT' for faulty measurement
+    #     types.remove('1d,RT')
 
     if SELECTED_LEVEL != -1:
         ww_mdn = variables['ww_mdn']* 1e6
