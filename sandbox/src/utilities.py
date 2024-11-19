@@ -11,7 +11,7 @@ from scipy import stats
 import torch
 import scipy.io
 import numpy as np
-from numpy import RankWarning
+from numpy.exceptions import RankWarning
 from scipy.optimize import curve_fit
 from scipy.interpolate import CubicSpline
 import os
