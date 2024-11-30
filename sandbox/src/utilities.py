@@ -12,7 +12,11 @@ import torch
 import scipy.io
 import numpy as np
 #from numpy.exceptions import RankWarning
-from numpy import RankWarning
+# import RankWarning: if not in np.exceptions, try in np
+try:
+    from numpy.exceptions import RankWarning
+except:
+    from numpy import RankWarning
 from scipy.optimize import curve_fit
 from scipy.interpolate import CubicSpline
 import os
@@ -181,7 +185,7 @@ def interpolate(levels: int, file_path: str, type: str = None, force_interpolati
                 #weights = stats.chi2.pdf(np.linspace(0, gmax, int(levels/2)+1), 2, 0, 6)
                 #weights = np.concatenate((weights[:-1], weights[::-1]), axis= 0)
                 #   GAUSSIAN WEIGHTS
-                weights = stats.norm.pdf(np.linspace(-40, 40, levels), 0, 14)
+                weights = stats.norm.pdf(np.linspace(-gmax, gmax, levels), 0, 14)
                 weights = (weights.max() - weights) + weights.min()
                 data[key][:, i] = torch.tensor(correct(np.linspace(-gmax, gmax, levels)*1e-6, data[key][:, i], weights))
 
