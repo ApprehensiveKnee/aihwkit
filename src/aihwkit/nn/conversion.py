@@ -168,6 +168,7 @@ def convert_to_analog(
 
     if specific_rpu_config_fun is None:
         specific_rpu_config_fun = specific_rpu_config_id
+
     # Convert parent.
     if module.__class__ in conversion_map and module_name not in exclude_modules:
         if verbose:
@@ -178,7 +179,7 @@ def convert_to_analog(
             specific_rpu_config_fun(module_name, module, deepcopy(rpu_config)),
             tile_module_class
         )
-    
+
 
     # Convert children.
     convert_dic = {}
@@ -203,9 +204,9 @@ def convert_to_analog(
                 verbose,
             )
             continue
-
         if mod.__class__ not in conversion_map.keys():
             continue
+            
         if verbose:
             print(f"Converted '{full_name}' to '{conversion_map[mod.__class__].__name__}'.")
         convert_dic[name] = conversion_map[mod.__class__].from_digital(
@@ -223,6 +224,7 @@ def convert_to_analog(
         module = AnalogWrapper(module)
 
     
+    # ======================== WAY OF HANDLING QUANTIZATION USING CONVERT_TO_ANALOG ========================
     if rpu_config.quantization is not None:
         # Loop over the layers and set the quantization
         # Check that the module has the analog_modules method or is not an AnalogSequential

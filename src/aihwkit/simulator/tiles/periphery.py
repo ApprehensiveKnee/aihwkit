@@ -166,21 +166,19 @@ class TileWithPeriphery(BaseTile, SimulatorTileWrapper):
             bias = None
 
         combined_weights = self._combine_weights(weight, bias)
-        if apply_weight_scaling:
-            combined_weights = self.apply_weight_scaling(combined_weights, weight_scaling_omega)
-
-
-        self.tile.set_weights(combined_weights)
+        
         if wqpar is not None:
-            # new_wqpar = tiles.WeightQuantizerParameter()
-            # new_wqpar.copy_from(wqpar)
-            wqpar.calibrate_weights(self.tile.get_weights(), method = wqpar.method, per_channel=wqpar.amax_channelwise)
+            # Quantize the weights before using weight scaling
+            self.tile.set_weights(combined_weights)
+            wqpar.calibrate_weights(combined_weights, method = wqpar.method, per_channel=wqpar.amax_channelwise)
             data_type = self.get_data_type()
             new_wqpar = parameters_to_bindings(
                     wqpar, data_type
                 )
-
+            #print("Original weights: ", combined_weights)
             self.tile.quantize_weights(new_wqpar)
+            #print("New weights (QUANTIZED): ", self.tile.get_weights())
+
             # If the weight quantizer has NOT produced the right amoung of 
             # levels in the current tile, alert the user
             if new_wqpar.debug and new_wqpar.levels > 0 and new_wqpar.amax_channelwise == False:
@@ -195,7 +193,16 @@ class TileWithPeriphery(BaseTile, SimulatorTileWrapper):
                     alert += "===============================================================\n"
                     print(alert)
 
+        if apply_weight_scaling:
+            combined_weights = self.tile.get_weights() if wqpar is not None else combined_weights
+            combined_weights = self.apply_weight_scaling(combined_weights, weight_scaling_omega)
+        
+        # only case in which we don't set again the weigths: quantization took place without apply_weight_scaling
+        if  not((wqpar is not None) and (not apply_weight_scaling)):
+            # if the quantization did not take place, set the weights after applying weight scaling
+            self.tile.set_weights(combined_weights)
 
+            
         if realistic:
             self.program_weights()
 
@@ -247,10 +254,12 @@ class TileWithPeriphery(BaseTile, SimulatorTileWrapper):
         if self.digital_bias:
             bias = self.bias.detach().cpu()
 
+        #print("Weights as saved on tile: ", weight)
         if not apply_weight_scaling:
             return weight, bias
 
         alpha = self.get_scales()
+        # print("Alpha: ", alpha)
         if alpha is not None:
             alpha = alpha.detach().cpu()
             return (weight * alpha.view(-1, 1), bias * alpha if self.analog_bias else bias)
@@ -506,7 +515,6 @@ class TileWithPeriphery(BaseTile, SimulatorTileWrapper):
 
             alpha[alpha == 0.0] = 1.0
             combined_weights = combined_weights / alpha
-
             self.set_scales(alpha)
         return combined_weights
 

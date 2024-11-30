@@ -98,6 +98,8 @@ if USE_ANALOG_TRAINING:
                                     modifier= WeightModifierParameter(type=WeightModifierType.NONE,),
                                     drift_compensation=None,  
                                     )
+    RPU_CONFIG.mapping.weight_scaling_columnwise = True,
+    RPU_CONFIG.mapping.weight_scaling_omega = True,
 else:
     RPU_CONFIG = FloatingPointRPUConfig(device=FloatingPointDevice())
 
