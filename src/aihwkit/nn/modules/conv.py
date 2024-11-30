@@ -179,18 +179,18 @@ class _AnalogConvNd(AnalogLayerBase, _ConvNd):
             if self.input_size != input_size or not self.analog_module.is_indexed():
                 self._recalculate_indexes(x_input)
 
-            if self.wqpar is not None and self.wqpar.use_forward:
-                bias = self.bias
-                self.weight, self.bias = self.get_weights()
-                self.set_weights(self.weight, self.bias, self.wqpar)
+            # if self.wqpar is not None and self.wqpar.use_forward:
+            #     bias = self.bias
+            #     self.weight, self.bias = self.get_weights()
+            #     self.set_weights(self.weight, self.bias, self.wqpar)
 
             out =  self.analog_module(x_input, tensor_view=self.tensor_view)
 
-            if self.wqpar is not None and self.wqpar.use_forward:
-                if not self.wqpar.use_inplace:
-                    # restore full precision weights
-                    self.set_weights(self.weight, self.bias)
-                self.weight, self.bias = None, bias
+            # if self.wqpar is not None and self.wqpar.use_forward:
+            #     if not self.wqpar.use_inplace:
+            #         # restore full precision weights
+            #         self.set_weights(self.weight, self.bias)
+            #     self.weight, self.bias = None, bias
             
             return out
         
