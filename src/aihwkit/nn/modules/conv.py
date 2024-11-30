@@ -184,7 +184,6 @@ class _AnalogConvNd(AnalogLayerBase, _ConvNd):
             #     self.weight, self.bias = self.get_weights()
             #     self.set_weights(self.weight, self.bias, self.wqpar)
 
-            out =  self.analog_module(x_input, tensor_view=self.tensor_view)
 
             # if self.wqpar is not None and self.wqpar.use_forward:
             #     if not self.wqpar.use_inplace:
@@ -192,7 +191,7 @@ class _AnalogConvNd(AnalogLayerBase, _ConvNd):
             #         self.set_weights(self.weight, self.bias)
             #     self.weight, self.bias = None, bias
             
-            return out
+            return self.analog_module(x_input, tensor_view=self.tensor_view)
         
 
                 
