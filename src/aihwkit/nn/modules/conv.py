@@ -167,11 +167,6 @@ class _AnalogConvNd(AnalogLayerBase, _ConvNd):
             ModuleError: in case indexed convolution is needed but not supported by the TileModule.
         """
 
-        if self.wqpar is not None and self.wqpar.use_forward:
-            bias = self.bias
-            self.weight, self.bias = self.get_weights()
-
-            self.set_weights(self.weight, self.bias, self.wqpar)
 
         # Use indexed only in case of cuda.
         use_indexed = self.use_indexed
@@ -184,6 +179,11 @@ class _AnalogConvNd(AnalogLayerBase, _ConvNd):
             if self.input_size != input_size or not self.analog_module.is_indexed():
                 self._recalculate_indexes(x_input)
 
+            if self.wqpar is not None and self.wqpar.use_forward:
+                bias = self.bias
+                self.weight, self.bias = self.get_weights()
+                self.set_weights(self.weight, self.bias, self.wqpar)
+
             out =  self.analog_module(x_input, tensor_view=self.tensor_view)
 
             if self.wqpar is not None and self.wqpar.use_forward:
@@ -193,6 +193,8 @@ class _AnalogConvNd(AnalogLayerBase, _ConvNd):
                 self.weight, self.bias = None, bias
             
             return out
+        
+
                 
 
         # Brute-force unfold.
@@ -204,6 +206,11 @@ class _AnalogConvNd(AnalogLayerBase, _ConvNd):
             padding=self.padding,
             stride=self.stride,
         ).transpose(1, 2)
+
+        if self.wqpar is not None and self.wqpar.use_forward:
+            bias = self.bias
+            self.weight, self.bias = self.get_weights()
+            self.set_weights(self.weight, self.bias, self.wqpar)
 
         out = self.analog_module(x_input_).transpose(1, 2)
 

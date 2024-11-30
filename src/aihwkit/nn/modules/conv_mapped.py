@@ -256,18 +256,19 @@ class _AnalogConvNdMapped(AnalogLayerBase, _ConvNd):
         analog_tile = self.array[0][0]
         use_indexed = self.use_indexed and analog_tile.supports_indexed
 
-        if self.wqpar is not None and self.wqpar.use_forward:
-            bias = self.bias
-            self.weight, self.bias = self.get_weights()
-            # set quantized weights on the analog tile
-            self.set_weights(self.weight, self.bias, self.wqpar)
-
         if use_indexed:
             input_size = x_input.numel() / x_input.size(0)
             if self.input_size != input_size or not analog_tile.is_indexed():
                 self._recalculate_indexes(x_input)
 
         if self.analog_tile_count() == 1:
+
+            if self.wqpar is not None and self.wqpar.use_forward:
+                bias = self.bias
+                self.weight, self.bias = self.get_weights()
+                # set quantized weights on the analog tile
+                self.set_weights(self.weight, self.bias, self.wqpar)
+
             if use_indexed:
                 output = analog_tile(x_input)
             else:
@@ -291,10 +292,23 @@ class _AnalogConvNdMapped(AnalogLayerBase, _ConvNd):
             out_result = []
 
             for analog_tile in in_tiles:
+                if self.wqpar is not None and self.wqpar.use_forward:
+                    bias = self.bias
+                    self.weight, self.bias = analog_tile.get_weights()
+                    # set quantized weights on the analog tile
+                    analog_tile.set_weights(self.weight, self.bias, self.wqpar)
+
                 if use_indexed:
                     output = analog_tile(x)
                 else:
                     output = self._single_unfold(analog_tile, x)
+
+                # Restore the weights and bias
+                if self.wqpar is not None and self.wqpar.use_forward:
+                    if not self.wqpar.use_inplace:
+                        analog_tile.set_weights(self.weight, self.bias)
+                    self.weight, self.bias = None, bias
+
                 out_result.append(output)
 
             if idx == 0:
@@ -302,11 +316,6 @@ class _AnalogConvNdMapped(AnalogLayerBase, _ConvNd):
             else:
                 result.add_(cat(out_result, channel_dim))
 
-        # Restore the weights and bias
-        if self.wqpar is not None and self.wqpar.use_forward:
-            if not self.wqpar.use_inplace:
-                self.set_weights(self.weight, self.bias)
-            self.weight, self.bias = None, bias
 
         # Add the bias (conditionally) to the final result.
         if self.bias is not None:
