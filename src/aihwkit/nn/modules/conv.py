@@ -105,6 +105,10 @@ class _AnalogConvNd(AnalogLayerBase, _ConvNd):
             self._parameters.pop("bias", None)
         self.bias = bias
 
+        # if rpu_config has no quantization attribute, set it to None
+        if not hasattr(rpu_config, "quantization"):
+            rpu_config.quantization = None
+        
         self.reset_parameters(rpu_config)
 
         # if the weight quantization will also be used in the forward pass,

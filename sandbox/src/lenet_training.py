@@ -99,7 +99,7 @@ if USE_ANALOG_TRAINING:
                                     drift_compensation=None,  
                                     )
     RPU_CONFIG.mapping.weight_scaling_columnwise = True,
-    RPU_CONFIG.mapping.weight_scaling_omega = True,
+    RPU_CONFIG.mapping.weight_scaling_omega = 1,
 else:
     RPU_CONFIG = FloatingPointRPUConfig(device=FloatingPointDevice())
 
