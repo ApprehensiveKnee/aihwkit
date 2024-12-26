@@ -11,11 +11,11 @@ clc;
 model = ['resnet'];
 noise = 'whole';
 levels = [3,5,9,17];
-epsValues = [0.03, 0.06, 0.12, 0.24, 0.36]
+epsValues = [0.08, 0.10, 0.14 , 0.18, 0.20]
 fileList = {}
 
 for level = levels
-    fileList{end+1} = strcat('../',model, '/results/eps_comparison/accuracies_eps_',model,'_',string(level),'_',noise,'_with_comp.csv'); 
+    fileList{end+1} = strcat('../',model, '/results/eps_comparison_gauss/accuracies_eps_',model,'_',string(level),'_',noise,'.csv'); 
 end
 
 % noise types are defined in the matlab file: '../data/matlab/4bit.mat' in the str variable
