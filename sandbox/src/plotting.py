@@ -164,17 +164,20 @@ def update_hist(num, data, range: tuple, HIST_BINS:int, top: int, title: str):
 
 
 def plot_hist_animation(datas, HIST_BINS:int,range: tuple , top: int , title:str = 'Distribution of Quantized Weight Values over the tiles', file_name:str = 'animation.gif'):
-    fig = plt.figure()
+    fig = plt.figure(figsize=(15,6))
     n, bin, _ =plt.hist(datas[0].flatten().numpy(), HIST_BINS, range = range, color = 'indigo', alpha=0.7 )
     plt.ylim(top=top)
     plt.xlim(left=range[0], right=range[1])
-    # Use logaritmic scale for the y-axis
-    # set  the x-axis to be fixed
-    plt.xlabel('Weight Values')
-    plt.ylabel('Frequency')
+    
+    # Make the tick labels bigger
+    plt.xticks(fontsize=12)
+    plt.yticks(fontsize=12)
+
+    plt.xlabel('Weight Values', fontsize=14)
+    plt.ylabel('Frequency', fontsize=14)
     # Get the maximum value of the y-axis
     max_y = max(n)
-    plt.text(range[0], max_y*0.9, 'Frame: 0', fontsize=12, color='red')
+    plt.text(range[0], max_y*0.9, 'Layer: 0', fontsize=12, color='red')
     plt.title(title)
     ani = animation.FuncAnimation(fig, update_hist, len(datas),repeat=True, blit=True, fargs=(datas, range, HIST_BINS, top, title,))
     # Save the animation as a gif

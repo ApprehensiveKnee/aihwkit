@@ -369,7 +369,8 @@ class WeightQuantizerParameter(_PrintableMixin):
         calib_amax = []
         if method == "max":
             reduce_axis = list(range(tensor.dim()))
-            reduce_axis.remove(axis) 
+            if axis is not None:
+                reduce_axis.remove(axis) 
             calib_amax.append(reduce_amax(tensor, axis = reduce_axis))
         elif method == "percentile": 
             for i in range(axis_size):

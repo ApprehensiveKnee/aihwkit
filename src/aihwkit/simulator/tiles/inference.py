@@ -180,7 +180,7 @@ class InferenceTileWithPeriphery(TileWithPeriphery):
         if isinstance(self.rpu_config.noise_model, tuple):
             self.rpu_config.noise_model = self.rpu_config.noise_model[0]
 
-            if self.rpu_config.noise_model.debug is not None and self.rpu_config.noise_model.debug:
+            if hasattr(self.rpu_config.noise_model, "debug") and self.rpu_config.noise_model.debug is not None:
                 self.rpu_config.noise_model.current_tile(tile_id)
 
             (
@@ -191,7 +191,7 @@ class InferenceTileWithPeriphery(TileWithPeriphery):
             self.rpu_config.noise_model = (self.rpu_config.noise_model,)
         else:
 
-            if self.rpu_config.noise_model.debug is not None and self.rpu_config.noise_model.debug:
+            if hasattr(self.rpu_config.noise_model, "debug") and self.rpu_config.noise_model.debug is not None:
                 self.rpu_config.noise_model.current_tile(tile_id)
 
             (

@@ -123,7 +123,6 @@ def parameters_to_bindings(params: Any, data_type: RPUDataType, check_fields: bo
                     and not isinstance(value, bool)
                 ):
                     raise ConfigError(f"Expected type {expected_type} for field {field}")
-
             setattr(result, field, value)
 
     return result
