@@ -210,13 +210,8 @@ class ExperimentalNoiseModel(BaseNoiseModel):
         if neg:
             g_target = -g_target
 
-        print("Target conductances")
-        print(g_target[0,:10])
-
         g_real = self.fit_data(g_target, self.ww_mdn, self.ww_std, self.debug)
 
-        print("Programmed conductances")
-        print(g_real[0,:10])
 
         if neg:
             g_real = -g_real
@@ -324,6 +319,7 @@ class ExperimentalNoiseModel(BaseNoiseModel):
  
         diffs = torch.abs(gg_values.unsqueeze(-1) - g_target.reshape(-1))
         min_indices = torch.argmin(diffs, dim=0)
+
         g_real = ww_mdn[min_indices] + ww_std[min_indices] * randn_like(g_target.reshape(-1))
 
         # //////////////////////////////////////////////////////////////////////////////////////////////////////

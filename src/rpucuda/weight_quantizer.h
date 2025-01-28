@@ -40,9 +40,9 @@ struct WeightQuantizerParameter{
   unsigned short levels = 0;
   bool quantize_last_column = false;
   // amax computation has been moved to the python level, to support different kinds
-  // of amax computation (e.g. percentile or mse). The "rel_to_actual_wmax" parameter
-  // is effectively deprecated and should not be used.
-  bool rel_to_actual_wmax = false; // deprecated
+  // of amax computation (e.g. percentile or mse). The "rel_to_actual_wmax" parameter can still
+  // be used to compute the amax value in case no actual method is specified.
+  bool rel_to_actual_wmax = false;
   WeightQuantizerType quantizer_type = WeightQuantizerType::None;
   std::vector<T> quant_values = {};
   bool use_training = false;
@@ -82,6 +82,7 @@ struct WeightQuantizerParameter{
     ss << "\t z: \t" << z << std::endl;
     ss << "\t method: \t" << getMethodName() << std::endl;
     ss << "\t quantize_last_column: \t" << quantize_last_column << std::endl;
+    ss << "\t rel_to_actual_wmax: \t" << rel_to_actual_wmax << std::endl;
     ss << "\t stochastic_round: \t" << stochastic_round << std::endl;
     ss << "\t quantizer_type: \t" << getTypeName() << std::endl;
     if(quantizer_type == WeightQuantizerType::Custom){

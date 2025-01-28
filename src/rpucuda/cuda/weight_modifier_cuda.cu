@@ -70,7 +70,9 @@ __global__ void kernelModifyWeightsDiscretize(
         value += stoch_value - (T)0.5;
       }
 
-      new_weights[i] = amax * res * round(value););
+      new_weights[i] = amax * res * round(value);
+      
+      );
 }
 
 template <typename T>
@@ -406,6 +408,65 @@ __global__ void kernelModifyWeightsDropConnections(
       if (stoch_value < prob) { new_weights[i] = (T)0.0; });
 }
 
+template <typename T>
+__global__ void kernelModifyWeightQuantizeAddAndShift(
+    int size_in,
+    int d_size,
+    const bool copy_last_column,
+    T *new_weights,
+    const T *weights,
+    const int levels,
+    const bool sto_round,
+    const T gmax_in,
+    const T *shift_values,
+    const T *shift_std_devs,
+    const T assumed_wmax,
+    const T *wmax,
+    curandState_t *random_states){
+  T amax = (wmax) ? (*wmax) : assumed_wmax;
+  amax = amax > (T)0.0 ? amax : (T)1.0;
+  // the resolution in this case is derived directly form amax and the number of levels
+  // requested. To compute it, we used the inverse of the logaritm of the number of levels - 1
+  // in base 2. 
+  const T res = (T)1.0 / (T)log2((T)(levels - 1));
+  const T scale = amax / gmax_in;
+  RPU_WM_KERNEL_LOOP(
+      sto_round,
+      
+      T w_level = weights[i]/amax;
+      w_level /= res;
+
+      if (stoch_if) {
+        T stoch_value = curand_uniform(&local_state);
+        w_level += stoch_value - (T)0.5;
+      }
+
+      w_level = round(w_level);
+
+      if (w_level < -levels / 2) {
+        w_level = -levels / 2;
+      } else if (w_level > levels / 2) {
+        w_level = levels / 2;
+      }
+
+      int w_index = w_level + (int)(levels / 2);
+
+      new_weights[i] = shift_values[w_index] + shift_std_devs[w_index] * curand_normal(&local_state);
+      // if (i == 0) {
+      //   printf("res: %f\n" , res);
+      //   printf("amax: %f\n", amax);
+      //   printf("weight[i]%f\n", weights[i]);
+      //   printf("w_level: %f, w_index: %d, new_weights: %f\n", w_level, w_index, new_weights[i]);
+      // }
+
+      new_weights[i] *= scale;
+
+      // if (i == 0) {
+      //   printf("new_weights: %f\n", new_weights[i]);
+      // }
+      );
+    }
+
 // ctor
 template <typename T>
 WeightModifierCuda<T>::WeightModifierCuda(CudaContextPtr context, int x_size, int d_size)
@@ -436,6 +497,9 @@ void WeightModifierCuda<T>::apply(
   if (wmpar.type != WeightModifierType::Copy) {
     if (wmpar.per_batch_sample) {
       RPU_FATAL("Per batch sample is not implemented in RPUCuda");
+    }
+    if (wmpar.learnable_step){
+      RPU_FATAL("Learnable step is not implemented in RPUCuda");
     }
   }
 
@@ -594,6 +658,40 @@ void WeightModifierCuda<T>::apply(
     break;
   }
 
+  case WeightModifierType::QuantizeAddAndShift: {
+    if (wmpar.levels > 1) {
+
+      if (wmpar.shift_values.size() != wmpar.levels || wmpar.shift_std_devs.size() != wmpar.levels) {
+        RPU_FATAL("Shift values and std_devs must have the same size as levels.");
+      }
+
+      if ( wmpar.shift_values.size() != shift_values_.size() || dev_shift_values_ == nullptr) {
+        dev_shift_values_ = RPU::make_unique<CudaArray<T>>(context_, wmpar.shift_values.size(), wmpar.shift_values.data());
+        shift_values_ = wmpar.shift_values;
+        context_->synchronize();
+      } else if (shift_values_ != wmpar.shift_values) {
+        dev_shift_values_->assign(wmpar.shift_values.data());
+        shift_values_ = wmpar.shift_values;
+      }
+
+      if ( wmpar.shift_std_devs.size() != shift_std_devs_.size() || dev_shift_std_devs_ == nullptr) {
+        dev_shift_std_devs_ = RPU::make_unique<CudaArray<T>>(context_, wmpar.shift_std_devs.size(), wmpar.shift_std_devs.data());
+        shift_std_devs_ = wmpar.shift_std_devs;
+        context_->synchronize();
+      } else if (shift_std_devs_ != wmpar.shift_std_devs) {
+        dev_shift_std_devs_->assign(wmpar.shift_std_devs.data());
+        shift_std_devs_ = wmpar.shift_std_devs;
+      }
+
+      kernelModifyWeightQuantizeAddAndShift<T><<<nblocks, nthreads, 0, s>>>(
+          size_, d_size_, wmpar.copy_last_column, new_weights, weights, wmpar.levels,
+          wmpar.sto_round, wmpar.g_max, dev_shift_values_->getData(), dev_shift_std_devs_->getData(), wmpar.assumed_wmax, amax,
+          context_->getRandomStates(nblocks * nthreads));
+      done = true;
+    }
+    break;
+  }
+
   default:
     RPU_FATAL("Requested WeightModifierType not implemented.");
   }
@@ -623,6 +721,10 @@ void WeightModifierCuda<T>::dumpExtra(RPU::state_t &extra, const std::string pre
   RPU::insert(state, "enable_during_test", enable_during_test_);
   RPU::insert(state, "coeffs", coeffs_);
   RPU::insert(state, "dev_coeffs", dev_coeffs_);
+  RPU::insert(state, "shift_values", shift_values_);
+  RPU::insert(state, "dev_shift_values", dev_shift_values_);
+  RPU::insert(state, "shift_std_devs", shift_std_devs_);
+  RPU::insert(state, "dev_shift_std_devs", dev_shift_std_devs_);
 
   RPU::insertWithPrefix(extra, state, prefix);
 }
@@ -637,6 +739,10 @@ void WeightModifierCuda<T>::loadExtra(
   RPU::load(state, "enable_during_test", enable_during_test_, strict);
   RPU::load(state, "coeffs", coeffs_, strict);
   RPU::load(this->context_, state, "dev_coeffs", dev_coeffs_, strict);
+  RPU::load(state, "shift_values", shift_values_, strict);
+  RPU::load(this->context_, state, "dev_shift_values", dev_shift_values_, strict);
+  RPU::load(state, "shift_std_devs", shift_std_devs_, strict);
+  RPU::load(this->context_, state, "dev_shift_std_devs", dev_shift_std_devs_, strict);
 }
 
 template class WeightModifierCuda<float>;

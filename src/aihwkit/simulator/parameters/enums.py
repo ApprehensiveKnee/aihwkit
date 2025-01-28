@@ -256,6 +256,11 @@ class WeightModifierType(Enum):
     applied in conjunction to other modifiers as well.
     """
 
+    QUANTIZE_ADD_AND_SHIFT = "QuantizeAddAndShift"
+    """Quantize the weigths, then add a Gaussian noise centered in a
+    user defined value and with a user defined standard deviation.
+    """
+
     COPY = "Copy"
     """Legacy. No explicit weight modifier, however, pdrop is still observed.
 

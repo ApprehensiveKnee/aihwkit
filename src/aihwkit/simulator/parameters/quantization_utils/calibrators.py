@@ -10,7 +10,6 @@ import numpy as np
 from scipy.stats import entropy
 
 import torch
-
 from aihwkit.simulator.parameters.quantization_utils.base import Calibrator
 
 
@@ -389,6 +388,7 @@ def _compute_amax_percentile(calib_hist, calib_bin_edges, percentile):
     calib_amax = torch.tensor(calib_amax.item())  #pylint: disable=not-callable
 
     return calib_amax
+
 
 
 

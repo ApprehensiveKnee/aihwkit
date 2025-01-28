@@ -25,6 +25,82 @@ from aihwkit.simulator.rpu_base import tiles
 from aihwkit.simulator.parameters.enums import WeightModifierType, WeightClipType, WeightRemapType, WeightQuantizerType
 from .quantization_utils.calibrators import reduce_amax, _compute_amax_percentile, _compute_amax_mse
 
+def calibrate_weights(par, tensor , method="percentile", per_channel = True ,percentile=99.99, num_bins=2048):
+        """Calibrate weights on a given weight tensor
+
+
+        .. note::
+            This function uses `method` specified by the argument to decide which method to use, NOT the one
+            specified by the calibrator embedded in weight_quantizer.
+            We haven't moved calibration to GPU, so everything is transfered to CPU
+
+        Args:
+            par: The parameter object to calibrate
+            tensor: A tensor of weights (check for the shape at the beginning of the function)
+            method: A string of calibration method. Supports "mse" and "percentile". Default "percentile"
+            percentile: A float. Default 99.99
+            num_bins: A integer. Number of bins of histogram. Default 2048.
+
+        """
+
+        if method == "none":
+            return
+        
+        input_weights = tensor.abs().cpu().detach().numpy()
+
+        levels = par.levels
+        eps = par.eps
+        percentile = 100 - eps*100 if eps > 0 else percentile
+        method = par.method
+        method = method if method != "none" else "percentile"
+
+
+        if per_channel:
+            axis = 0 # input tensor is [d,x] weght matrix, where d is the number of channels
+        else:
+            axis = None
+        axis_size = input_weights.shape[axis] if axis is not None else 1
+
+        
+        if axis is None:
+            calib_hist, calib_bin_edges = np.histogram(input_weights, bins=num_bins, range=(0, input_weights.max()))
+            calib_hist = [calib_hist]
+            calib_bin_edges = [calib_bin_edges]
+        else:
+            calib_hist = []
+            calib_bin_edges = []
+            for i in range(axis_size):
+                temp = input_weights[i]
+                hist, bin_edges = np.histogram(temp, bins=num_bins, range=(0, input_weights[i].max()))
+                calib_hist.append(hist)
+                calib_bin_edges.append(bin_edges)
+
+        calib_amax = []
+        if method == "max":
+            reduce_axis = list(range(tensor.dim()))
+            if axis is not None:
+                reduce_axis.remove(axis) 
+            calib_amax.append(reduce_amax(tensor, axis = reduce_axis))
+        elif method == "percentile": 
+            for i in range(axis_size):
+                calib_amax.append(_compute_amax_percentile(calib_hist[i], calib_bin_edges[i], percentile))
+        elif method == "mse":
+            for i in range(axis_size):
+                calib_amax.append(_compute_amax_mse(calib_hist[i], calib_bin_edges[i], levels))
+        else:
+            raise TypeError("Unsupported calibration method {}".format(method))
+        
+        # delete tensors from cpu
+        # del input_weights
+        # torch.cuda.empty_cache()
+        
+        # finally compute the resolution as a list of floats
+        if axis is None:
+            par.resolution = float((2./(levels - 1.)) * calib_amax[0])
+        else:
+            par.resolution = 0.0
+            # save for later use
+            par.amax_values = calib_amax
 
 @dataclass
 class WeightModifierParameter(_PrintableMixin):
@@ -148,6 +224,24 @@ class WeightModifierParameter(_PrintableMixin):
     pcm_t0: float = 20.0
     r"""PCM_NOISE parameter,  programming conversion time in seconds. """
 
+    levels: int = 0
+    """Number of levels for the QUANTIZER_ADD_AND_SHIFT modifier type."""
+
+    shift_values: List[float] = field(default_factory=lambda: [],
+                                      metadata={"hide_if": []})
+    """Shift values for the QUANTIZER_ADD_AND_SHIFT modifier type."""
+
+    shift_std_devs: List[float] = field(default_factory=lambda: [],
+                                        metadata={"hide_if": []})
+    """Standard deviations for the QUANTIZER_ADD_AND_SHIFT modifier type."""
+
+    learnable_step: bool = False
+    """The flag is used to enable step-learning quantization.
+    
+     This parameter only affects is used when using the
+    ``TorchSimulatorTile``. In case of ``RPUCudaTile`` it will throw
+    an error. """
+
 
 @dataclass
 class WeightClipParameter(_PrintableMixin):
@@ -243,10 +337,18 @@ class WeightQuantizerParameter(_PrintableMixin):
 
     amax_values: List[float] = field(
         default_factory=lambda: [0.0],
+        metadata={"hide_if": [0.0]},
     )
     """The values used to compute the resolution for the quantization in case amax_channelwise is set to True.
 
     This collection of values works as a sort of temporary storage for the amax values computed during the calibration.
+    """
+
+    rel_to_actual_wmax: bool = False
+    """Whether to compute the quantization resolution relative to the actual maximum value of the weights.
+        ----------------------------------------------------------------------------
+        OBS: this parameter can be set to 'True' only if the method is set to 'none'.
+        ----------------------------------------------------------------------------
     """
 
     zero_point: float = 0
@@ -319,75 +421,6 @@ class WeightQuantizerParameter(_PrintableMixin):
     debug: bool = True
     """Whether to print debug information during quantization."""
 
-
-    def calibrate_weights(self, tensor , method="percentile", per_channel = True ,percentile=99.99, num_bins=2048):
-        """Calibrate weights on a given weight tensor
-
-
-        .. note::
-            This function uses `method` specified by the argument to decide which method to use, NOT the one
-            specified by the calibrator embedded in weight_quantizer.
-            We haven't moved calibration to GPU, so everything is transfered to CPU
-
-        Args:
-            tensor: A tensor of weights (check for the shape at the beginning of the function)
-            method: A string of calibration method. Supports "mse" and "percentile". Default "percentile"
-            percentile: A float. Default 99.99
-            num_bins: A integer. Number of bins of histogram. Default 2048.
-
-        """
-
-        if method == "none":
-            return
-        
-        input_weights = tensor.abs().cpu().detach().numpy()
-
-        levels = self.levels
-        percentile = 100 - self.eps*100 if self.eps > 0 else percentile
-        method = self.method if self.method is not None else method
-
-        if per_channel:
-            axis = 0 # input tensor is [d,x] weght matrix, where d is the number of channels
-        else:
-            axis = None
-        axis_size = input_weights.shape[axis] if axis is not None else 1
-
-        
-        if axis is None:
-            calib_hist, calib_bin_edges = np.histogram(input_weights, bins=num_bins, range=(0, input_weights.max()))
-            calib_hist = [calib_hist]
-            calib_bin_edges = [calib_bin_edges]
-        else:
-            calib_hist = []
-            calib_bin_edges = []
-            for i in range(axis_size):
-                temp = input_weights[i]
-                hist, bin_edges = np.histogram(temp, bins=num_bins, range=(0, input_weights[i].max()))
-                calib_hist.append(hist)
-                calib_bin_edges.append(bin_edges)
-
-        calib_amax = []
-        if method == "max":
-            reduce_axis = list(range(tensor.dim()))
-            if axis is not None:
-                reduce_axis.remove(axis) 
-            calib_amax.append(reduce_amax(tensor, axis = reduce_axis))
-        elif method == "percentile": 
-            for i in range(axis_size):
-                calib_amax.append(_compute_amax_percentile(calib_hist[i], calib_bin_edges[i], percentile))
-        elif method == "mse":
-            for i in range(axis_size):
-                calib_amax.append(_compute_amax_mse(calib_hist[i], calib_bin_edges[i], levels))
-        else:
-            raise TypeError("Unsupported calibration method {}".format(method))
-        
-        # finally compute the resolution as a list of floats
-        if axis is None:
-            self.resolution = float((2./(levels - 1.)) * calib_amax[0])
-        else:
-            self.resolution = 0.0
-            # save for later use
-            self.amax_values = calib_amax
         
 
     # def fit(self, weights: Tensor) -> None:

@@ -829,7 +829,6 @@ void RPUCudaSimple<T>::modifyFBWeights(const WeightModifierParameter<T> &wmpar) 
         RPU::make_unique<WeightModifierCuda<T>>(context_, this->x_size_, this->d_size_);
     context_->synchronize();
   }
-
   // modify FB weights
   fb_wmodifier_cuda_->apply(dev_fb_weights_->getData(), dev_weights_->getDataConst(), wmpar);
 }

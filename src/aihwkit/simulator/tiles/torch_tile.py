@@ -13,6 +13,7 @@
 """Low level implementation of torch-based tile."""
 
 from typing import Callable, Any, Type, TYPE_CHECKING
+from math import sqrt
 
 from torch import Tensor, zeros, clamp, randn
 from torch.nn import Parameter, Module
@@ -21,7 +22,7 @@ from torch.autograd import no_grad
 from aihwkit.exceptions import TorchTileConfigError, AnalogBiasConfigError
 from aihwkit.simulator.tiles.analog_mvm import AnalogMVM
 from aihwkit.simulator.tiles.base import SimulatorTile
-from aihwkit.simulator.tiles.utils import UniformQuantize
+from aihwkit.simulator.tiles.utils import UniformQuantize, UniformQuantizeAddNoise, FunLSQ
 from aihwkit.simulator.parameters.enums import WeightModifierType, WeightClipType, WeightRemapType
 
 from aihwkit.simulator.parameters.inference import (
@@ -76,6 +77,11 @@ class TorchSimulatorTile(SimulatorTile, Module):
         # Don't use randn here to avoid changing the seed in
         # comparison to RPUCuda tiles
         self.weight = Parameter(zeros(self.d_size, self.x_size, dtype=dtype))
+
+        # check the modifier: if the learnable_step parameter is set to True, add the resolution as a learnable parameter
+        self.res = Parameter(zeros(1, dtype=dtype)) if self._modifier.learnable_step else None
+        if self._modifier.learnable_step:
+            self.register_buffer("init_state", zeros(1, dtype=dtype))
 
     def set_weights(self, weight: Tensor) -> None:
         """Set the tile weights.
@@ -192,8 +198,13 @@ class TorchSimulatorTile(SimulatorTile, Module):
             raise TorchTileConfigError("Non-trans MVMs supported only.")
 
         if not is_test:
+            
+            if self.init_state == 0 and self._modifier.learnable_step:
+                self.res.data.copy_(2 * self.weight.abs().mean() / int(self._modifier.levels/2))
+                self.init_state.fill_(1)
+
             noisy_weights = TorchSimulatorTile.modify_weight(
-                self.weight, self._modifier, x_input.shape[0]
+                self.weight, self.res, self._modifier, x_input.shape[0]
             )
         else:
             noisy_weights = self.weight
@@ -209,7 +220,7 @@ class TorchSimulatorTile(SimulatorTile, Module):
 
     @staticmethod
     def modify_weight(
-        inp_weight: Tensor, modifier: WeightModifierParameter, batch_size: int
+        inp_weight: Tensor, alpha: Tensor, modifier: WeightModifierParameter, batch_size: int,
     ) -> Tensor:
         """Weight modifier that adds noise to the weights according to rpu config.
 
@@ -241,11 +252,43 @@ class TorchSimulatorTile(SimulatorTile, Module):
             assumed_wmax = inp_weight.abs().max()
 
         if modifier.type == WeightModifierType.DISCRETIZE:
-            # - Discretize the weights on the fly and backprob through them
-            out_weight = inp_weight.clone().view(target_shape)
-            out_weight = UniformQuantize.apply(
-                out_weight, modifier.res, assumed_wmax, modifier.sto_round
-            )
+            if modifier.learnable_step and alpha is not None:
+                # print("alpha: ", alpha)
+                out_weight = inp_weight.clone().unsqueeze(0).repeat(batch_size, 1, 1) if per_batch_sample else inp_weight.clone().view(target_shape)
+                Qp = int(modifier.levels/2)
+                g = 1.0 / sqrt(out_weight.numel() * Qp)
+                out_weight = FunLSQ.apply(out_weight, alpha, g, Qp)
+            else:
+                # - Discretize the weights on the fly and backprob through them
+                out_weight = inp_weight.clone().unsqueeze(0).repeat(batch_size, 1, 1) if per_batch_sample else inp_weight.clone().view(target_shape)
+                out_weight = UniformQuantize.apply(
+                    out_weight, modifier.res, assumed_wmax, modifier.sto_round
+                )
+            # # Plot the weight distribution
+            # import matplotlib.pyplot as plt
+            # plt.hist(out_weight.detach().flatten().cpu().numpy(), bins=50)
+            # plt.savefig('/home/ecabiati/cellar/aihwkit/sandbox/cuda/weight_distribution_1.png')
+            
+        elif modifier.type == WeightModifierType.QUANTIZE_ADD_AND_SHIFT:
+            # - Discretize the weights and apply noise on the fly and backprob through them
+            out_weight = inp_weight.clone().unsqueeze(0).repeat(batch_size, 1, 1) if per_batch_sample else inp_weight.clone().view(target_shape)
+            out_weight = UniformQuantizeAddNoise.apply(
+                out_weight,
+                modifier.levels,
+                modifier.res,
+                modifier.g_max,
+                modifier.shift_values,
+                modifier.shift_std_devs,
+                assumed_wmax,
+                modifier.sto_round
+            ) 
+
+            # # Plot the weight distribution
+            # import matplotlib.pyplot as plt
+            # plt.hist(out_weight.detach().flatten().cpu().numpy(), bins=50)
+            # plt.savefig('/home/ecabiati/cellar/aihwkit/sandbox/cuda/weight_distribution.png')
+            
+
         elif modifier.type == WeightModifierType.ADD_NORMAL:
             with no_grad():
                 noise = (

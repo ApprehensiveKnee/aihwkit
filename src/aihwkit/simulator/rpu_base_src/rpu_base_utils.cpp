@@ -53,6 +53,7 @@ void declare_utils(py::module &m_devices, py::module &m_tiles) {
       .value("PCMNoise", RPU::WeightModifierType::PCMNoise)
       .value("ProgNoise", RPU::WeightModifierType::ProgNoise)
       .value("DropConnect", RPU::WeightModifierType::DropConnect)
+      .value("QuantizeAddAndShift", RPU::WeightModifierType::QuantizeAddAndShift)
       .value("None", RPU::WeightModifierType::Copy);
 
   py::enum_<RPU::WeightRemapType>(m_tiles, "WeightRemapType")

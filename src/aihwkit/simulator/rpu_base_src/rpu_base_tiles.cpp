@@ -55,7 +55,13 @@ void declare_rpu_tiles(py::module &m, std::string type_name_add) {
       .def_readwrite("pcm_prob_at_gmax", &RPU::WeightModifierParameter<T_RPU>::pcm_prob_at_gmax)
       .def_readwrite("pcm_prob_at_random", &RPU::WeightModifierParameter<T_RPU>::pcm_prob_at_random)
       .def_readwrite("pcm_t0", &RPU::WeightModifierParameter<T_RPU>::pcm_t0)
-      .def_readwrite("g_max", &RPU::WeightModifierParameter<T_RPU>::g_max);
+      .def_readwrite("g_max", &RPU::WeightModifierParameter<T_RPU>::g_max)
+      // -- MODIFIED: added quantizeaddandshift mod. type
+      .def_readwrite("levels", &RPU::WeightModifierParameter<T_RPU>::levels)
+      .def_readwrite("shift_values", &RPU::WeightModifierParameter<T_RPU>::shift_values)
+      .def_readwrite("shift_std_devs", &RPU::WeightModifierParameter<T_RPU>::shift_std_devs)
+      .def_readwrite("learnable_step", &RPU::WeightModifierParameter<T_RPU>::learnable_step);
+      // -- MODIFIED: added quantizeaddandshift mod. type
 
   // -- MODIFIED: added quantization parameter
   py::class_<RPU::WeightQuantizerParameter<T>>(m, NAME("WeightQuantizerParameter"))
@@ -67,6 +73,7 @@ void declare_rpu_tiles(py::module &m, std::string type_name_add) {
       .def_readwrite("method", &RPU::WeightQuantizerParameter<T>::method)
       .def_readwrite("zero_point", &RPU::WeightQuantizerParameter<T>::z)
       .def_readwrite("quantize_last_column", &RPU::WeightQuantizerParameter<T>::quantize_last_column)
+      .def_readwrite("rel_to_actual_wmax", &RPU::WeightQuantizerParameter<T>::rel_to_actual_wmax)
       .def_readwrite("quantizer_type", &RPU::WeightQuantizerParameter<T>::quantizer_type)
       .def_readwrite("quant_values", &RPU::WeightQuantizerParameter<T>::quant_values)
       .def_readwrite("use_forward" , &RPU::WeightQuantizerParameter<T>::use_training)

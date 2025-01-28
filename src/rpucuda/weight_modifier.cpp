@@ -42,6 +42,9 @@ void WeightModifier<T>::apply(
     if (wmpar.per_batch_sample) {
       RPU_FATAL("Per batch sample is not implemented in RPUCuda");
     }
+    if (wmpar.learnable_step) {
+      RPU_FATAL("Learnable step is not implemented in RPUCuda");
+    }
   }
 
   // just copy always if not in-place [also handles WeightModifierType::Copy]
@@ -93,6 +96,33 @@ void WeightModifier<T>::apply(
     }
     break;
   }
+  // == * == * == * == * == * == * == * == * == * == * ==
+  // ADDITIONS FOR THE QUANTIZE ADD AND SHIFT MODIFIER
+  // == * == * == * == * == * == * == * == * == * == * ==
+  case WeightModifierType::QuantizeAddAndShift: {
+    if (wmpar.levels > 0) {
+      const T res = (T)wmpar.res;
+      const bool sto_round = wmpar.sto_round;
+      const int levels = wmpar.levels;
+      const T z = (T)0.0;
+      const std::vector<T> &shift_values = wmpar.shift_values;
+      const std::vector<T> &shift_std_devs = wmpar.shift_std_devs;
+      const T g_max = wmpar.g_max;
+      const T scale = amax / g_max;
+
+      PRAGMA_SIMD
+      for (int i = 0; i < size_; i++) {
+        T w = new_weights[i];
+        int w_level = (int)getDiscretizedLevel(w/amax, res, z, sto_round, levels, rw_rng_);
+        // use the quantization level to get the mean value for the weight
+        int w_index = w_level + (int)(levels / 2);
+        new_weights[i] = shift_values[w_index] + shift_std_devs[w_index] * rw_rng_.sampleGauss();
+        new_weights[i] *= scale;
+      }
+    }
+    break;
+  }
+  // == * == * == * == * == * == * == * == * == * == * ==
   case WeightModifierType::MultNormal: {
 
     if (wmpar.std_dev > (T)0.0) {

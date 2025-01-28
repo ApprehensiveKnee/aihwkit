@@ -21,8 +21,8 @@ public:
 
   void apply(T *weights, const WeightQuantizerParameter<T> &wqpar);
 
-  void dumpExtra(RPU::state_t &extra, const std::string prefix){};
-  void loadExtra(const RPU::state_t &extra, const std::string prefix, bool strict){};
+  void dumpExtra(RPU::state_t &extra, const std::string prefix);
+  void loadExtra(const RPU::state_t &extra, const std::string prefix, bool strict);
 
 private:
     CudaContextPtr context_ = nullptr;
@@ -31,8 +31,10 @@ private:
     int size_ = 0;
 
     std::unique_ptr<Maximizer<T>> amaximizer_ = nullptr;
-    // std::unique_ptr<CudaArray<T>> temp_weights_ = nullptr;
-    // std::unique_ptr<CudaArray<char>> dev_temp_storage_ = nullptr;
+    std::vector<T> amax_values_;
+    std::unique_ptr<CudaArray<T>> dev_amax_values_ = nullptr;
+    std::vector<T> quant_values_;
+    std::unique_ptr<CudaArray<T>> dev_quant_values_ = nullptr;
 };
 
 } // namespace RPU

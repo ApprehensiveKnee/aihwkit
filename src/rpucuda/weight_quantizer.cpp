@@ -29,6 +29,11 @@ void WeightQuantizer<T>::apply(T *weights, const WeightQuantizerParameter<T> &wq
         return;
     }
 
+    // Check that, if rel_to_actual_wmax is set to true, the method is set to 'none'
+    if (wqpar.rel_to_actual_wmax && wqpar.getMethodName() != "none"){
+        RPU_FATAL("rel_to_actual_wmax is set to true, but method is not none");
+    }
+
     // If quantization for the bias is disabled, save the bias values
     // in a buffer
     if(wqpar.quantize_last_column == false){

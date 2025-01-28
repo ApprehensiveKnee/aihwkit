@@ -43,7 +43,11 @@ private:
   std::unique_ptr<Maximizer<T>> row_maximizer_ = nullptr;
   std::unique_ptr<Maximizer<T>> row_minimizer_ = nullptr;
   std::vector<T> coeffs_;
+  std::vector<T> shift_values_;
+  std::vector<T> shift_std_devs_;
   std::unique_ptr<CudaArray<T>> dev_coeffs_ = nullptr;
+  std::unique_ptr<CudaArray<T>> dev_shift_values_ = nullptr;
+  std::unique_ptr<CudaArray<T>> dev_shift_std_devs_ = nullptr;
 };
 
 } // namespace RPU

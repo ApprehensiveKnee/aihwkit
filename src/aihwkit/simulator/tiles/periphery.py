@@ -18,6 +18,7 @@ from typing import Optional, Tuple, Union, Any, List
 from numpy import array
 from aihwkit.simulator.parameters.helpers import parameters_to_bindings
 from aihwkit.simulator.parameters import WeightQuantizerParameter
+from aihwkit.simulator.parameters.inference import calibrate_weights
 import inspect
 
 from torch import (
@@ -170,7 +171,7 @@ class TileWithPeriphery(BaseTile, SimulatorTileWrapper):
         if wqpar is not None:
             # Quantize the weights before using weight scaling
             self.tile.set_weights(combined_weights)
-            wqpar.calibrate_weights(combined_weights, method = wqpar.method, per_channel=wqpar.amax_channelwise)
+            calibrate_weights(wqpar,combined_weights, method = wqpar.method, per_channel=wqpar.amax_channelwise)
             data_type = self.get_data_type()
             new_wqpar = parameters_to_bindings(
                     wqpar, data_type

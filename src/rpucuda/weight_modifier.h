@@ -28,6 +28,7 @@ enum class WeightModifierType {
   PCMNoise,
   DropConnect,
   ProgNoise,
+  QuantizeAddAndShift, // ADDED
 };
 
 template <typename T> struct WeightModifierParameter {
@@ -50,6 +51,15 @@ template <typename T> struct WeightModifierParameter {
   T pcm_prob_at_random = 0.0;
 
   T pcm_t0 = 20.0;
+
+  // == * == * == * == * == * == * == * == * == * == * ==
+  // parameters for the QuantizeAddAndShift modifier ( for now support only Uniform Quantization)
+  // for the resolution, we use the res parameter
+  int levels = 0;
+  std::vector<T> shift_values = {};
+  std::vector<T> shift_std_devs = {};
+  bool learnable_step = false;
+  // == * == * == * == * == * == * == * == * == * == * ==
 
   WeightModifierType type = WeightModifierType::Copy;
   std::vector<T> coeffs = {0.26348 / 25.0, 0.0768, -0.001877 * 25.0};
@@ -76,6 +86,8 @@ template <typename T> struct WeightModifierParameter {
       return "PCMNoise";
     case WeightModifierType::DropConnect:
       return "DropConnect";
+    case WeightModifierType::QuantizeAddAndShift:
+      return "QuantizeAddAndShift";
     default:
       return "Unknown";
     }
@@ -137,7 +149,16 @@ template <typename T> struct WeightModifierParameter {
     if (enable_during_test) {
       ss << "\t enabled during test." << std::endl;
     }
-
+    if (type == WeightModifierType::QuantizeAddAndShift) {
+      ss << "\t levels:\t\t" << levels << std::endl;
+      for (int i = 0; i < (int)shift_values.size(); i++) {
+        ss << "\t shift value [" << i << "]:\t" << shift_values[i] << std::endl;
+      }
+      for (int i = 0; i < (int)shift_std_devs.size(); i++) {
+        ss << "\t shift std_dev [" << i << "]:\t" << shift_std_devs[i] << std::endl;
+      }
+    }
+  
     ss << std::endl;
   }
 

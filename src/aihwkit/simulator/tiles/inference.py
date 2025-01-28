@@ -19,6 +19,7 @@ from typing import Optional, Union, Any, Tuple, List, Dict, TYPE_CHECKING
 from torch import device as torch_device
 from torch import ones, Tensor
 from torch.nn import Module
+from torch.cuda import empty_cache
 from torch.autograd import no_grad
 
 from aihwkit.exceptions import ConfigError
@@ -29,6 +30,7 @@ from aihwkit.simulator.tiles.rpucuda import RPUCudaSimulatorTileWrapper
 from aihwkit.simulator.tiles.base import BaseTile
 from aihwkit.simulator.rpu_base import tiles
 from aihwkit.simulator.parameters.helpers import parameters_to_bindings
+from aihwkit.simulator.parameters.inference import calibrate_weights
 from aihwkit.simulator.parameters.enums import WeightModifierType, WeightClipType, WeightRemapType, WeightQuantizerType
 from aihwkit.inference.noise.base import BaseNoiseModel
 
@@ -297,22 +299,6 @@ class InferenceTileWithPeriphery(TileWithPeriphery):
             # pylint: disable=attribute-defined-outside-init
             self._tmp = {}  # type: Dict[str, Any]
 
-        # ================================ QUANTIZATION ADDITION ================================
-        """ 
-        It is important to notice that, to some extent, the quantization could be imposed
-        using a combination of the clip and modify parameters: useing modify to discretize the
-        values and clip to limit the range. Those two parameters would still need to be used
-        in tight coupling.
-        """
-
-        if hasattr(self.rpu_config, "quantize") and self.rpu_config.quantization.type != WeightQuantizerType.NONE:
-            if on_the_fly_bindings or "weight_quantize_params" not in self._tmp:
-                self._tmp["weight_quantize_params"] = parameters_to_bindings(
-                    self.rpu_config.quantization, data_type
-                )
-            self.tile.quantize_weights(self._tmp["weight_quantize_params"])
-
-        # ================================ QUANTIZATION ADDITION ================================
         if hasattr(self.rpu_config, "clip") and self.rpu_config.clip.type != WeightClipType.NONE:
             if on_the_fly_bindings or "weight_clip_params" not in self._tmp:
                 self._tmp["weight_clip_params"] = parameters_to_bindings(
@@ -328,7 +314,7 @@ class InferenceTileWithPeriphery(TileWithPeriphery):
             scales = self.get_scales()
             scales = self.tile.remap_weights(self._tmp["weight_remap_params"], scales)
             self.set_scales(scales)
-
+        
         # update the forward / backward modified weights here
         if not hasattr(self.rpu_config, "modifier"):
             return
@@ -339,10 +325,13 @@ class InferenceTileWithPeriphery(TileWithPeriphery):
             and self.rpu_config.modifier.pdrop <= 0.0
         ):
             return
+        
+        
         if on_the_fly_bindings or "weight_modify_params" not in self._tmp:
             self._tmp["weight_modify_params"] = parameters_to_bindings(
                 self.rpu_config.modifier, data_type
             )
+
         self.tile.modify_weights(self._tmp["weight_modify_params"])  # type: ignore
 
     def __getstate__(self) -> Dict:

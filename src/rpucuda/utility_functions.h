@@ -265,7 +265,23 @@ inline T getDiscretizedValueClip( T value, T res, T z, bool sto_round, unsigned 
   return (initial_q - z)*res;
 }
 
+template <typename T, typename RNGClass>
+inline T getDiscretizedLevel( T value, T res, T z, bool sto_round, unsigned short levels ,RNGClass &rng) {
+  // difference between the getDiscretizedValueClip and getDiscretizedLevel is that the latter just returns the index
+  // of the quantization level instead of the quantized value
+  T initial_q =  (res <= (T)0.0)
+             ? value
+             : (sto_round ? (T)roundf(value / res + (rng.sampleUniform() - (T)0.5) + z)
+                          : (T)roundf(value / res + z));
 
+
+  initial_q = ((initial_q <= (T)(levels)/2.) && (initial_q >= -(T)(levels)/2.))
+              ? initial_q
+              : (initial_q > (T)(levels)/2. ? (T)(levels-1.)/2.
+                                             : -(T)(levels-1.)/2.);
+                                             
+  return initial_q;
+}
 
 // -- MODIFIED: utility function for non uniform quantization
 
