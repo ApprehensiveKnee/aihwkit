@@ -415,6 +415,7 @@ __global__ void kernelModifyWeightQuantizeAddAndShift(
     const bool copy_last_column,
     T *new_weights,
     const T *weights,
+    const T res_in, // need to larger than zero!!
     const int levels,
     const bool sto_round,
     const T gmax_in,
@@ -425,11 +426,18 @@ __global__ void kernelModifyWeightQuantizeAddAndShift(
     curandState_t *random_states){
   T amax = (wmax) ? (*wmax) : assumed_wmax;
   amax = amax > (T)0.0 ? amax : (T)1.0;
-  // the resolution in this case is derived directly form amax and the number of levels
-  // requested. To compute it, we used the inverse of the logaritm of the number of levels - 1
-  // in base 2. 
-  const T res = (T)1.0 / (T)log2((T)(levels - 1));
-  const T scale = amax / gmax_in;
+  // the resolution in this case is derived directly from the number of levels
+  // requested. 
+  const T res = (res_in == 0) ? (T)1.0 / (T)log2((T)(levels - 1)) : res_in;
+  T max_quant_value = round(1. / res);
+  if (max_quant_value < - (T)(levels - 1) / 2.) {
+    max_quant_value = - (T)(levels - 1) / 2.;
+  } else if (max_quant_value > (T)(levels-1) / 2.) {
+    max_quant_value = (T)(levels - 1) / 2.;
+  }
+  max_quant_value = max_quant_value * res * amax;
+  const T scale = max_quant_value / gmax_in;
+
   RPU_WM_KERNEL_LOOP(
       sto_round,
       
@@ -452,17 +460,17 @@ __global__ void kernelModifyWeightQuantizeAddAndShift(
       int w_index = w_level + (int)(levels / 2);
 
       new_weights[i] = shift_values[w_index] + shift_std_devs[w_index] * curand_normal(&local_state);
-      // if (i == 0) {
-      //   printf("res: %f\n" , res);
-      //   printf("amax: %f\n", amax);
-      //   printf("weight[i]%f\n", weights[i]);
-      //   printf("w_level: %f, w_index: %d, new_weights: %f\n", w_level, w_index, new_weights[i]);
-      // }
+
 
       new_weights[i] *= scale;
 
-      // if (i == 0) {
-      //   printf("new_weights: %f\n", new_weights[i]);
+      // if (i == 0){
+      // printf("----------------\n");
+      // printf("max_quant_value: %f\n", max_quant_value);
+      // printf("res: %f\n", res);
+      // printf("amax: %f\n", amax);
+      // printf("scale: %f\n", scale);
+      // printf("new_weights[i]: %f\n", new_weights[i]);
       // }
       );
     }
@@ -684,7 +692,7 @@ void WeightModifierCuda<T>::apply(
       }
 
       kernelModifyWeightQuantizeAddAndShift<T><<<nblocks, nthreads, 0, s>>>(
-          size_, d_size_, wmpar.copy_last_column, new_weights, weights, wmpar.levels,
+          size_, d_size_, wmpar.copy_last_column, new_weights, weights, wmpar.res, wmpar.levels,
           wmpar.sto_round, wmpar.g_max, dev_shift_values_->getData(), dev_shift_std_devs_->getData(), wmpar.assumed_wmax, amax,
           context_->getRandomStates(nblocks * nthreads));
       done = true;

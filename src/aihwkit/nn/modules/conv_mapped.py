@@ -109,9 +109,6 @@ class _AnalogConvNdMapped(AnalogLayerBase, _ConvNd):
                 in_tiles.append(analog_tile)
             self.array.append(in_tiles)
 
-        # Set weights from the reset_parameters (since now the
-        # analog_tiles are registered)
-        self.set_weights(self.weight, self.bias, rpu_config.quantization)
 
         # Set the index matrices.
         self.use_indexed = use_indexed
@@ -192,7 +189,7 @@ class _AnalogConvNdMapped(AnalogLayerBase, _ConvNd):
         if hasattr(self, "array"):
             self.weight, _ = self.get_weights()
             super().reset_parameters()
-            self.set_weights(self.weight, self.bias, rpu_config.quantization)
+            self.set_weights(self.weight, self.bias)
             self.weight = None
 
     def _calculate_indexes(
@@ -711,7 +708,6 @@ class AnalogConv2dMapped(_AnalogConvNdMapped):
             rpu_config,
             tile_module_class,
         )
-
         analog_layer.set_weights(module.weight, module.bias, rpu_config.quantization)
         return analog_layer.to(module.weight.device)
 
@@ -918,7 +914,6 @@ class AnalogConv3dMapped(_AnalogConvNdMapped):
             rpu_config,
             tile_module_class,
         )
-
         analog_layer.set_weights(module.weight, module.bias, rpu_config.quantization)
         return analog_layer.to(module.weight.device)
 

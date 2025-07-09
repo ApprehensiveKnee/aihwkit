@@ -99,7 +99,7 @@ class AnalogLinear(AnalogLayerBase, Linear):
             bias = self.bias
             self.weight, self.bias = self.get_weights()  # type: ignore
             super().reset_parameters()
-            self.set_weights(self.weight, self.bias, rpu_config.quantization)  # type: ignore
+            self.set_weights(self.weight, self.bias)  # type: ignore
             self.weight, self.bias = None, bias
 
     def forward(self, x_input: Tensor) -> Tensor:

@@ -16,10 +16,16 @@ from typing import Union, Tuple
 from numpy import ndarray
 from math import log2
 
-from torch import Tensor, tensor, ones
+from torch import Tensor, tensor, ones, floor, round
 from torch import isinf as torch_isinf
 
 from torch.autograd.function import FunctionCtx, InplaceFunction, Function
+
+def cround(x):
+    if x - floor(x) == 0.5:
+        return floor(x)
+    else:
+        return (x)
 
 
 class UniformQuantize(InplaceFunction):
@@ -48,6 +54,7 @@ class UniformQuantize(InplaceFunction):
         assert res > 0, "resolution is <= 0"
         # - Scale res by range
         res *= 2 * bound
+
         output = inp.clone()
         output = output / res
         ctx.stochastic = stochastic
@@ -94,6 +101,8 @@ class FunLSQ(Function):
         ctx.other = g, bound
         q_w = (weight / res).round().clamp(-bound, bound)
         w_q = q_w * res
+
+        # print(w_q)
         return w_q
 
     @staticmethod
@@ -106,10 +115,10 @@ class FunLSQ(Function):
         indicate_middle = 1.0 - indicate_small - indicate_big
         grad_res = ((indicate_small * (-bound) + indicate_big * bound + indicate_middle * (
                 -q_w + q_w.round())) * grad_weight * g).sum().unsqueeze(dim=0)
-        grad_weight = indicate_middle * grad_weight
+        # grad_weight = indicate_middle * grad_weight
         # The following operation can make sure that res is always greater than zero in any case and can also
         # suppress the update speed of res. (Personal understanding)
-        # grad_res.clamp_(-res.item(), res.item())  # FYI
+        grad_res.clamp_(-res.item(), res.item())  # FYI
         return grad_weight, grad_res, None, None
     
 
@@ -156,15 +165,17 @@ class UniformQuantizeAddNoise(InplaceFunction):
         torch.Tensor: Quantized input.
         """
         # - Compute the resolution based on the number of quantization states
-        res = 1./(level-1) if level > 0 else 1/res if res > 1.0 else res
+        res = 1./(level) if level > 0 and res == 0 else 1/res if res > 1.0 else res
         assert res > 0, "resolution is <= 0"
-        # - Scale res by range
-        res *= 2 * bound
+        if level > 0:
+            lev =int((level-1)/2)
 
         # - Compute the maximum quantization value
-
-        max_quant_val = round(bound.item() / res.item()) * res.item()
+        max_quant_val = lev * res * bound if level > 0 else cround(bound/res) * res * bound
         scale = max_quant_val / g_max
+
+        # - Scale res by range
+        res *= bound
 
         output = inp.clone()
         output = output / res
@@ -180,18 +191,21 @@ class UniformQuantizeAddNoise(InplaceFunction):
             output = output.round()
 
         # - Check that the output is within the level bounds
-        lev =int((level-1)/2)
+        output = output.clamp(-lev, lev)
 
         # - Now each element of the output tensor is an integer value between -max_val and max_val:
         #   we add max_val to each element to have values between 0 and 2*max_val, then used as index
         #   for the shift_values and shift_std lists.
-        shift_values = (tensor(shift_values) * scale)
-        shift_std = (tensor(shift_std) * scale)
+        shift_values = (tensor(shift_values))
+        shift_std = (tensor(shift_std))
 
         cuda_check = output.is_cuda 
         if cuda_check:
             shift_values = shift_values.cuda()
             shift_std = shift_std.cuda()
+
+        shift_values = shift_values*scale
+        shift_std = shift_std*scale
 
         output.add_(lev)
         output = shift_values[output.int()] + shift_std[output.int()] * output.new(output.shape).normal_()
@@ -212,6 +226,58 @@ class UniformQuantizeAddNoise(InplaceFunction):
         # - Straight-through estimator
         grad_input = grad_output
         return grad_input, None, None, None, None, None, None, None
+    
+
+class LearnableUniformQuantizeAddNoise(InplaceFunction):
+
+    @staticmethod
+    def forward(ctx, weight: Tensor, res : float , g: float, bound : int, g_max : float, shift_values : list, shift_std : list) -> Tensor:
+        assert res > 0, 'res = {}'.format(res)
+        ctx.save_for_backward(weight, res)
+        ctx.other = g, bound
+        weight = weight.clone()
+        amax = weight.abs().max()
+        q_w = (weight / res ).round().clamp(-bound, bound)
+        
+        
+        # Compute scaling factor
+        scale = bound * res / g_max
+
+
+        shift_values = (tensor(shift_values))
+        shift_std = (tensor(shift_std))
+
+        cuda_check = q_w.is_cuda 
+        if cuda_check:
+            shift_values = shift_values.cuda()
+            shift_std = shift_std.cuda()
+
+        shift_values = shift_values*scale
+        shift_std = shift_std*scale
+
+        q_w.add_(bound)
+        q_w = shift_values[q_w.int()] + shift_std[q_w.int()] * q_w.new(q_w.shape).normal_()
+
+        # print(q_w)
+
+        w_q = q_w
+        return w_q
+
+    @staticmethod
+    def backward(ctx, grad_weight):
+        weight, res = ctx.saved_tensors
+        g, bound = ctx.other
+        q_w = weight / res
+        indicate_small = (q_w < bound).float()
+        indicate_big = (q_w > bound).float()
+        indicate_middle = 1.0 - indicate_small - indicate_big
+        grad_res = ((indicate_small * (-bound) + indicate_big * bound + indicate_middle * (
+                -q_w + q_w.round())) * grad_weight * g).sum().unsqueeze(dim=0)
+        # grad_weight = indicate_middle * grad_weight
+        # The following operation can make sure that res is always greater than zero in any case and can also
+        # suppress the update speed of res. (Personal understanding)
+        grad_res.clamp_(-res.item(), res.item())  # FYI
+        return grad_weight, grad_res, None, None, None, None, None
 
 
 

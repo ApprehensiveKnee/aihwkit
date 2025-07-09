@@ -119,57 +119,57 @@ class WeightQuantDescriptor():
 
         
     
-def calibrate_weights(weights, weight_quant_descriptor, num_bins=2048):
-    """Calibrate the amax values of the weight quantizers in for a single tensor
-    """
-    levels = weight_quant_descriptor.levels
-    method = weight_quant_descriptor.calib_method
+# def calibrate_weights(weights, weight_quant_descriptor, num_bins=2048):
+#     """Calibrate the amax values of the weight quantizers in for a single tensor
+#     """
+#     levels = weight_quant_descriptor.levels
+#     method = weight_quant_descriptor.calib_method
 
-    if weight_quant_descriptor.channel_wise:
-        axis = 0 # for transpose convolutions, the channel axis would be 1
-    else:
-        axis = None
-    axis_size = weights.shape[axis] if axis is not None else 1
+#     if weight_quant_descriptor.channel_wise:
+#         axis = 0 # for transpose convolutions, the channel axis would be 1
+#     else:
+#         axis = None
+#     axis_size = weights.shape[axis] if axis is not None else 1
 
-    # Histogram is always collected even if method is "max". Although "max" is supported here
-    # but it is not the primary usage of this function
-    if axis is None:
-        input_weights = weights.abs().cpu().detach().numpy()
-        calib_hist, calib_bin_edges = np.histogram(input_weights, bins=2048, range=(0, input_weights.max()))
-        calib_hist = [calib_hist]
-        calib_bin_edges = [calib_bin_edges]
-    else:
-        calib_hist = []
-        calib_bin_edges = []
-        for i in range(axis_size):
-            input_weights = weights.index_select(axis, torch.tensor(
-                i, device=weights.device)).abs().cpu().detach().numpy()
-            hist, bin_edges = np.histogram(input_weights, bins=num_bins, range=(0, input_weights.max()))
-            calib_hist.append(hist)
-            calib_bin_edges.append(bin_edges)
+#     # Histogram is always collected even if method is "max". Although "max" is supported here
+#     # but it is not the primary usage of this function
+#     if axis is None:
+#         input_weights = weights.abs().cpu().detach().numpy()
+#         calib_hist, calib_bin_edges = np.histogram(input_weights, bins=2048, range=(0, input_weights.max()))
+#         calib_hist = [calib_hist]
+#         calib_bin_edges = [calib_bin_edges]
+#     else:
+#         calib_hist = []
+#         calib_bin_edges = []
+#         for i in range(axis_size):
+#             input_weights = weights.index_select(axis, torch.tensor(
+#                 i, device=weights.device)).abs().cpu().detach().numpy()
+#             hist, bin_edges = np.histogram(input_weights, bins=num_bins, range=(0, input_weights.max()))
+#             calib_hist.append(hist)
+#             calib_bin_edges.append(bin_edges)
 
-    calib_amax = []
-    if method == "max":
-        reduce_axis = list(range(weights.dim()))
-        reduce_axis.remove(axis)
-        calib_amax.append(reduce_amax(weights, axis=reduce_axis))
-    elif method == 'mse':
-        for i in range(axis_size):
-            calib_amax.append(_compute_amax_mse(calib_hist[i], calib_bin_edges[i], levels))
-    elif method == 'percentile':
-        for i in range(axis_size):
-            calib_amax.append(_compute_amax_percentile(calib_hist[i], calib_bin_edges[i], weight_quant_descriptor.percentile))
-    else:
-        raise TypeError("Unsupported calibration method {}".format(method))
+#     calib_amax = []
+#     if method == "max":
+#         reduce_axis = list(range(weights.dim()))
+#         reduce_axis.remove(axis)
+#         calib_amax=reduce_amax(weights, axis=reduce_axis)
+#     elif method == 'mse':
+#         for i in range(axis_size):
+#             calib_amax.append(_compute_amax_mse(calib_hist[i], calib_bin_edges[i], levels))
+#     elif method == 'percentile':
+#         for i in range(axis_size):
+#             calib_amax.append(_compute_amax_percentile(calib_hist[i], calib_bin_edges[i], weight_quant_descriptor.percentile))
+#     else:
+#         raise TypeError("Unsupported calibration method {}".format(method))
 
-    if axis is None:
-        calib_amax = calib_amax[0]
-    else:
-        calib_amax_shape = [1] * weights.dim()
-        calib_amax_shape[axis] = weights.shape[axis]
-        calib_amax = torch.stack(calib_amax).reshape(calib_amax_shape)
+#     if axis is None:
+#         calib_amax = calib_amax[0]
+#     else:
+#         calib_amax_shape = [1] * weights.dim()
+#         calib_amax_shape[axis] = weights.shape[axis]
+#         calib_amax = torch.stack(calib_amax).reshape(calib_amax_shape)
 
-    return calib_amax.detach().cpu().numpy()
+#     return calib_amax.detach().cpu().numpy()
 
 
 class QuantizeTensor(InplaceFunction):

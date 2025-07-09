@@ -108,7 +108,8 @@ void WeightModifier<T>::apply(
       const std::vector<T> &shift_values = wmpar.shift_values;
       const std::vector<T> &shift_std_devs = wmpar.shift_std_devs;
       const T g_max = wmpar.g_max;
-      const T scale = amax / g_max;
+      const T bound = int(levels / 2);
+      const T scale = bound * res * amax / g_max;
 
       PRAGMA_SIMD
       for (int i = 0; i < size_; i++) {

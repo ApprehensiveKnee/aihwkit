@@ -72,8 +72,8 @@ RESULTS = os.path.join(os.getcwd(), "results", "LENET5")
 
 # Training parameters
 SEED = 1
-N_EPOCHS = 30
-BATCH_SIZE = 8
+N_EPOCHS = 70
+BATCH_SIZE = 64
 LEARNING_RATE = 0.01
 N_CLASSES = 10
 
@@ -98,8 +98,6 @@ if USE_ANALOG_TRAINING:
                                     modifier= WeightModifierParameter(type=WeightModifierType.NONE,),
                                     drift_compensation=None,  
                                     )
-    RPU_CONFIG.mapping.weight_scaling_columnwise = True,
-    RPU_CONFIG.mapping.weight_scaling_omega = 1,
 else:
     RPU_CONFIG = FloatingPointRPUConfig(device=FloatingPointDevice())
 
@@ -348,7 +346,10 @@ if __name__ == "__main__":
     # Make sure the directory where to save the results exist.
     # Results include: Loss vs Epoch graph, Accuracy vs Epoch graph and vector data.
     os.makedirs(RESULTS, exist_ok=True)
+    print(RESULTS)
     torch.manual_seed(SEED)
+
+    exit(0)
 
     # Load datasets.
     train_data, validation_data = load_images()

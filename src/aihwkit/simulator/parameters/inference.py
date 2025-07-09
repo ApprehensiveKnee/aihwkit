@@ -80,13 +80,18 @@ def calibrate_weights(par, tensor , method="percentile", per_channel = True ,per
             reduce_axis = list(range(tensor.dim()))
             if axis is not None:
                 reduce_axis.remove(axis) 
-            calib_amax.append(reduce_amax(tensor, axis = reduce_axis))
+            calib_amax=reduce_amax(tensor, axis = reduce_axis)
+            calib_amax.squeeze_()
+            calib_amax = calib_amax.tolist()
+            if axis is None:
+                calib_amax = [calib_amax]
         elif method == "percentile": 
             for i in range(axis_size):
                 calib_amax.append(_compute_amax_percentile(calib_hist[i], calib_bin_edges[i], percentile))
         elif method == "mse":
             for i in range(axis_size):
                 calib_amax.append(_compute_amax_mse(calib_hist[i], calib_bin_edges[i], levels))
+                # print("Calibrated amax for channel {} is {}".format(i, calib_amax[i]))
         else:
             raise TypeError("Unsupported calibration method {}".format(method))
         

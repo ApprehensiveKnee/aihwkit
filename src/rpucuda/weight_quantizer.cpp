@@ -50,16 +50,16 @@ void WeightQuantizer<T>::apply(T *weights, const WeightQuantizerParameter<T> &wq
     // amax represents int_range/float_range [(2**bits/(beta-alpha)]
     if (wqpar.rel_to_actual_wmax && wqpar.amax_channelwise == false) {
         // compute the max absolute value for the tile
-        T amax = 0.0;
+        T wmax = 0.0;
         PRAGMA_SIMD
         for (int i = 0; i < size_; i++) {
             if (wqpar.quantize_last_column && (i % x_size_) == x_size_ - 1) {
                 continue;
             }
             T a = (T)fabsf(weights[i]);
-            amax = a > amax ? a : amax;
+            wmax = a > wmax ? a : wmax;
         }
-        amax = amax > (T)0.0 ? amax : (T)1.0;
+        amax = wmax > (T)0.0 ? wmax : (T)1.0;
     }
     // =================================================================
 
@@ -82,6 +82,7 @@ void WeightQuantizer<T>::apply(T *weights, const WeightQuantizerParameter<T> &wq
             resolutions[i] = (T)((2./(levels-1.)) * wqpar.amax_values[i]);
         }
     }
+
     
     // Check for the quantizer_type 
     switch (wqpar.quantizer_type){

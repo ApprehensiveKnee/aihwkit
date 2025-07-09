@@ -135,7 +135,7 @@ class _AnalogConvNd(AnalogLayerBase, _ConvNd):
             bias = self.bias
             self.weight, self.bias = self.get_weights()  # type: ignore
             super().reset_parameters()
-            self.set_weights(self.weight, self.bias, rpu_config.quantization)
+            self.set_weights(self.weight, self.bias)
             self.weight, self.bias = None, bias
 
     @no_grad()
@@ -189,6 +189,11 @@ class _AnalogConvNd(AnalogLayerBase, _ConvNd):
                 self.set_weights(self.weight, self.bias, self.wqpar)
 
             out =  self.analog_module(x_input, tensor_view=self.tensor_view)
+
+            # weights, _ = self.get_weights()
+            # import matplotlib.pyplot as plt
+            # plt.hist(weights.flatten().detach().cpu().numpy(), bins=100)
+            # plt.savefig("/home/ecabiati/cellar/aihwkit/sandbox/cuda/test/weights.png")
 
             if self.wqpar is not None and self.wqpar.use_forward:
                 if not self.wqpar.use_inplace:
@@ -335,7 +340,6 @@ class AnalogConv1d(_AnalogConvNd):
             rpu_config,
             tile_module_class,
         )
-
         analog_layer.set_weights(module.weight, module.bias, rpu_config.quantization)
         return analog_layer.to(module.weight.device)
 
@@ -726,7 +730,6 @@ class AnalogConv3d(_AnalogConvNd):
             rpu_config,
             tile_module_class,
         )
-
         analog_layer.set_weights(module.weight, module.bias, rpu_config.quantization)
         return analog_layer.to(module.weight.device)
 

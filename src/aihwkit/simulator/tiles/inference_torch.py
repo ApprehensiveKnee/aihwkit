@@ -258,6 +258,8 @@ class TorchInferenceTile(TileModule, InferenceTileWithPeriphery, SimulatorTileWr
         dic = {}
         if self.tile.out_noise_values is not None:
             dic["out_noise_values"] = self.tile.out_noise_values
+        if self.tile.res is not None:
+            dic["res"] = self.tile.res
         return dic
 
     def set_forward_parameters(

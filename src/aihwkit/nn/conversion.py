@@ -95,7 +95,6 @@ def convert_to_analog(
     exclude_modules: Optional[List[str]] = None,
     inplace: bool = False,
     verbose: bool = False,
-    apply_quant_on_first: bool = True,
 ) -> Module:
     """Convert a given digital model to its analog counterpart.
 
@@ -204,10 +203,8 @@ def convert_to_analog(
                 True,
                 exclude_modules,
                 True,
-                verbose,
-                apply_quant_on_first
+                verbose
             )
-            apply_quant_on_first = True
             continue
         if mod.__class__ not in conversion_map.keys():
             continue
@@ -228,26 +225,17 @@ def convert_to_analog(
     if ensure_analog_root and not module_name and not isinstance(module, AnalogLayerBase):
         module = AnalogWrapper(module)
 
-    
-    # ======================== WAY OF HANDLING QUANTIZATION USING CONVERT_TO_ANALOG ========================
     if hasattr(rpu_config, "quantization") and rpu_config.quantization is not None:
         # Loop over the layers and set the quantization
         # Check that the module has the analog_modules method or is not an AnalogSequential
         if hasattr(module, "analog_modules") and not (isinstance(module, AnalogSequential) or isinstance(module, AnalogWrapper)):
             for analog_layer in module.analog_modules():
-                if apply_quant_on_first==False:
-                    apply_quant_on_first=True
-                    continue
                 # For each layer, reset the original weights and set the quantization
                 weight, bias = analog_layer.get_weights()
                 analog_layer.set_weights(weight, bias, rpu_config.quantization)
-        # if isinstance(module, AnalogSequential) or isinstance(module, AnalogWrapper):
-        #     weight_dict = module.get_weights()
-        #     #print(module.set_weights)
-        #     module.set_weights(weight_dict, rpu_config.quantization)
 
     return module
-
+        
 
 def convert_to_analog_mapped(
     module: Module,

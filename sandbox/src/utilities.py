@@ -21,7 +21,7 @@ from scipy.optimize import curve_fit
 from scipy.interpolate import CubicSpline
 import os
 
-def import_mat_file(file_path: str, type: str = None):
+def import_wmat_file(file_path: str, type: str = None):
     '''
     The function takes as input a path to a .mat file and extracts the data for later use.
     This function is used to import the experimental data to then superimpose it on the weight/conductance
@@ -41,6 +41,39 @@ def import_mat_file(file_path: str, type: str = None):
         mask = [True if type == variables['str'][i] else False for i in range(len(variables['str']))]
         variables['ww_mdn'] = variables['ww_mdn'][:, mask].clone().detach()
         variables['ww_std'] = variables['ww_std'][:, mask].clone().detach()
+        variables['str'] = [type]
+    
+    return variables
+
+def import_gmat_file(file_path: str, type: str = None):
+    '''
+    Same as import_mat_file, but for a different data format: in this case, the data is related to 
+    conductance values from 
+    '''
+    data = scipy.io.loadmat(file_path)
+    INCLUDE = ['gg_mdn', 'gg_std', 'str']
+    variables = {}
+    for key in INCLUDE:
+        variables[key] = data[key]
+        if key == 'str':
+            variables[key] = [str(variables[key][0][i][0]) for i in range(variables[key].shape[1])]
+        elif key == 'gg_mdn' or key == 'gg_std':
+            variables[key] = torch.tensor(variables[key][:,:])
+            # append a zero line of mdn and std to the data, for each noise type
+            variables[key] = torch.cat((torch.zeros((1, variables[key].shape[1])), variables[key]), 0)
+            # delete the last N lines, based on the file name
+            if '3bit.mat' in file_path:
+                raise ValueError('The file 3bit.mat is not supported for conductance data')
+            elif '4bit.mat' in file_path:
+                N = 8
+            variables[key] = variables[key][:-N, :]
+            # append mirrored -variables[key][1:] to variables[key]
+            variables[key] = torch.cat((-torch.flip(variables[key][1:], [0]), variables[key]), 0)
+
+    if type is not None:
+        mask = [True if type == variables['str'][i] else False for i in range(len(variables['str']))]
+        variables['gg_mdn'] = variables['gg_mdn'][:, mask].clone().detach()
+        variables['gg_std'] = variables['gg_std'][:, mask].clone().detach()
         variables['str'] = [type]
     
     return variables
@@ -73,7 +106,7 @@ def correct(x: list , y_old: list, weights: list = None):
         y_new[i] = (y_old[i])/slope
     return y_new
 
-def interpolate(levels: int, file_path: str, type: str = None, force_interpolation: bool = False, compensation: bool = False, gmax:float = 40.0, debug: bool = False, interp_type : str = "scipy"):
+def interpolate(levels: int, file_path: str, type: str = None, force_interpolation: bool = False, compensation: bool = False, gmax:float = 40.0, conductance_type: str = "w",debug: bool = False, interp_type : str = "scipy"):
     '''
     The function makes consistent use of the import_mat_file function.
     In addition to importing the data, it interpolates the data to match the number of levels chosen:
@@ -99,22 +132,31 @@ def interpolate(levels: int, file_path: str, type: str = None, force_interpolati
     if levels is None:
         return import_mat_file(file_path, type)
     
+    if conductance_type == "w":
+        mdn = "ww_mdn"
+        std = "ww_std"
+    elif conductance_type == "g":
+        mdn = "gg_mdn"
+        std = "gg_std"
+    else:
+        raise ValueError('The conductance type is not supporteds') 
+    
     # if levels == -1 we are asking for to interpolate the .mat file with -levels degrees of freedom (polyfit)
     if levels < 0:
         deg = -levels
-        data = import_mat_file(file_path, type)
+        data = import_wmat_file(file_path, type) if conductance_type == "w" else import_gmat_file(file_path, type)
         mdn_p = []
         std_p = []
         # fit the data with a polynomial of degree deg and return the coefficients
-        for key in ['ww_mdn', 'ww_std']:
+        for key in [mdn, std]:
             for i in range(data[key].shape[1]):
                 levels = 9 if '3bit.mat' in file_path else 17
                 with warnings.catch_warnings():
                     warnings.simplefilter('ignore', RankWarning)
                     coeffs = np.poly1d(np.polyfit(np.linspace(-gmax, gmax, levels), data[key][:, i]*1e6, deg)) if interp_type == "np" else  CubicSpline(np.linspace(-gmax, gmax, levels), data[key][:, i]*1e6) if interp_type == "scipy" else None
-                mdn_p.append(coeffs) if key == 'ww_mdn' else std_p.append(coeffs)
-        data['ww_mdn'] = mdn_p
-        data['ww_std'] = std_p
+                mdn_p.append(coeffs) if key == mdn else std_p.append(coeffs)
+        data[mdn] = mdn_p
+        data[std] = std_p
         return data
             
 
@@ -135,38 +177,38 @@ def interpolate(levels: int, file_path: str, type: str = None, force_interpolati
     if levels in NO_INTERPOLATION_NEEDED:
         if force_interpolation and ((levels == 17 and file_name == '3bit.mat') or (levels == 9 and file_name == '4bit.mat')):
             print(f'The data for {levels} will be interpolated/extrapolated from {file_name}')
-            data = import_mat_file(file_path, type)
+            data = import_wmat_file(file_path, type) if conductance_type == "w" else import_gmat_file(file_path, type)
             if file_name == '3bit.mat':
-                for key in ['ww_mdn', 'ww_std']:
+                for key in [mdn, std]:
                     temp_data = np.zeros((17, data[key].shape[1]))
                     for i in range(data[key].shape[1]):
                         temp = np.interp(np.linspace(-gmax, gmax, 17), np.linspace(-gmax, gmax, 9), data[key][:, i])
                         temp_data[:, i] = temp
                     data[key] = torch.tensor(temp_data)
             else:
-                for key in ['ww_mdn', 'ww_std']:
+                for key in [mdn, std]:
                     data[key] = data[key][::2, :]
         elif levels == levels_file_name:
-            data =  import_mat_file(file_path, type)
+            data =  import_wmat_file(file_path, type) if conductance_type == "w" else import_gmat_file(file_path, type)
         else:
             print(f'The number of levels is {levels}, but the file {file_name} has {levels_file_name} levels')
             print('Overriding the file choce to respect the number of levels chosen...')
             file_name = INVERSE_MAP[levels]
             print(f'Switching to {levels} levels source file --> {file_name}')
             file_path = os.path.split(file_path)[0] + '/' + file_name
-            data =  import_mat_file(file_path, type)
+            data =  import_wmat_file(file_path, type) if conductance_type == "w" else import_gmat_file(file_path, type)
     else:
         # Take the data from the specified file
-        data = import_mat_file(file_path, type)
+        data = import_wmat_file(file_path, type) if conductance_type == "w" else import_gmat_file(file_path, type)
         # If the number fo levels is 5 or 3, we can just get rid of the redundant levels
         if levels in [5, 3]:
             hops = (levels_file_name - 1) // (levels - 1)
-            for key in ['ww_mdn', 'ww_std']:
+            for key in [mdn, std]:
                 data[key] = data[key][::hops, :]
         # If the number of levels is 33, we need to interpolate the data
         # to match the number of levels
         elif levels == 33:
-            for key in ['ww_mdn', 'ww_std']:
+            for key in [mdn, std]:
                 temp_data = np.zeros((33, data[key].shape[1]))
                 for i in range(data[key].shape[1]):
                     temp = np.interp(np.linspace(-gmax, gmax, 33), np.linspace(-gmax, gmax, MAP[file_name]), data[key][:, i])
@@ -176,7 +218,7 @@ def interpolate(levels: int, file_path: str, type: str = None, force_interpolati
 
     if compensation:
         # Correct the data
-        for key in ['ww_mdn']:
+        for key in [mdn]:
             for i in range(data[key].shape[1]):
                 # Use a gaussian distribution centered at 0 to weight the linear regression
                 #   UNIFORM WEIGHTS
@@ -196,9 +238,9 @@ def interpolate(levels: int, file_path: str, type: str = None, force_interpolati
         fig, ax = plt.subplots(1,2, figsize=(20, 10))
         x = np.linspace(-gmax, gmax, levels)
         noise_types = data['str']
-        for i in range(data['ww_mdn'].shape[1]):
-            ax[0].plot(x, data['ww_mdn'][:, i], label=f'{noise_types[0][i]} ', marker = "D")
-            ax[1].plot(x, data['ww_std'][:, i], label=f'{noise_types[0][i]} ', marker = "D")
+        for i in range(data[mdn].shape[1]):
+            ax[0].plot(x, data[mdn][:, i], label=f'{noise_types[0][i]} ', marker = "D")
+            ax[1].plot(x, data[std][:, i], label=f'{noise_types[0][i]} ', marker = "D")
         ax[0].set_ylabel(r" $W$ ($\mu$S)", fontsize=14, loc = 'top')
         ax[1].set_ylabel(r" $\sigma W$ ($\mu$S)", fontsize=14, loc = 'top')
         ax[0].set_xlabel(r" $W_{target}$ ($\mu$S)", fontsize=14, loc = 'right')
@@ -217,7 +259,7 @@ def interpolate(levels: int, file_path: str, type: str = None, force_interpolati
 
 
     if type is not None:
-        for key in ['ww_mdn', 'ww_std']:
+        for key in [mdn, std]:
             data[key] = data[key][:, 0].squeeze()
 
 
